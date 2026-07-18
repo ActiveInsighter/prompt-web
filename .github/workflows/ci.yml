@@ -1,0 +1,111 @@
+name: Prompt Web CI
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '.github/latest-run-id.txt'
+      - '.github/latest-run-url.txt'
+      - '.github/latest-run.json'
+      - '.github/build-history.json'
+      - '.github/latest-build-log.txt'
+      - '.github/latest-actions-log.txt'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: prompt-web-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Record run start
+        run: node scripts/record-run-state.mjs start
+
+      - name: Commit run start
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        run: node scripts/git-commit-state.mjs "Record workflow start [skip ci]"
+
+      - name: Initialize build log
+        shell: bash
+        run: |
+          mkdir -p .github
+          : > .github/latest-build-log.txt
+          {
+            echo "repository=$GITHUB_REPOSITORY"
+            echo "workflow=$GITHUB_WORKFLOW"
+            echo "run_id=$GITHUB_RUN_ID"
+            echo "run_attempt=$GITHUB_RUN_ATTEMPT"
+            echo "head_sha=$GITHUB_SHA"
+            echo "started_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          } | tee -a .github/latest-build-log.txt
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          set -o pipefail
+          if [[ -f package-lock.json ]]; then
+            npm ci --no-audit --no-fund 2>&1 | tee -a .github/latest-build-log.txt
+          elif [[ -f package.json ]]; then
+            npm install --no-package-lock --no-audit --no-fund 2>&1 | tee -a .github/latest-build-log.txt
+          else
+            echo "No package.json; dependency installation skipped." | tee -a .github/latest-build-log.txt
+          fi
+
+      - name: Run project checks
+        id: project_ci
+        continue-on-error: true
+        run: node scripts/run-ci-with-log.mjs
+
+      - name: Upload latest build log
+        id: upload_log
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: prompt-web-build-log-${{ github.run_id }}
+          path: .github/latest-build-log.txt
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Record run finish
+        if: always()
+        env:
+          CI_OUTCOME: ${{ steps.project_ci.outcome }}
+          ARTIFACT_OUTCOME: ${{ steps.upload_log.outcome }}
+        run: node scripts/record-run-state.mjs finish
+
+      - name: Commit run finish
+        if: always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        continue-on-error: true
+        run: node scripts/git-commit-state.mjs "Record workflow finish [skip ci]"
+
+      - name: Fail when project checks fail
+        if: always()
+        env:
+          CI_OUTCOME: ${{ steps.project_ci.outcome }}
+          ARTIFACT_OUTCOME: ${{ steps.upload_log.outcome }}
+        run: |
+          [[ "$CI_OUTCOME" == "success" && "$ARTIFACT_OUTCOME" == "success" ]]
