@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+from io import BytesIO
 import json
 import os
 import unittest
 from unittest.mock import patch
+from urllib.error import HTTPError
 
 from scripts.sync.client import ContentSyncClient, DEFAULT_USER_AGENT
 
@@ -44,6 +46,34 @@ class ContentSyncClientTests(unittest.TestCase):
                 "dryRun": False,
             },
         )
+
+    @patch("scripts.sync.client.time.sleep")
+    @patch("scripts.sync.client.urlopen")
+    def test_retries_unauthorized_during_secret_propagation(
+        self,
+        mocked_urlopen,
+        mocked_sleep,
+    ) -> None:
+        unauthorized = HTTPError(
+            "https://prompt.example.test/api/admin/library/sync",
+            401,
+            "Unauthorized",
+            {},
+            BytesIO(b'{"error":"Unauthorized."}'),
+        )
+        mocked_urlopen.side_effect = [unauthorized, FakeResponse()]
+        client = ContentSyncClient(
+            "https://prompt.example.test",
+            "newly-rotated-token",
+            attempts=2,
+            retry_delay=0.01,
+        )
+
+        result = client.sync({"schemaVersion": 1})
+
+        self.assertEqual(result, {"ok": True})
+        self.assertEqual(mocked_urlopen.call_count, 2)
+        mocked_sleep.assert_called_once_with(0.01)
 
     @patch.dict(
         os.environ,

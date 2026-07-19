@@ -86,6 +86,8 @@ python -m scripts.cli snapshot --base-url https://example.workers.dev
 
 `collectors/` 只负责把外部内容原子写入 `content/`，不直接连接 D1。`library/` 负责扫描、Front Matter、路径、哈希和 Manifest；`sync/` 只调用受保护的 Worker API。
 
+Manifest 在本地按照 Worker 接口限制进行校验，包括路径、标题、说明、正文、标签和变量数量。这样不兼容的数据会在 PR CI 中失败，而不是等生产同步时才发现。
+
 删除默认是关闭的。只有项目设置 `sync.prune: true`，并且同步命令显式传入 `--prune` 时，数据库中由 `content_sync_entries` 管理且本地已消失的节点才会被软删除。
 
 ## MCP 工具
@@ -117,7 +119,7 @@ python -m scripts.cli snapshot --base-url https://example.workers.dev
 - `GET /api/admin/library/snapshot`
 - `POST /api/admin/library/sync`
 
-内容发布接口使用独立的 `CONTENT_SYNC_TOKEN` Bearer Token，不复用 MCP 私有读取令牌。生产工作流每次部署都会生成并轮换该令牌，然后同步 Manifest。
+内容发布接口使用独立的 `CONTENT_SYNC_TOKEN` Bearer Token，不复用 MCP 私有读取令牌。生产工作流每次部署都会生成并轮换该令牌。为避免 Cloudflare Secret 版本传播期间使用旧令牌，工作流会先建立 Worker、写入 Secret，再执行一次最终部署后同步 Manifest；客户端仍会对短暂的 401 传播窗口做有限重试。
 
 ## 本地开发与检查
 
@@ -152,7 +154,7 @@ npm run dev
 | `CLOUDFLARE_ACCOUNT_ID` | 是 | Cloudflare Account ID |
 | `MCP_BEARER_TOKEN` | 否 | 读取 private 文件 |
 
-`CONTENT_SYNC_TOKEN` 不需要预先配置。部署工作流会生成随机值、写入 Worker Secret、执行同步，然后在下一次部署时轮换。
+`CONTENT_SYNC_TOKEN` 不需要预先配置。部署工作流会生成随机值、写入 Worker Secret、执行最终部署与同步，然后在下一次部署时轮换。
 
 ### Variables
 
@@ -171,8 +173,9 @@ npm run dev
 → 本地迁移验证
 → 远程 D1 migrations
 → 远程 KV 种子
-→ Worker 部署
-→ 轮换 CONTENT_SYNC_TOKEN
+→ Worker 引导部署
+→ 轮换并上传 MCP / CONTENT_SYNC Secret
+→ Worker 最终部署（固定新 Secret）
 → content/ 增量同步
 → health / search / fetch 冒烟测试
 ```
