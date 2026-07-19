@@ -68,7 +68,7 @@ jobs:
         run: npx wrangler d1 migrations apply DB --remote --config wrangler.deploy.jsonc
 
       - name: Seed public KV prompts
-        run: npx wrangler kv bulk put seed/kv-prompts.json --binding PROMPT_KV --config wrangler.deploy.jsonc
+        run: npx wrangler kv bulk put seed/kv-prompts.json --binding PROMPT_KV --remote --config wrangler.deploy.jsonc
 
       - name: Deploy Worker
         uses: cloudflare/wrangler-action@v3
