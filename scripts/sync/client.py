@@ -8,7 +8,8 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 
-DEFAULT_USER_AGENT = "curl/8.10.1 prompt-web-content-sync/1.0"
+DEFAULT_USER_AGENT = "curl/8.10.1 prompt-web-content-sync/1.1"
+RETRYABLE_HTTP_STATUS_CODES = {401, 408, 425, 429, 500, 502, 503, 504}
 
 
 class ContentSyncClientError(RuntimeError):
@@ -38,6 +39,12 @@ class ContentSyncClient:
             raise ContentSyncClientError("Content sync token is empty.")
         if not self.user_agent:
             raise ContentSyncClientError("Content sync user agent is empty.")
+        if self.attempts < 1:
+            raise ContentSyncClientError("Content sync attempts must be at least 1.")
+        if self.retry_delay < 0:
+            raise ContentSyncClientError("Content sync retry delay cannot be negative.")
+        if self.timeout <= 0:
+            raise ContentSyncClientError("Content sync timeout must be positive.")
 
     @classmethod
     def from_environment(
@@ -76,13 +83,12 @@ class ContentSyncClient:
                     return json.loads(raw) if raw else None
             except HTTPError as error:
                 response_body = error.read().decode("utf-8", errors="replace")
-                if error.code < 500 and error.code not in {408, 429}:
-                    raise ContentSyncClientError(
-                        f"Content sync API returned HTTP {error.code}: {response_body}"
-                    ) from error
-                last_error = ContentSyncClientError(
+                message = ContentSyncClientError(
                     f"Content sync API returned HTTP {error.code}: {response_body}"
                 )
+                if error.code not in RETRYABLE_HTTP_STATUS_CODES:
+                    raise message from error
+                last_error = message
             except (URLError, TimeoutError, json.JSONDecodeError) as error:
                 last_error = error
 
