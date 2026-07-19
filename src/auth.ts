@@ -29,6 +29,6 @@ export function resolveAccessContext(request: Request, configuredToken?: string)
   );
 
   return authenticated
-    ? { authenticated: true, allowedVisibilities: ['public', 'private', 'system'] }
+    ? { authenticated: true, allowedVisibilities: ['public', 'private'] }
     : { authenticated: false, allowedVisibilities: ['public'] };
 }
