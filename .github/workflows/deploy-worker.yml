@@ -1,0 +1,78 @@
+name: Deploy Prompt MCP Worker
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '.github/latest-run-id.txt'
+      - '.github/latest-run-url.txt'
+      - '.github/latest-run.json'
+      - '.github/build-history.json'
+      - '.github/latest-build-log.txt'
+      - '.github/latest-actions-log.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: prompt-mcp-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: production
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      MCP_BEARER_TOKEN: ${{ secrets.MCP_BEARER_TOKEN }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Validate Cloudflare credentials
+        shell: bash
+        run: |
+          test -n "$CLOUDFLARE_API_TOKEN" || { echo "Missing CLOUDFLARE_API_TOKEN"; exit 1; }
+          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "Missing CLOUDFLARE_ACCOUNT_ID"; exit 1; }
+
+      - name: Install dependencies
+        run: npm install --no-package-lock --no-audit --no-fund
+
+      - name: Render production Wrangler config
+        env:
+          D1_DATABASE_ID: ${{ vars.D1_DATABASE_ID }}
+          D1_DATABASE_NAME: ${{ vars.D1_DATABASE_NAME }}
+          KV_NAMESPACE_ID: ${{ vars.KV_NAMESPACE_ID }}
+          CLOUDFLARE_WORKER_NAME: ${{ vars.CLOUDFLARE_WORKER_NAME }}
+        run: node scripts/render-wrangler-config.mjs
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Apply D1 migrations
+        run: npx wrangler d1 migrations apply DB --remote --config wrangler.deploy.jsonc
+
+      - name: Seed public KV prompts
+        run: npx wrangler kv bulk put seed/kv-prompts.json --binding PROMPT_KV --config wrangler.deploy.jsonc
+
+      - name: Deploy Worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy --config wrangler.deploy.jsonc
+
+      - name: Upload private-access bearer token
+        if: env.MCP_BEARER_TOKEN != ''
+        shell: bash
+        run: printf '%s' "$MCP_BEARER_TOKEN" | npx wrangler secret put MCP_BEARER_TOKEN --config wrangler.deploy.jsonc
