@@ -81,7 +81,11 @@ app.all('/mcp', async (context) => {
   const handler = createMcpHandler(createPromptMcpServer(context.env, access), {
     route: '/mcp',
   });
-  return handler(context.req.raw, context.env, context.executionCtx);
+  return handler(
+    context.req.raw,
+    context.env,
+    context.executionCtx as unknown as ExecutionContext<unknown>,
+  );
 });
 
 app.notFound((context) => context.json({ error: 'Not found.' }, 404));
