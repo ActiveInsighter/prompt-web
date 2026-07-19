@@ -1,318 +1,316 @@
 ===== JOB: deploy (success) =====
-2026-07-19T07:19:23.0793808Z Current runner version: '2.335.1'
-2026-07-19T07:19:23.0838386Z ##[group]Runner Image Provisioner
-2026-07-19T07:19:23.0840247Z Hosted Compute Agent
-2026-07-19T07:19:23.0841545Z Version: 20260707.563
-2026-07-19T07:19:23.0842688Z Commit: 02667638d2b423fbc733a8e32a88b44996a3ba6e
-2026-07-19T07:19:23.0844077Z Build Date: 2026-07-07T19:33:50Z
-2026-07-19T07:19:23.0845492Z Worker ID: {93906e9c-ed35-4a32-8e93-e73bc990e03f}
-2026-07-19T07:19:23.0846855Z Azure Region: westus3
-2026-07-19T07:19:23.0849027Z ##[endgroup]
-2026-07-19T07:19:23.0851674Z ##[group]Operating System
-2026-07-19T07:19:23.0852975Z Ubuntu
-2026-07-19T07:19:23.0853987Z 24.04.4
-2026-07-19T07:19:23.0854881Z LTS
-2026-07-19T07:19:23.0855927Z ##[endgroup]
-2026-07-19T07:19:23.0856975Z ##[group]Runner Image
-2026-07-19T07:19:23.0858494Z Image: ubuntu-24.04
-2026-07-19T07:19:23.0859737Z Version: 20260714.240.1
-2026-07-19T07:19:23.0862046Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260714.240/images/ubuntu/Ubuntu2404-Readme.md
-2026-07-19T07:19:23.0865068Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260714.240
-2026-07-19T07:19:23.0866852Z ##[endgroup]
-2026-07-19T07:19:23.0869705Z ##[group]GITHUB_TOKEN Permissions
-2026-07-19T07:19:23.0873415Z Contents: read
-2026-07-19T07:19:23.0874167Z Metadata: read
-2026-07-19T07:19:23.0874751Z ##[endgroup]
-2026-07-19T07:19:23.0877340Z Secret source: Actions
-2026-07-19T07:19:23.0879042Z Prepare workflow directory
-2026-07-19T07:19:23.1526440Z Prepare all required actions
-2026-07-19T07:19:23.1589390Z Getting action download info
-2026-07-19T07:19:23.4893914Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
-2026-07-19T07:19:23.6173505Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
-2026-07-19T07:19:23.7613851Z Download action repository 'cloudflare/wrangler-action@v3' (SHA:9acf94ace14e7dc412b076f2c5c20b8ce93c79cd)
-2026-07-19T07:19:24.3584130Z Complete job name: deploy
-2026-07-19T07:19:24.4391605Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
-2026-07-19T07:19:24.4401289Z ##[group]Run actions/checkout@v4
-2026-07-19T07:19:24.4402581Z with:
-2026-07-19T07:19:24.4403162Z   repository: ActiveInsighter/prompt-web
-2026-07-19T07:19:24.4407158Z   token: ***
-2026-07-19T07:19:24.4407836Z   ssh-strict: true
-2026-07-19T07:19:24.4408337Z   ssh-user: git
-2026-07-19T07:19:24.4408835Z   persist-credentials: true
-2026-07-19T07:19:24.4409374Z   clean: true
-2026-07-19T07:19:24.4409877Z   sparse-checkout-cone-mode: true
-2026-07-19T07:19:24.4410449Z   fetch-depth: 1
-2026-07-19T07:19:24.4410918Z   fetch-tags: false
-2026-07-19T07:19:24.4411415Z   show-progress: true
-2026-07-19T07:19:24.4411923Z   lfs: false
-2026-07-19T07:19:24.4412462Z   submodules: false
-2026-07-19T07:19:24.4412972Z   set-safe-directory: true
-2026-07-19T07:19:24.4413934Z env:
-2026-07-19T07:19:24.4414754Z   CLOUDFLARE_API_TOKEN: ***
-2026-07-19T07:19:24.4415418Z   CLOUDFLARE_ACCOUNT_ID: ***
-2026-07-19T07:19:24.4415972Z   MCP_BEARER_TOKEN: 
-2026-07-19T07:19:24.4416447Z ##[endgroup]
-2026-07-19T07:19:24.5732456Z Syncing repository: ActiveInsighter/prompt-web
-2026-07-19T07:19:24.5755443Z ##[group]Getting Git version info
-2026-07-19T07:19:24.5757028Z Working directory is '/home/runner/work/prompt-web/prompt-web'
-2026-07-19T07:19:24.5768254Z [command]/usr/bin/git version
-2026-07-19T07:19:24.5877551Z git version 2.54.0
-2026-07-19T07:19:24.5959384Z ##[endgroup]
-2026-07-19T07:19:24.5980832Z Temporarily overriding HOME='/home/runner/work/_temp/25a570bc-71fc-4234-a582-0e7a8c81f114' before making global git config changes
-2026-07-19T07:19:24.5995035Z Adding repository directory to the temporary git global config as a safe directory
-2026-07-19T07:19:24.6010975Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/prompt-web/prompt-web
-2026-07-19T07:19:24.6083118Z Deleting the contents of '/home/runner/work/prompt-web/prompt-web'
-2026-07-19T07:19:24.6086247Z ##[group]Initializing the repository
-2026-07-19T07:19:24.6088245Z [command]/usr/bin/git init /home/runner/work/prompt-web/prompt-web
-2026-07-19T07:19:24.6220168Z hint: Using 'master' as the name for the initial branch. This default branch name
-2026-07-19T07:19:24.6240146Z hint: will change to "main" in Git 3.0. To configure the initial branch name
-2026-07-19T07:19:24.6252077Z hint: to use in all of your new repositories, which will suppress this warning,
-2026-07-19T07:19:24.6253791Z hint: call:
-2026-07-19T07:19:24.6254784Z hint:
-2026-07-19T07:19:24.6256073Z hint: 	git config --global init.defaultBranch <name>
-2026-07-19T07:19:24.6257436Z hint:
-2026-07-19T07:19:24.6259195Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
-2026-07-19T07:19:24.6261396Z hint: 'development'. The just-created branch can be renamed via this command:
-2026-07-19T07:19:24.6263078Z hint:
-2026-07-19T07:19:24.6264326Z hint: 	git branch -m <name>
-2026-07-19T07:19:24.6265439Z hint:
-2026-07-19T07:19:24.6266789Z hint: Disable this message with "git config set advice.defaultBranchName false"
-2026-07-19T07:19:24.6269899Z Initialized empty Git repository in /home/runner/work/prompt-web/prompt-web/.git/
-2026-07-19T07:19:24.6274113Z [command]/usr/bin/git remote add origin https://github.com/ActiveInsighter/prompt-web
-2026-07-19T07:19:24.6346416Z ##[endgroup]
-2026-07-19T07:19:24.6348615Z ##[group]Disabling automatic garbage collection
-2026-07-19T07:19:24.6350175Z [command]/usr/bin/git config --local gc.auto 0
-2026-07-19T07:19:24.6425367Z ##[endgroup]
-2026-07-19T07:19:24.6449539Z ##[group]Setting up auth
-2026-07-19T07:19:24.6467100Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-2026-07-19T07:19:24.6474729Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-2026-07-19T07:19:24.7099794Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-2026-07-19T07:19:24.7143486Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-2026-07-19T07:19:24.7440924Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-2026-07-19T07:19:24.7499896Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-2026-07-19T07:19:24.7774289Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
-2026-07-19T07:19:24.7822272Z ##[endgroup]
-2026-07-19T07:19:24.7824160Z ##[group]Fetching the repository
-2026-07-19T07:19:24.7834240Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +1843782491f2edd0b3d3f023547ad5eabf7e21c1:refs/remotes/origin/main
-2026-07-19T07:19:25.2415226Z From https://github.com/ActiveInsighter/prompt-web
-2026-07-19T07:19:25.2418927Z  * [new ref]         1843782491f2edd0b3d3f023547ad5eabf7e21c1 -> origin/main
-2026-07-19T07:19:25.2461520Z ##[endgroup]
-2026-07-19T07:19:25.2464460Z ##[group]Determining the checkout info
-2026-07-19T07:19:25.2468134Z ##[endgroup]
-2026-07-19T07:19:25.2474253Z [command]/usr/bin/git sparse-checkout disable
-2026-07-19T07:19:25.2546460Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
-2026-07-19T07:19:25.2593670Z ##[group]Checking out the ref
-2026-07-19T07:19:25.2596973Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
-2026-07-19T07:19:25.2683617Z Switched to a new branch 'main'
-2026-07-19T07:19:25.2693332Z branch 'main' set up to track 'origin/main'.
-2026-07-19T07:19:25.2701672Z ##[endgroup]
-2026-07-19T07:19:25.2774284Z [command]/usr/bin/git log -1 --format=%H
-2026-07-19T07:19:25.2811570Z 1843782491f2edd0b3d3f023547ad5eabf7e21c1
-2026-07-19T07:19:25.3355078Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
-2026-07-19T07:19:25.3362258Z ##[group]Run actions/setup-node@v4
-2026-07-19T07:19:25.3363466Z with:
-2026-07-19T07:19:25.3364330Z   node-version: 24
-2026-07-19T07:19:25.3365309Z   always-auth: false
-2026-07-19T07:19:25.3366311Z   check-latest: false
-2026-07-19T07:19:25.3376548Z   token: ***
-2026-07-19T07:19:25.3377488Z env:
-2026-07-19T07:19:25.3379296Z   CLOUDFLARE_API_TOKEN: ***
-2026-07-19T07:19:25.3380660Z   CLOUDFLARE_ACCOUNT_ID: ***
-2026-07-19T07:19:25.3381783Z   MCP_BEARER_TOKEN: 
-2026-07-19T07:19:25.3382742Z ##[endgroup]
-2026-07-19T07:19:25.5282967Z Found in cache @ /opt/hostedtoolcache/node/24.18.0/x64
-2026-07-19T07:19:25.5289442Z (node:2115) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-2026-07-19T07:19:25.5294613Z (Use `node --trace-deprecation ...` to show where the warning was created)
-2026-07-19T07:19:25.5298771Z ##[group]Environment details
-2026-07-19T07:19:27.5613777Z node: v24.18.0
-2026-07-19T07:19:27.5615178Z npm: 11.16.0
-2026-07-19T07:19:27.5639506Z yarn: 1.22.22
-2026-07-19T07:19:27.5641766Z ##[endgroup]
-2026-07-19T07:19:27.5791303Z ##[group]Run test -n "$CLOUDFLARE_API_TOKEN" || { echo "Missing CLOUDFLARE_API_TOKEN"; exit 1; }
-2026-07-19T07:19:27.5792106Z [36;1mtest -n "$CLOUDFLARE_API_TOKEN" || { echo "Missing CLOUDFLARE_API_TOKEN"; exit 1; }[0m
-2026-07-19T07:19:27.5792778Z [36;1mtest -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "Missing CLOUDFLARE_ACCOUNT_ID"; exit 1; }[0m
-2026-07-19T07:19:27.5885373Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
-2026-07-19T07:19:27.5885868Z env:
-2026-07-19T07:19:27.5886553Z   CLOUDFLARE_API_TOKEN: ***
-2026-07-19T07:19:27.5886967Z   CLOUDFLARE_ACCOUNT_ID: ***
-2026-07-19T07:19:27.5887284Z   MCP_BEARER_TOKEN: 
-2026-07-19T07:19:27.5887900Z ##[endgroup]
-2026-07-19T07:19:27.6047210Z ##[group]Run npm install --no-package-lock --no-audit --no-fund
-2026-07-19T07:19:27.6048477Z [36;1mnpm install --no-package-lock --no-audit --no-fund[0m
-2026-07-19T07:19:27.6114187Z shell: /usr/bin/bash -e {0}
-2026-07-19T07:19:27.6114558Z env:
-2026-07-19T07:19:27.6115114Z   CLOUDFLARE_API_TOKEN: ***
-2026-07-19T07:19:27.6115511Z   CLOUDFLARE_ACCOUNT_ID: ***
-2026-07-19T07:19:27.6115814Z   MCP_BEARER_TOKEN: 
-2026-07-19T07:19:27.6116079Z ##[endgroup]
-2026-07-19T07:19:54.5138473Z 
-2026-07-19T07:19:54.5169320Z added 212 packages in 27s
-2026-07-19T07:19:54.5173851Z npm warn allow-scripts 4 packages have install scripts not yet covered by allowScripts:
-2026-07-19T07:19:54.5175234Z npm warn allow-scripts   esbuild@0.28.1 (postinstall: node install.js)
-2026-07-19T07:19:54.5176742Z npm warn allow-scripts   core-js-pure@3.49.0 (postinstall: node -e "try{require('./postinstall')}catch(e){}")
-2026-07-19T07:19:54.5178591Z npm warn allow-scripts   workerd@1.20260708.1 (postinstall: node install.js)
-2026-07-19T07:19:54.5179967Z npm warn allow-scripts   sharp@0.34.5 (install: node install/check.js || npm run build)
-2026-07-19T07:19:54.5180840Z npm warn allow-scripts
-2026-07-19T07:19:54.5182222Z npm warn allow-scripts Run `npm approve-scripts --allow-scripts-pending` to review, or `npm approve-scripts <pkg>` to allow.
-2026-07-19T07:19:54.5834087Z ##[group]Run node scripts/render-wrangler-config.mjs
-2026-07-19T07:19:54.5834790Z [36;1mnode scripts/render-wrangler-config.mjs[0m
-2026-07-19T07:19:54.5897080Z shell: /usr/bin/bash -e {0}
-2026-07-19T07:19:54.5897385Z env:
-2026-07-19T07:19:54.5898604Z   CLOUDFLARE_API_TOKEN: ***
-2026-07-19T07:19:54.5898972Z   CLOUDFLARE_ACCOUNT_ID: ***
-2026-07-19T07:19:54.5899224Z   MCP_BEARER_TOKEN: 
-2026-07-19T07:19:54.5899497Z   D1_DATABASE_ID: c7faca02-d8eb-481d-9c3c-bb7094154031
-2026-07-19T07:19:54.5900383Z   D1_DATABASE_NAME: prompt
-2026-07-19T07:19:54.5900708Z   KV_NAMESPACE_ID: c5b087006ab04b2da422e4adcbef89b4
-2026-07-19T07:19:54.5901033Z   CLOUDFLARE_WORKER_NAME: prompt
-2026-07-19T07:19:54.5901284Z ##[endgroup]
-2026-07-19T07:19:54.6278171Z Rendered wrangler.deploy.jsonc for deployment.
-2026-07-19T07:19:54.6352729Z ##[group]Run npm run typecheck
-2026-07-19T07:19:54.6353063Z [36;1mnpm run typecheck[0m
-2026-07-19T07:19:54.6411921Z shell: /usr/bin/bash -e {0}
-2026-07-19T07:19:54.6412214Z env:
-2026-07-19T07:19:54.6412706Z   CLOUDFLARE_API_TOKEN: ***
-2026-07-19T07:19:54.6413038Z   CLOUDFLARE_ACCOUNT_ID: ***
-2026-07-19T07:19:54.6413299Z   MCP_BEARER_TOKEN: 
-2026-07-19T07:19:54.6413518Z ##[endgroup]
-2026-07-19T07:19:54.7998997Z 
-2026-07-19T07:19:54.8000262Z > prompt-web@0.3.0 typecheck
-2026-07-19T07:19:54.8018626Z > tsc --noEmit
-2026-07-19T07:19:54.8033161Z 
-2026-07-19T07:19:56.6496940Z ##[group]Run npx wrangler d1 migrations apply DB --local --config wrangler.deploy.jsonc
-2026-07-19T07:19:56.6498027Z [36;1mnpx wrangler d1 migrations apply DB --local --config wrangler.deploy.jsonc[0m
-2026-07-19T07:19:56.6556027Z shell: /usr/bin/bash -e {0}
-2026-07-19T07:19:56.6556282Z env:
-2026-07-19T07:19:56.6556797Z   CLOUDFLARE_API_TOKEN: ***
-2026-07-19T07:19:56.6557150Z   CLOUDFLARE_ACCOUNT_ID: ***
-2026-07-19T07:19:56.6557394Z   MCP_BEARER_TOKEN: 
-2026-07-19T07:19:56.6557967Z ##[endgroup]
-2026-07-19T07:19:58.3438824Z 
-2026-07-19T07:19:58.3440228Z  ⛅️ wrangler 4.109.0
-2026-07-19T07:19:58.3465273Z ────────────────────
-2026-07-19T07:19:58.3475657Z Resource location: local 
-2026-07-19T07:19:58.3480397Z 
-2026-07-19T07:19:58.3486339Z Use --remote if you want to access the remote instance.
-2026-07-19T07:19:58.3498194Z 
-2026-07-19T07:19:59.1508530Z Migrations to be applied:
-2026-07-19T07:19:59.1554861Z ┌───────────────────────────────────┐
-2026-07-19T07:19:59.1556350Z │ name                              │
-2026-07-19T07:19:59.1558163Z ├───────────────────────────────────┤
-2026-07-19T07:19:59.1559647Z │ 0001_create_prompts.sql           │
-2026-07-19T07:19:59.1560706Z ├───────────────────────────────────┤
-2026-07-19T07:19:59.1563325Z │ 0002_create_project_file_tree.sql │
-2026-07-19T07:19:59.1564296Z └───────────────────────────────────┘
-2026-07-19T07:19:59.1565142Z ? About to apply 2 migration(s)
-2026-07-19T07:19:59.1566471Z Your database may not be available to serve requests during the migration, continue?
-2026-07-19T07:19:59.1570288Z 🤖 Using fallback value in non-interactive context: yes
-2026-07-19T07:19:59.1571937Z 🌀 Executing on local database DB (c7faca02-d8eb-481d-9c3c-bb7094154031) from .wrangler/state/v3/d1:
-2026-07-19T07:19:59.1573638Z 🌀 To execute on your remote database, add a --remote flag to your wrangler command.
-2026-07-19T07:19:59.5977541Z 🚣 12 commands executed successfully.
-2026-07-19T07:19:59.5995517Z ┌───────────────────────────────────┬────────┐
-2026-07-19T07:19:59.5996808Z │ name                              │ status │
-2026-07-19T07:19:59.5998420Z ├───────────────────────────────────┼────────┤
-2026-07-19T07:19:59.6014996Z │ 0001_create_prompts.sql           │ ✅     │
-2026-07-19T07:19:59.6016168Z ├───────────────────────────────────┼────────┤
-2026-07-19T07:19:59.6018953Z │ 0002_create_project_file_tree.sql │ 🕒️    │
-2026-07-19T07:19:59.6020457Z └───────────────────────────────────┴────────┘
-2026-07-19T07:19:59.6029582Z 🌀 Executing on local database DB (c7faca02-d8eb-481d-9c3c-bb7094154031) from .wrangler/state/v3/d1:
-2026-07-19T07:19:59.6031385Z 🌀 To execute on your remote database, add a --remote flag to your wrangler command.
-2026-07-19T07:19:59.9776932Z 🚣 29 commands executed successfully.
-2026-07-19T07:19:59.9798518Z ┌───────────────────────────────────┬────────┐
-2026-07-19T07:19:59.9799788Z │ name                              │ status │
-2026-07-19T07:19:59.9801079Z ├───────────────────────────────────┼────────┤
-2026-07-19T07:19:59.9802340Z │ 0001_create_prompts.sql           │ ✅     │
-2026-07-19T07:19:59.9803432Z ├───────────────────────────────────┼────────┤
-2026-07-19T07:19:59.9804884Z │ 0002_create_project_file_tree.sql │ ✅     │
-2026-07-19T07:19:59.9809264Z └───────────────────────────────────┴────────┘
-2026-07-19T07:20:00.0556530Z ##[group]Run npx wrangler d1 migrations apply DB --remote --config wrangler.deploy.jsonc
-2026-07-19T07:20:00.0559964Z [36;1mnpx wrangler d1 migrations apply DB --remote --config wrangler.deploy.jsonc[0m
-2026-07-19T07:20:00.0649015Z shell: /usr/bin/bash -e {0}
-2026-07-19T07:20:00.0649500Z env:
-2026-07-19T07:20:00.0650437Z   CLOUDFLARE_API_TOKEN: ***
-2026-07-19T07:20:00.0651069Z   CLOUDFLARE_ACCOUNT_ID: ***
-2026-07-19T07:20:00.0651507Z   MCP_BEARER_TOKEN: 
-2026-07-19T07:20:00.0651893Z ##[endgroup]
-2026-07-19T07:20:01.3988336Z 
-2026-07-19T07:20:01.4009111Z  ⛅️ wrangler 4.109.0 (update available 4.112.0)
-2026-07-19T07:20:01.4068947Z ───────────────────────────────────────────────
-2026-07-19T07:20:01.4069654Z Resource location: remote 
-2026-07-19T07:20:01.4069955Z 
-2026-07-19T07:20:02.4834286Z ✅ No migrations to apply!
-2026-07-19T07:20:02.5569814Z ##[group]Run npx wrangler kv bulk put seed/kv-prompts.json --binding PROMPT_KV --config wrangler.deploy.jsonc
-2026-07-19T07:20:02.5570620Z [36;1mnpx wrangler kv bulk put seed/kv-prompts.json --binding PROMPT_KV --config wrangler.deploy.jsonc[0m
-2026-07-19T07:20:02.5629260Z shell: /usr/bin/bash -e {0}
-2026-07-19T07:20:02.5629536Z env:
-2026-07-19T07:20:02.5630014Z   CLOUDFLARE_API_TOKEN: ***
-2026-07-19T07:20:02.5630338Z   CLOUDFLARE_ACCOUNT_ID: ***
-2026-07-19T07:20:02.5630585Z   MCP_BEARER_TOKEN: 
-2026-07-19T07:20:02.5630797Z ##[endgroup]
-2026-07-19T07:20:03.8538300Z 
-2026-07-19T07:20:03.8571870Z  ⛅️ wrangler 4.109.0 (update available 4.112.0)
-2026-07-19T07:20:03.8669051Z ───────────────────────────────────────────────
-2026-07-19T07:20:03.8728623Z Resource location: local 
-2026-07-19T07:20:03.8781875Z 
-2026-07-19T07:20:03.8782923Z Use --remote if you want to access the remote instance.
-2026-07-19T07:20:03.8783578Z 
-2026-07-19T07:20:04.3244297Z Success!
-2026-07-19T07:20:04.4208247Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
-2026-07-19T07:20:04.4209656Z ##[group]Run cloudflare/wrangler-action@v3
-2026-07-19T07:20:04.4209951Z with:
-2026-07-19T07:20:04.4210409Z   apiToken: ***
-2026-07-19T07:20:04.4210661Z   accountId: ***
-2026-07-19T07:20:04.4210918Z   command: deploy --config wrangler.deploy.jsonc
-2026-07-19T07:20:04.4211237Z   quiet: false
-2026-07-19T07:20:04.4211437Z env:
-2026-07-19T07:20:04.4211781Z   CLOUDFLARE_API_TOKEN: ***
-2026-07-19T07:20:04.4212095Z   CLOUDFLARE_ACCOUNT_ID: ***
-2026-07-19T07:20:04.4212335Z   MCP_BEARER_TOKEN: 
-2026-07-19T07:20:04.4212550Z ##[endgroup]
-2026-07-19T07:20:04.5170732Z ##[group]🔍 Checking for existing Wrangler installation
-2026-07-19T07:20:04.5271143Z [command]/opt/hostedtoolcache/node/24.18.0/x64/bin/npx --no-install wrangler --version
-2026-07-19T07:20:05.8825338Z 4.109.0
-2026-07-19T07:20:05.9782437Z ✅ No wrangler version specified, using pre-installed wrangler version 4.109.0
-2026-07-19T07:20:05.9783624Z ##[endgroup]
-2026-07-19T07:20:05.9784183Z ##[endgroup]
-2026-07-19T07:20:05.9784962Z ##[group]🚀 Running Wrangler Commands
-2026-07-19T07:20:05.9818023Z [command]/opt/hostedtoolcache/node/24.18.0/x64/bin/npx wrangler deploy --config wrangler.deploy.jsonc
-2026-07-19T07:20:07.2728492Z 
-2026-07-19T07:20:07.2729838Z  ⛅️ wrangler 4.109.0 (update available 4.112.0)
-2026-07-19T07:20:07.2809495Z ───────────────────────────────────────────────
-2026-07-19T07:20:07.3003814Z 
-2026-07-19T07:20:07.3009994Z Cloudflare collects anonymous telemetry about your usage of Wrangler. Learn more at https://github.com/cloudflare/workers-sdk/tree/main/packages/wrangler/telemetry.md
-2026-07-19T07:20:09.3847042Z Total Upload: 2164.27 KiB / gzip: 392.09 KiB
-2026-07-19T07:20:11.7189161Z Worker Startup Time: 39 ms
-2026-07-19T07:20:11.7219619Z Your Worker has access to the following bindings:
-2026-07-19T07:20:11.7220954Z Binding                                                 Resource                  
-2026-07-19T07:20:11.7222033Z env.PROMPT_KV (c5b087006ab04b2da422e4adcbef89b4)        KV Namespace              
-2026-07-19T07:20:11.7223196Z env.DB (prompt)                                         D1 Database               
-2026-07-19T07:20:11.7224484Z env.ENVIRONMENT ("production")                          Environment Variable      
-2026-07-19T07:20:11.7225062Z 
-2026-07-19T07:20:11.7225278Z Uploaded prompt (2.62 sec)
-2026-07-19T07:20:12.8367400Z Deployed prompt triggers (1.12 sec)
-2026-07-19T07:20:12.8368422Z   https://prompt.2212148739lbw.workers.dev
-2026-07-19T07:20:12.8369342Z Current Version ID: e9806a22-b186-45c4-b758-9a439e0bcf4b
-2026-07-19T07:20:12.9349082Z ##[endgroup]
-2026-07-19T07:20:12.9369029Z 🏁 Wrangler Action completed
-2026-07-19T07:20:12.9526689Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
-2026-07-19T07:20:12.9528226Z Post job cleanup.
-2026-07-19T07:20:13.0884201Z (node:2454) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-2026-07-19T07:20:13.0885817Z (Use `node --trace-deprecation ...` to show where the warning was created)
-2026-07-19T07:20:13.1117003Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
-2026-07-19T07:20:13.1119625Z Post job cleanup.
-2026-07-19T07:20:13.2248464Z [command]/usr/bin/git version
-2026-07-19T07:20:13.2342521Z git version 2.54.0
-2026-07-19T07:20:13.2424908Z Temporarily overriding HOME='/home/runner/work/_temp/18c3edca-bbae-41db-82b8-d70b54e42ed5' before making global git config changes
-2026-07-19T07:20:13.2452468Z Adding repository directory to the temporary git global config as a safe directory
-2026-07-19T07:20:13.2468937Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/prompt-web/prompt-web
-2026-07-19T07:20:13.2480304Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-2026-07-19T07:20:13.2558387Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-2026-07-19T07:20:13.2995459Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-2026-07-19T07:20:13.3040682Z http.https://github.com/.extraheader
-2026-07-19T07:20:13.3060964Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-2026-07-19T07:20:13.3142375Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-2026-07-19T07:20:13.3669144Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-2026-07-19T07:20:13.3749801Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-2026-07-19T07:20:13.4489475Z Cleaning up orphan processes
-2026-07-19T07:20:13.4845087Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, cloudflare/wrangler-action@v3. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-19T07:23:33.9890747Z Current runner version: '2.335.1'
+2026-07-19T07:23:33.9967394Z ##[group]Runner Image Provisioner
+2026-07-19T07:23:33.9968939Z Hosted Compute Agent
+2026-07-19T07:23:33.9970030Z Version: 20260707.563
+2026-07-19T07:23:33.9971360Z Commit: 02667638d2b423fbc733a8e32a88b44996a3ba6e
+2026-07-19T07:23:33.9972637Z Build Date: 2026-07-07T19:33:50Z
+2026-07-19T07:23:33.9974279Z Worker ID: {a052473d-b55d-48d0-afdc-cb87ac3ec21f}
+2026-07-19T07:23:33.9975671Z Azure Region: westus3
+2026-07-19T07:23:33.9976742Z ##[endgroup]
+2026-07-19T07:23:33.9979839Z ##[group]Operating System
+2026-07-19T07:23:33.9980955Z Ubuntu
+2026-07-19T07:23:33.9981833Z 24.04.4
+2026-07-19T07:23:33.9982815Z LTS
+2026-07-19T07:23:33.9984040Z ##[endgroup]
+2026-07-19T07:23:33.9985046Z ##[group]Runner Image
+2026-07-19T07:23:33.9986077Z Image: ubuntu-24.04
+2026-07-19T07:23:33.9987015Z Version: 20260714.240.1
+2026-07-19T07:23:33.9989285Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260714.240/images/ubuntu/Ubuntu2404-Readme.md
+2026-07-19T07:23:33.9992368Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260714.240
+2026-07-19T07:23:34.0014732Z ##[endgroup]
+2026-07-19T07:23:34.0016903Z ##[group]GITHUB_TOKEN Permissions
+2026-07-19T07:23:34.0020303Z Contents: read
+2026-07-19T07:23:34.0021455Z Metadata: read
+2026-07-19T07:23:34.0022403Z ##[endgroup]
+2026-07-19T07:23:34.0036045Z Secret source: Actions
+2026-07-19T07:23:34.0037866Z Prepare workflow directory
+2026-07-19T07:23:34.0728411Z Prepare all required actions
+2026-07-19T07:23:34.0784112Z Getting action download info
+2026-07-19T07:23:34.3855673Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
+2026-07-19T07:23:34.5460767Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+2026-07-19T07:23:34.6456090Z Download action repository 'cloudflare/wrangler-action@v3' (SHA:9acf94ace14e7dc412b076f2c5c20b8ce93c79cd)
+2026-07-19T07:23:35.2204727Z Complete job name: deploy
+2026-07-19T07:23:35.2960196Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-19T07:23:35.2969309Z ##[group]Run actions/checkout@v4
+2026-07-19T07:23:35.2970510Z with:
+2026-07-19T07:23:35.2971043Z   repository: ActiveInsighter/prompt-web
+2026-07-19T07:23:35.2975495Z   token: ***
+2026-07-19T07:23:35.2975982Z   ssh-strict: true
+2026-07-19T07:23:35.2976462Z   ssh-user: git
+2026-07-19T07:23:35.2976954Z   persist-credentials: true
+2026-07-19T07:23:35.2977482Z   clean: true
+2026-07-19T07:23:35.2977962Z   sparse-checkout-cone-mode: true
+2026-07-19T07:23:35.2978532Z   fetch-depth: 1
+2026-07-19T07:23:35.2979000Z   fetch-tags: false
+2026-07-19T07:23:35.2979478Z   show-progress: true
+2026-07-19T07:23:35.2979982Z   lfs: false
+2026-07-19T07:23:35.2980510Z   submodules: false
+2026-07-19T07:23:35.2981027Z   set-safe-directory: true
+2026-07-19T07:23:35.2981966Z env:
+2026-07-19T07:23:35.2982729Z   CLOUDFLARE_API_TOKEN: ***
+2026-07-19T07:23:35.2983898Z   CLOUDFLARE_ACCOUNT_ID: ***
+2026-07-19T07:23:35.2984482Z   MCP_BEARER_TOKEN: 
+2026-07-19T07:23:35.2984952Z ##[endgroup]
+2026-07-19T07:23:35.4277865Z Syncing repository: ActiveInsighter/prompt-web
+2026-07-19T07:23:35.4326676Z ##[group]Getting Git version info
+2026-07-19T07:23:35.4344564Z Working directory is '/home/runner/work/prompt-web/prompt-web'
+2026-07-19T07:23:35.4368060Z [command]/usr/bin/git version
+2026-07-19T07:23:35.4369023Z git version 2.54.0
+2026-07-19T07:23:35.4371915Z ##[endgroup]
+2026-07-19T07:23:35.4386104Z Temporarily overriding HOME='/home/runner/work/_temp/697f5bf1-5db0-477a-b408-e6a19e5e45aa' before making global git config changes
+2026-07-19T07:23:35.4389560Z Adding repository directory to the temporary git global config as a safe directory
+2026-07-19T07:23:35.4394688Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/prompt-web/prompt-web
+2026-07-19T07:23:35.4514690Z Deleting the contents of '/home/runner/work/prompt-web/prompt-web'
+2026-07-19T07:23:35.4516708Z ##[group]Initializing the repository
+2026-07-19T07:23:35.4517916Z [command]/usr/bin/git init /home/runner/work/prompt-web/prompt-web
+2026-07-19T07:23:35.4623412Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-07-19T07:23:35.4645324Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-07-19T07:23:35.4657059Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-07-19T07:23:35.4658821Z hint: call:
+2026-07-19T07:23:35.4659739Z hint:
+2026-07-19T07:23:35.4660950Z hint: 	git config --global init.defaultBranch <name>
+2026-07-19T07:23:35.4662321Z hint:
+2026-07-19T07:23:35.4663889Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-07-19T07:23:35.4666060Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-07-19T07:23:35.4667863Z hint:
+2026-07-19T07:23:35.4668859Z hint: 	git branch -m <name>
+2026-07-19T07:23:35.4670103Z hint:
+2026-07-19T07:23:35.4671526Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-07-19T07:23:35.4674392Z Initialized empty Git repository in /home/runner/work/prompt-web/prompt-web/.git/
+2026-07-19T07:23:35.4678599Z [command]/usr/bin/git remote add origin https://github.com/ActiveInsighter/prompt-web
+2026-07-19T07:23:35.4768464Z ##[endgroup]
+2026-07-19T07:23:35.4770246Z ##[group]Disabling automatic garbage collection
+2026-07-19T07:23:35.4771800Z [command]/usr/bin/git config --local gc.auto 0
+2026-07-19T07:23:35.4834015Z ##[endgroup]
+2026-07-19T07:23:35.4835699Z ##[group]Setting up auth
+2026-07-19T07:23:35.4837394Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-07-19T07:23:35.4895728Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-07-19T07:23:35.5439837Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-07-19T07:23:35.5505476Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-07-19T07:23:35.5776532Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-07-19T07:23:35.5809000Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-07-19T07:23:35.6090814Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-07-19T07:23:35.6135324Z ##[endgroup]
+2026-07-19T07:23:35.6137499Z ##[group]Fetching the repository
+2026-07-19T07:23:35.6149091Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +2dd3af802832f680a4906ed3828b63fa7790ff4f:refs/remotes/origin/main
+2026-07-19T07:23:36.1107187Z From https://github.com/ActiveInsighter/prompt-web
+2026-07-19T07:23:36.1110174Z  * [new ref]         2dd3af802832f680a4906ed3828b63fa7790ff4f -> origin/main
+2026-07-19T07:23:36.1150477Z ##[endgroup]
+2026-07-19T07:23:36.1152893Z ##[group]Determining the checkout info
+2026-07-19T07:23:36.1155982Z ##[endgroup]
+2026-07-19T07:23:36.1160662Z [command]/usr/bin/git sparse-checkout disable
+2026-07-19T07:23:36.1219692Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-07-19T07:23:36.1263584Z ##[group]Checking out the ref
+2026-07-19T07:23:36.1266228Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-07-19T07:23:36.1342716Z Switched to a new branch 'main'
+2026-07-19T07:23:36.1350659Z branch 'main' set up to track 'origin/main'.
+2026-07-19T07:23:36.1357342Z ##[endgroup]
+2026-07-19T07:23:36.1415269Z [command]/usr/bin/git log -1 --format=%H
+2026-07-19T07:23:36.1451536Z 2dd3af802832f680a4906ed3828b63fa7790ff4f
+2026-07-19T07:23:36.1872330Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-19T07:23:36.1879863Z ##[group]Run actions/setup-node@v4
+2026-07-19T07:23:36.1880840Z with:
+2026-07-19T07:23:36.1881505Z   node-version: 24
+2026-07-19T07:23:36.1882249Z   always-auth: false
+2026-07-19T07:23:36.1883026Z   check-latest: false
+2026-07-19T07:23:36.1892983Z   token: ***
+2026-07-19T07:23:36.1893956Z env:
+2026-07-19T07:23:36.1895193Z   CLOUDFLARE_API_TOKEN: ***
+2026-07-19T07:23:36.1896292Z   CLOUDFLARE_ACCOUNT_ID: ***
+2026-07-19T07:23:36.1897177Z   MCP_BEARER_TOKEN: 
+2026-07-19T07:23:36.1897924Z ##[endgroup]
+2026-07-19T07:23:36.3601406Z (node:2057) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-07-19T07:23:36.3649927Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-07-19T07:23:36.3660316Z Found in cache @ /opt/hostedtoolcache/node/24.18.0/x64
+2026-07-19T07:23:36.3683548Z ##[group]Environment details
+2026-07-19T07:23:37.0165746Z node: v24.18.0
+2026-07-19T07:23:37.0167128Z npm: 11.16.0
+2026-07-19T07:23:37.0168540Z yarn: 1.22.22
+2026-07-19T07:23:37.0171287Z ##[endgroup]
+2026-07-19T07:23:37.0360373Z ##[group]Run test -n "$CLOUDFLARE_API_TOKEN" || { echo "Missing CLOUDFLARE_API_TOKEN"; exit 1; }
+2026-07-19T07:23:37.0363106Z [36;1mtest -n "$CLOUDFLARE_API_TOKEN" || { echo "Missing CLOUDFLARE_API_TOKEN"; exit 1; }[0m
+2026-07-19T07:23:37.0365881Z [36;1mtest -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "Missing CLOUDFLARE_ACCOUNT_ID"; exit 1; }[0m
+2026-07-19T07:23:37.0459858Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-07-19T07:23:37.0461515Z env:
+2026-07-19T07:23:37.0463567Z   CLOUDFLARE_API_TOKEN: ***
+2026-07-19T07:23:37.0465162Z   CLOUDFLARE_ACCOUNT_ID: ***
+2026-07-19T07:23:37.0466403Z   MCP_BEARER_TOKEN: 
+2026-07-19T07:23:37.0467422Z ##[endgroup]
+2026-07-19T07:23:37.0663923Z ##[group]Run npm install --no-package-lock --no-audit --no-fund
+2026-07-19T07:23:37.0665742Z [36;1mnpm install --no-package-lock --no-audit --no-fund[0m
+2026-07-19T07:23:37.0725991Z shell: /usr/bin/bash -e {0}
+2026-07-19T07:23:37.0727030Z env:
+2026-07-19T07:23:37.0728438Z   CLOUDFLARE_API_TOKEN: ***
+2026-07-19T07:23:37.0729697Z   CLOUDFLARE_ACCOUNT_ID: ***
+2026-07-19T07:23:37.0730725Z   MCP_BEARER_TOKEN: 
+2026-07-19T07:23:37.0731631Z ##[endgroup]
+2026-07-19T07:24:02.5915352Z 
+2026-07-19T07:24:02.5946476Z npm warn allow-scripts 4 packages have install scripts not yet covered by allowScripts:
+2026-07-19T07:24:02.5947613Z added 212 packages in 25s
+2026-07-19T07:24:02.5964505Z npm warn allow-scripts   esbuild@0.28.1 (postinstall: node install.js)
+2026-07-19T07:24:02.5984569Z npm warn allow-scripts   core-js-pure@3.49.0 (postinstall: node -e "try{require('./postinstall')}catch(e){}")
+2026-07-19T07:24:02.5994524Z npm warn allow-scripts   workerd@1.20260708.1 (postinstall: node install.js)
+2026-07-19T07:24:02.6004424Z npm warn allow-scripts   sharp@0.34.5 (install: node install/check.js || npm run build)
+2026-07-19T07:24:02.6023877Z npm warn allow-scripts
+2026-07-19T07:24:02.6044715Z npm warn allow-scripts Run `npm approve-scripts --allow-scripts-pending` to review, or `npm approve-scripts <pkg>` to allow.
+2026-07-19T07:24:02.6878452Z ##[group]Run node scripts/render-wrangler-config.mjs
+2026-07-19T07:24:02.6879154Z [36;1mnode scripts/render-wrangler-config.mjs[0m
+2026-07-19T07:24:02.6958013Z shell: /usr/bin/bash -e {0}
+2026-07-19T07:24:02.6958442Z env:
+2026-07-19T07:24:02.6959321Z   CLOUDFLARE_API_TOKEN: ***
+2026-07-19T07:24:02.6959873Z   CLOUDFLARE_ACCOUNT_ID: ***
+2026-07-19T07:24:02.6960298Z   MCP_BEARER_TOKEN: 
+2026-07-19T07:24:02.6960741Z   D1_DATABASE_ID: c7faca02-d8eb-481d-9c3c-bb7094154031
+2026-07-19T07:24:02.6961598Z   D1_DATABASE_NAME: prompt
+2026-07-19T07:24:02.6962072Z   KV_NAMESPACE_ID: c5b087006ab04b2da422e4adcbef89b4
+2026-07-19T07:24:02.6962596Z   CLOUDFLARE_WORKER_NAME: prompt
+2026-07-19T07:24:02.6963018Z ##[endgroup]
+2026-07-19T07:24:02.7475403Z Rendered wrangler.deploy.jsonc for deployment.
+2026-07-19T07:24:02.7561434Z ##[group]Run npm run typecheck
+2026-07-19T07:24:02.7561948Z [36;1mnpm run typecheck[0m
+2026-07-19T07:24:02.7639352Z shell: /usr/bin/bash -e {0}
+2026-07-19T07:24:02.7639772Z env:
+2026-07-19T07:24:02.7640443Z   CLOUDFLARE_API_TOKEN: ***
+2026-07-19T07:24:02.7640961Z   CLOUDFLARE_ACCOUNT_ID: ***
+2026-07-19T07:24:02.7641372Z   MCP_BEARER_TOKEN: 
+2026-07-19T07:24:02.7641766Z ##[endgroup]
+2026-07-19T07:24:02.9343875Z 
+2026-07-19T07:24:02.9374972Z > prompt-web@0.3.0 typecheck
+2026-07-19T07:24:02.9379492Z > tsc --noEmit
+2026-07-19T07:24:02.9397674Z 
+2026-07-19T07:24:05.4661731Z ##[group]Run npx wrangler d1 migrations apply DB --local --config wrangler.deploy.jsonc
+2026-07-19T07:24:05.4662418Z [36;1mnpx wrangler d1 migrations apply DB --local --config wrangler.deploy.jsonc[0m
+2026-07-19T07:24:05.4720143Z shell: /usr/bin/bash -e {0}
+2026-07-19T07:24:05.4720399Z env:
+2026-07-19T07:24:05.4720898Z   CLOUDFLARE_API_TOKEN: ***
+2026-07-19T07:24:05.4721283Z   CLOUDFLARE_ACCOUNT_ID: ***
+2026-07-19T07:24:05.4721533Z   MCP_BEARER_TOKEN: 
+2026-07-19T07:24:05.4721746Z ##[endgroup]
+2026-07-19T07:24:06.8383118Z 
+2026-07-19T07:24:06.8384780Z  ⛅️ wrangler 4.109.0
+2026-07-19T07:24:06.8386154Z ────────────────────
+2026-07-19T07:24:06.8405731Z Resource location: local 
+2026-07-19T07:24:06.8411668Z 
+2026-07-19T07:24:06.8417879Z Use --remote if you want to access the remote instance.
+2026-07-19T07:24:06.8423728Z 
+2026-07-19T07:24:08.3001205Z Migrations to be applied:
+2026-07-19T07:24:08.3090081Z ┌───────────────────────────────────┐
+2026-07-19T07:24:08.3091425Z │ name                              │
+2026-07-19T07:24:08.3094133Z ├───────────────────────────────────┤
+2026-07-19T07:24:08.3095349Z │ 0001_create_prompts.sql           │
+2026-07-19T07:24:08.3096395Z ├───────────────────────────────────┤
+2026-07-19T07:24:08.3106022Z │ 0002_create_project_file_tree.sql │
+2026-07-19T07:24:08.3107118Z └───────────────────────────────────┘
+2026-07-19T07:24:08.3124200Z ? About to apply 2 migration(s)
+2026-07-19T07:24:08.3125387Z Your database may not be available to serve requests during the migration, continue?
+2026-07-19T07:24:08.3126882Z 🤖 Using fallback value in non-interactive context: yes
+2026-07-19T07:24:08.3128598Z 🌀 Executing on local database DB (c7faca02-d8eb-481d-9c3c-bb7094154031) from .wrangler/state/v3/d1:
+2026-07-19T07:24:08.3132813Z 🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+2026-07-19T07:24:08.8402441Z 🚣 12 commands executed successfully.
+2026-07-19T07:24:08.8417885Z ┌───────────────────────────────────┬────────┐
+2026-07-19T07:24:08.8419028Z │ name                              │ status │
+2026-07-19T07:24:08.8420396Z ├───────────────────────────────────┼────────┤
+2026-07-19T07:24:08.8422928Z │ 0001_create_prompts.sql           │ ✅     │
+2026-07-19T07:24:08.8424652Z ├───────────────────────────────────┼────────┤
+2026-07-19T07:24:08.8426466Z │ 0002_create_project_file_tree.sql │ 🕒️    │
+2026-07-19T07:24:08.8427514Z └───────────────────────────────────┴────────┘
+2026-07-19T07:24:08.8429049Z 🌀 Executing on local database DB (c7faca02-d8eb-481d-9c3c-bb7094154031) from .wrangler/state/v3/d1:
+2026-07-19T07:24:08.8434132Z 🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+2026-07-19T07:24:09.1891710Z 🚣 29 commands executed successfully.
+2026-07-19T07:24:09.1905761Z ┌───────────────────────────────────┬────────┐
+2026-07-19T07:24:09.1907276Z │ name                              │ status │
+2026-07-19T07:24:09.1908401Z ├───────────────────────────────────┼────────┤
+2026-07-19T07:24:09.1909496Z │ 0001_create_prompts.sql           │ ✅     │
+2026-07-19T07:24:09.1910528Z ├───────────────────────────────────┼────────┤
+2026-07-19T07:24:09.1911985Z │ 0002_create_project_file_tree.sql │ ✅     │
+2026-07-19T07:24:09.1913050Z └───────────────────────────────────┴────────┘
+2026-07-19T07:24:09.2605311Z ##[group]Run npx wrangler d1 migrations apply DB --remote --config wrangler.deploy.jsonc
+2026-07-19T07:24:09.2606454Z [36;1mnpx wrangler d1 migrations apply DB --remote --config wrangler.deploy.jsonc[0m
+2026-07-19T07:24:09.2691993Z shell: /usr/bin/bash -e {0}
+2026-07-19T07:24:09.2692495Z env:
+2026-07-19T07:24:09.2693506Z   CLOUDFLARE_API_TOKEN: ***
+2026-07-19T07:24:09.2694099Z   CLOUDFLARE_ACCOUNT_ID: ***
+2026-07-19T07:24:09.2694549Z   MCP_BEARER_TOKEN: 
+2026-07-19T07:24:09.2694928Z ##[endgroup]
+2026-07-19T07:24:10.5533787Z 
+2026-07-19T07:24:10.5535196Z  ⛅️ wrangler 4.109.0 (update available 4.112.0)
+2026-07-19T07:24:10.5539256Z ───────────────────────────────────────────────
+2026-07-19T07:24:10.5539903Z Resource location: remote 
+2026-07-19T07:24:10.5540215Z 
+2026-07-19T07:24:11.5094820Z ✅ No migrations to apply!
+2026-07-19T07:24:11.5682182Z ##[group]Run npx wrangler kv bulk put seed/kv-prompts.json --binding PROMPT_KV --remote --config wrangler.deploy.jsonc
+2026-07-19T07:24:11.5683045Z [36;1mnpx wrangler kv bulk put seed/kv-prompts.json --binding PROMPT_KV --remote --config wrangler.deploy.jsonc[0m
+2026-07-19T07:24:11.5740424Z shell: /usr/bin/bash -e {0}
+2026-07-19T07:24:11.5740669Z env:
+2026-07-19T07:24:11.5741091Z   CLOUDFLARE_API_TOKEN: ***
+2026-07-19T07:24:11.5741419Z   CLOUDFLARE_ACCOUNT_ID: ***
+2026-07-19T07:24:11.5741658Z   MCP_BEARER_TOKEN: 
+2026-07-19T07:24:11.5741867Z ##[endgroup]
+2026-07-19T07:24:12.7743761Z 
+2026-07-19T07:24:12.7784428Z  ⛅️ wrangler 4.109.0 (update available 4.112.0)
+2026-07-19T07:24:12.7808222Z ───────────────────────────────────────────────
+2026-07-19T07:24:12.7863817Z Resource location: remote 
+2026-07-19T07:24:12.7903488Z 
+2026-07-19T07:24:13.4849718Z Success!
+2026-07-19T07:24:13.5726521Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-19T07:24:13.5729022Z ##[group]Run cloudflare/wrangler-action@v3
+2026-07-19T07:24:13.5729518Z with:
+2026-07-19T07:24:13.5730118Z   apiToken: ***
+2026-07-19T07:24:13.5730554Z   accountId: ***
+2026-07-19T07:24:13.5730993Z   command: deploy --config wrangler.deploy.jsonc
+2026-07-19T07:24:13.5731535Z   quiet: false
+2026-07-19T07:24:13.5731865Z env:
+2026-07-19T07:24:13.5732466Z   CLOUDFLARE_API_TOKEN: ***
+2026-07-19T07:24:13.5732999Z   CLOUDFLARE_ACCOUNT_ID: ***
+2026-07-19T07:24:13.5733741Z   MCP_BEARER_TOKEN: 
+2026-07-19T07:24:13.5734109Z ##[endgroup]
+2026-07-19T07:24:13.7150695Z ##[group]🔍 Checking for existing Wrangler installation
+2026-07-19T07:24:13.7284687Z [command]/opt/hostedtoolcache/node/24.18.0/x64/bin/npx --no-install wrangler --version
+2026-07-19T07:24:14.9556186Z 4.109.0
+2026-07-19T07:24:15.0446617Z ✅ No wrangler version specified, using pre-installed wrangler version 4.109.0
+2026-07-19T07:24:15.0447835Z ##[endgroup]
+2026-07-19T07:24:15.0448401Z ##[endgroup]
+2026-07-19T07:24:15.0449146Z ##[group]🚀 Running Wrangler Commands
+2026-07-19T07:24:15.0467570Z [command]/opt/hostedtoolcache/node/24.18.0/x64/bin/npx wrangler deploy --config wrangler.deploy.jsonc
+2026-07-19T07:24:16.2346026Z 
+2026-07-19T07:24:16.2384793Z  ⛅️ wrangler 4.109.0 (update available 4.112.0)
+2026-07-19T07:24:16.2424308Z ───────────────────────────────────────────────
+2026-07-19T07:24:16.2545573Z 
+2026-07-19T07:24:16.2565103Z Cloudflare collects anonymous telemetry about your usage of Wrangler. Learn more at https://github.com/cloudflare/workers-sdk/tree/main/packages/wrangler/telemetry.md
+2026-07-19T07:24:18.0484479Z Total Upload: 2164.27 KiB / gzip: 392.09 KiB
+2026-07-19T07:24:20.0404624Z Worker Startup Time: 47 ms
+2026-07-19T07:24:20.0419541Z Your Worker has access to the following bindings:
+2026-07-19T07:24:20.0428819Z Binding                                                 Resource                  
+2026-07-19T07:24:20.0443586Z env.PROMPT_KV (c5b087006ab04b2da422e4adcbef89b4)        KV Namespace              
+2026-07-19T07:24:20.0444974Z env.DB (prompt)                                         D1 Database               
+2026-07-19T07:24:20.0446255Z env.ENVIRONMENT ("production")                          Environment Variable      
+2026-07-19T07:24:20.0451973Z 
+2026-07-19T07:24:20.0452440Z Uploaded prompt (2.18 sec)
+2026-07-19T07:24:20.6260885Z Deployed prompt triggers (0.58 sec)
+2026-07-19T07:24:20.6264204Z   https://prompt.2212148739lbw.workers.dev
+2026-07-19T07:24:20.6265249Z Current Version ID: 87a99d1c-cee1-4184-8f5c-008bb1988573
+2026-07-19T07:24:20.7195893Z ##[endgroup]
+2026-07-19T07:24:20.7196927Z 🏁 Wrangler Action completed
+2026-07-19T07:24:20.7356810Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-19T07:24:20.7358114Z Post job cleanup.
+2026-07-19T07:24:20.8639170Z (node:2385) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-07-19T07:24:20.8640777Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-07-19T07:24:20.8884987Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-19T07:24:20.8887181Z Post job cleanup.
+2026-07-19T07:24:20.9972349Z [command]/usr/bin/git version
+2026-07-19T07:24:21.0064085Z git version 2.54.0
+2026-07-19T07:24:21.0129685Z Temporarily overriding HOME='/home/runner/work/_temp/35d078d4-b7b9-4be2-bf69-0719610569f7' before making global git config changes
+2026-07-19T07:24:21.0138720Z Adding repository directory to the temporary git global config as a safe directory
+2026-07-19T07:24:21.0140219Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/prompt-web/prompt-web
+2026-07-19T07:24:21.0190736Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-07-19T07:24:21.0256284Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-07-19T07:24:21.0666149Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-07-19T07:24:21.0699298Z http.https://github.com/.extraheader
+2026-07-19T07:24:21.0726419Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-07-19T07:24:21.0776174Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-07-19T07:24:21.1122508Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-07-19T07:24:21.1208009Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-07-19T07:24:21.2054571Z Cleaning up orphan processes
+2026-07-19T07:24:21.2337887Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, cloudflare/wrangler-action@v3. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
 
