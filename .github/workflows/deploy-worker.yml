@@ -25,7 +25,7 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 25
     environment: production
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -41,6 +41,11 @@ jobs:
         with:
           node-version: 24
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
       - name: Validate Cloudflare credentials
         shell: bash
         run: |
@@ -48,7 +53,14 @@ jobs:
           test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "Missing CLOUDFLARE_ACCOUNT_ID"; exit 1; }
 
       - name: Install dependencies
-        run: npm install --no-package-lock --no-audit --no-fund
+        run: |
+          npm install --no-package-lock --no-audit --no-fund
+          python -m pip install --disable-pip-version-check -r scripts/requirements.txt
+
+      - name: Build content manifest
+        run: |
+          python -m scripts.cli validate
+          python -m scripts.cli build
 
       - name: Render production Wrangler config
         env:
@@ -83,6 +95,22 @@ jobs:
         shell: bash
         run: printf '%s' "$MCP_BEARER_TOKEN" | npx wrangler secret put MCP_BEARER_TOKEN --config wrangler.deploy.jsonc
 
+      - name: Rotate content synchronization token
+        shell: bash
+        run: |
+          token="$(openssl rand -hex 32)"
+          echo "::add-mask::$token"
+          echo "CONTENT_SYNC_TOKEN=$token" >> "$GITHUB_ENV"
+
+      - name: Upload content synchronization token
+        shell: bash
+        run: printf '%s' "$CONTENT_SYNC_TOKEN" | npx wrangler secret put CONTENT_SYNC_TOKEN --config wrangler.deploy.jsonc
+
+      - name: Synchronize repository content
+        env:
+          PROMPT_API_BASE_URL: ${{ steps.deploy.outputs.deployment-url }}
+        run: python -m scripts.cli sync --base-url "$PROMPT_API_BASE_URL" --prune
+
       - name: Smoke test deployed Worker
         shell: bash
         env:
@@ -108,22 +136,29 @@ jobs:
           health_json="$(request_json "$base_url/health")"
           projects_json="$(request_json "$base_url/api/projects")"
           bootstrap_json="$(request_json "$base_url/api/bootstrap/chatgpt/default")"
-          search_json="$(request_json "$base_url/api/files/search?limit=5")"
+          search_json="$(request_json "$base_url/api/files/search?q=sync&project=prompt-library&limit=5")"
+          file_json="$(request_json "$base_url/api/files/fetch?identifier=prompt-library-content-sync-guide")"
 
           echo "health=$health_json"
           echo "projects=$projects_json"
           echo "bootstrap=$bootstrap_json"
           echo "search=$search_json"
+          echo "file=$file_json"
 
           HEALTH_JSON="$health_json" \
           PROJECTS_JSON="$projects_json" \
           BOOTSTRAP_JSON="$bootstrap_json" \
           SEARCH_JSON="$search_json" \
+          FILE_JSON="$file_json" \
           node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+
+          const manifest = JSON.parse(readFileSync('.prompt-sync/manifest.json', 'utf8'));
           const health = JSON.parse(process.env.HEALTH_JSON);
           const projects = JSON.parse(process.env.PROJECTS_JSON);
           const bootstrap = JSON.parse(process.env.BOOTSTRAP_JSON);
           const search = JSON.parse(process.env.SEARCH_JSON);
+          const file = JSON.parse(process.env.FILE_JSON);
 
           if (health.status !== 'ok' || health.database !== true) {
             throw new Error(`Unhealthy Worker response: ${JSON.stringify(health)}`);
@@ -131,13 +166,44 @@ jobs:
           if (health.kvSeeded !== true) {
             throw new Error(`Production KV bootstrap manifest is missing: ${JSON.stringify(health)}`);
           }
-          if (!Array.isArray(projects.projects)) {
+          if (
+            health.contentSync?.status !== 'succeeded' ||
+            health.contentSync?.manifestHash !== manifest.manifestHash
+          ) {
+            throw new Error(`Content sync status is invalid: ${JSON.stringify(health.contentSync)}`);
+          }
+          if (!Array.isArray(projects.projects) || !projects.projects.some((item) => item.slug === 'prompt-library')) {
             throw new Error(`Invalid projects response: ${JSON.stringify(projects)}`);
           }
           if (!Number.isInteger(bootstrap.version) || bootstrap.version < 1 || !bootstrap.content) {
             throw new Error(`Invalid bootstrap response: ${JSON.stringify(bootstrap)}`);
           }
-          if (!Array.isArray(search.results)) {
-            throw new Error(`Invalid search response: ${JSON.stringify(search)}`);
+          if (
+            !Array.isArray(search.results) ||
+            !search.results.some((item) => item.id === 'prompt-library-content-sync-guide')
+          ) {
+            throw new Error(`Synced file was not searchable: ${JSON.stringify(search)}`);
+          }
+          if (
+            file.id !== 'prompt-library-content-sync-guide' ||
+            file.uri !== 'prompt://prompt-library/guides/content-sync.md' ||
+            !file.content.includes('content/')
+          ) {
+            throw new Error(`Synced file could not be fetched: ${JSON.stringify(file)}`);
           }
           NODE
+
+      - name: Write deployment summary
+        if: always()
+        shell: bash
+        env:
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment-url }}
+        run: |
+          {
+            echo "## Prompt MCP deployment"
+            echo
+            echo "- Run ID: \`$GITHUB_RUN_ID\`"
+            echo "- Commit: \`$GITHUB_SHA\`"
+            echo "- URL: $DEPLOYMENT_URL"
+            echo "- D1 migrations, remote KV, content sync and production smoke tests are enforced by this job."
+          } >> "$GITHUB_STEP_SUMMARY"

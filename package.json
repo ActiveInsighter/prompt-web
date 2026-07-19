@@ -1,6 +1,6 @@
 {
   "name": "prompt-web",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -8,7 +8,13 @@
     "deploy": "wrangler deploy",
     "typecheck": "tsc --noEmit",
     "test": "node scripts/test-run-state.mjs",
-    "project:ci": "npm run typecheck && npm run db:migrate:local && npm test",
+    "content:validate": "python -m scripts.cli validate",
+    "content:build": "python -m scripts.cli build",
+    "content:test": "python -m unittest discover -s scripts/tests -p \"test_*.py\"",
+    "content:plan": "python -m scripts.cli plan",
+    "content:sync": "python -m scripts.cli sync",
+    "worker:dry-run": "wrangler deploy --dry-run --outdir .wrangler/dry-run",
+    "project:ci": "npm run typecheck && npm run db:migrate:local && npm run content:validate && npm run content:build && npm run content:test && npm test && npm run worker:dry-run",
     "ci": "node scripts/run-ci-with-log.mjs",
     "run:latest": "node scripts/get-latest-run.mjs",
     "log:latest": "node scripts/get-latest-run.mjs --logs",
