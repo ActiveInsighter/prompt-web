@@ -106,6 +106,48 @@ jobs:
         shell: bash
         run: printf '%s' "$CONTENT_SYNC_TOKEN" | npx wrangler secret put CONTENT_SYNC_TOKEN --config wrangler.deploy.jsonc
 
+      - name: Wait for content synchronization token
+        shell: bash
+        env:
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment-url }}
+        run: |
+          set -euo pipefail
+          test -n "$DEPLOYMENT_URL" || { echo 'Wrangler did not return a deployment URL.'; exit 1; }
+          snapshot_url="${DEPLOYMENT_URL%/}/api/admin/library/snapshot"
+          response_file="$(mktemp)"
+          trap 'rm -f "$response_file"' EXIT
+
+          for attempt in $(seq 1 15); do
+            status="$({
+              curl \
+                --silent \
+                --show-error \
+                --max-time 20 \
+                --output "$response_file" \
+                --write-out '%{http_code}' \
+                --header "Authorization: Bearer $CONTENT_SYNC_TOKEN" \
+                --header 'Accept: application/json' \
+                "$snapshot_url"
+            } || true)"
+
+            if [[ "$status" == "200" ]]; then
+              echo "Content synchronization token is active after attempt $attempt."
+              cat "$response_file"
+              exit 0
+            fi
+
+            echo "Content synchronization token is not active yet: attempt=$attempt status=$status"
+            cat "$response_file" || true
+            if [[ "$status" != "401" && "$status" != "503" && "$status" != "000" ]]; then
+              echo "Unexpected response while waiting for content synchronization readiness."
+              exit 1
+            fi
+            sleep 2
+          done
+
+          echo 'Content synchronization token did not become active.'
+          exit 1
+
       - name: Synchronize repository content
         env:
           PROMPT_API_BASE_URL: ${{ steps.deploy.outputs.deployment-url }}
