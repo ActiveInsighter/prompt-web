@@ -115,6 +115,35 @@ variables:
             with self.assertRaises(ManifestValidationError):
                 manifest.to_dict()
 
+    def test_rejects_tags_that_cannot_round_trip_through_d1(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            project = root / "content" / "test"
+            project.mkdir(parents=True)
+            (project / "_project.yaml").write_text(PROJECT_YAML, encoding="utf-8")
+            (project / "example.md").write_text(
+                "---\nid: file-test-example\ntitle: Example\ntags: ['invalid,tag']\n---\n\n# Example\n",
+                encoding="utf-8",
+            )
+
+            manifest = scan_content(root / "content", root)
+            with self.assertRaisesRegex(ManifestValidationError, "cannot contain commas"):
+                manifest.to_dict()
+
+    def test_rejects_yaml_values_that_are_not_json_serializable(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            project = root / "content" / "test"
+            project.mkdir(parents=True)
+            (project / "_project.yaml").write_text(PROJECT_YAML, encoding="utf-8")
+            (project / "example.md").write_text(
+                "---\nid: file-test-example\ntitle: Example\npublished: 2026-07-19\n---\n\n# Example\n",
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(ManifestValidationError, "JSON serializable"):
+                scan_content(root / "content", root)
+
 
 if __name__ == "__main__":
     unittest.main()
