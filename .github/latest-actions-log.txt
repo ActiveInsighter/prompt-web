@@ -1,238 +1,488 @@
-===== JOB: build (failure) =====
-2026-07-19T08:00:57.2871064Z Current runner version: '2.335.1'
-2026-07-19T08:00:57.2908007Z ##[group]Runner Image Provisioner
-2026-07-19T08:00:57.2909388Z Hosted Compute Agent
-2026-07-19T08:00:57.2910415Z Version: 20260707.563
-2026-07-19T08:00:57.2911356Z Commit: 02667638d2b423fbc733a8e32a88b44996a3ba6e
-2026-07-19T08:00:57.2912883Z Build Date: 2026-07-07T19:33:50Z
-2026-07-19T08:00:57.2914014Z Worker ID: {31bc71f9-ded0-4bd9-8ea4-af7448dca14d}
-2026-07-19T08:00:57.2915119Z Azure Region: centralus
-2026-07-19T08:00:57.2916115Z ##[endgroup]
-2026-07-19T08:00:57.2918203Z ##[group]Operating System
-2026-07-19T08:00:57.2919088Z Ubuntu
-2026-07-19T08:00:57.2920567Z 24.04.4
-2026-07-19T08:00:57.2921355Z LTS
-2026-07-19T08:00:57.2922494Z ##[endgroup]
-2026-07-19T08:00:57.2924382Z ##[group]Runner Image
-2026-07-19T08:00:57.2925409Z Image: ubuntu-24.04
-2026-07-19T08:00:57.2926400Z Version: 20260714.240.1
-2026-07-19T08:00:57.2928478Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260714.240/images/ubuntu/Ubuntu2404-Readme.md
-2026-07-19T08:00:57.2931196Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260714.240
-2026-07-19T08:00:57.2963301Z ##[endgroup]
-2026-07-19T08:00:57.2965355Z ##[group]GITHUB_TOKEN Permissions
-2026-07-19T08:00:57.2968289Z Actions: read
-2026-07-19T08:00:57.2969267Z Contents: write
-2026-07-19T08:00:57.2970140Z Metadata: read
-2026-07-19T08:00:57.2971024Z ##[endgroup]
-2026-07-19T08:00:57.2974387Z Secret source: Actions
-2026-07-19T08:00:57.2975502Z Prepare workflow directory
-2026-07-19T08:00:57.3832229Z Prepare all required actions
-2026-07-19T08:00:57.3929995Z Getting action download info
-2026-07-19T08:00:57.7277088Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
-2026-07-19T08:00:57.8278368Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
-2026-07-19T08:00:58.0786588Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
-2026-07-19T08:00:59.0404430Z Complete job name: build
-2026-07-19T08:00:59.1127925Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
-2026-07-19T08:00:59.1138794Z ##[group]Run actions/checkout@v4
-2026-07-19T08:00:59.1139496Z with:
-2026-07-19T08:00:59.1139854Z   fetch-depth: 0
-2026-07-19T08:00:59.1140287Z   repository: ActiveInsighter/prompt-web
-2026-07-19T08:00:59.1145182Z   token: ***
-2026-07-19T08:00:59.1145573Z   ssh-strict: true
-2026-07-19T08:00:59.1145964Z   ssh-user: git
-2026-07-19T08:00:59.1146360Z   persist-credentials: true
-2026-07-19T08:00:59.1146794Z   clean: true
-2026-07-19T08:00:59.1147200Z   sparse-checkout-cone-mode: true
-2026-07-19T08:00:59.1147663Z   fetch-tags: false
-2026-07-19T08:00:59.1148072Z   show-progress: true
-2026-07-19T08:00:59.1148472Z   lfs: false
-2026-07-19T08:00:59.1148918Z   submodules: false
-2026-07-19T08:00:59.1149302Z   set-safe-directory: true
-2026-07-19T08:00:59.1150110Z ##[endgroup]
-2026-07-19T08:00:59.2325132Z Syncing repository: ActiveInsighter/prompt-web
-2026-07-19T08:00:59.2327278Z ##[group]Getting Git version info
-2026-07-19T08:00:59.2328371Z Working directory is '/home/runner/work/prompt-web/prompt-web'
-2026-07-19T08:00:59.2329750Z [command]/usr/bin/git version
-2026-07-19T08:00:59.5175251Z git version 2.54.0
-2026-07-19T08:00:59.5179166Z ##[endgroup]
-2026-07-19T08:00:59.5188664Z Temporarily overriding HOME='/home/runner/work/_temp/bc1922e6-b5ff-46bf-b234-a69852e7d0bc' before making global git config changes
-2026-07-19T08:00:59.5190745Z Adding repository directory to the temporary git global config as a safe directory
-2026-07-19T08:00:59.5193323Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/prompt-web/prompt-web
-2026-07-19T08:00:59.5220481Z Deleting the contents of '/home/runner/work/prompt-web/prompt-web'
-2026-07-19T08:00:59.5225871Z ##[group]Initializing the repository
-2026-07-19T08:00:59.5231304Z [command]/usr/bin/git init /home/runner/work/prompt-web/prompt-web
-2026-07-19T08:00:59.5326026Z hint: Using 'master' as the name for the initial branch. This default branch name
-2026-07-19T08:00:59.5327690Z hint: will change to "main" in Git 3.0. To configure the initial branch name
-2026-07-19T08:00:59.5329350Z hint: to use in all of your new repositories, which will suppress this warning,
-2026-07-19T08:00:59.5332136Z hint: call:
-2026-07-19T08:00:59.5335095Z hint:
-2026-07-19T08:00:59.5337329Z hint: 	git config --global init.defaultBranch <name>
-2026-07-19T08:00:59.5338656Z hint:
-2026-07-19T08:00:59.5339476Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
-2026-07-19T08:00:59.5341117Z hint: 'development'. The just-created branch can be renamed via this command:
-2026-07-19T08:00:59.5343527Z hint:
-2026-07-19T08:00:59.5344777Z hint: 	git branch -m <name>
-2026-07-19T08:00:59.5345708Z hint:
-2026-07-19T08:00:59.5346961Z hint: Disable this message with "git config set advice.defaultBranchName false"
-2026-07-19T08:00:59.5348327Z Initialized empty Git repository in /home/runner/work/prompt-web/prompt-web/.git/
-2026-07-19T08:00:59.5351541Z [command]/usr/bin/git remote add origin https://github.com/ActiveInsighter/prompt-web
-2026-07-19T08:00:59.5394101Z ##[endgroup]
-2026-07-19T08:00:59.5395267Z ##[group]Disabling automatic garbage collection
-2026-07-19T08:00:59.5398795Z [command]/usr/bin/git config --local gc.auto 0
-2026-07-19T08:00:59.5438138Z ##[endgroup]
-2026-07-19T08:00:59.5439525Z ##[group]Setting up auth
-2026-07-19T08:00:59.5444780Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-2026-07-19T08:00:59.5668994Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-2026-07-19T08:00:59.5890304Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-2026-07-19T08:00:59.5929721Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-2026-07-19T08:00:59.6376458Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-2026-07-19T08:00:59.6378557Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-2026-07-19T08:00:59.6565094Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
-2026-07-19T08:00:59.6611949Z ##[endgroup]
-2026-07-19T08:00:59.6619723Z ##[group]Fetching the repository
-2026-07-19T08:00:59.6624637Z [command]/usr/bin/git -c protocol.version=2 fetch --prune --no-recurse-submodules origin +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/*
-2026-07-19T08:01:00.1002449Z From https://github.com/ActiveInsighter/prompt-web
-2026-07-19T08:01:00.1004149Z  * [new branch]      agent/ci-run-state-bootstrap -> origin/agent/ci-run-state-bootstrap
-2026-07-19T08:01:00.1005279Z  * [new branch]      chore/capture-deploy-logs -> origin/chore/capture-deploy-logs
-2026-07-19T08:01:00.1006240Z  * [new branch]      ci/deployment-smoke-test -> origin/ci/deployment-smoke-test
-2026-07-19T08:01:00.1007225Z  * [new branch]      feat/cloudflare-prompt-mcp -> origin/feat/cloudflare-prompt-mcp
-2026-07-19T08:01:00.1008279Z  * [new branch]      feat/content-library-sync -> origin/feat/content-library-sync
-2026-07-19T08:01:00.1009869Z  * [new branch]      feat/project-file-library -> origin/feat/project-file-library
-2026-07-19T08:01:00.1011051Z  * [new branch]      fix/remote-kv-seed -> origin/fix/remote-kv-seed
-2026-07-19T08:01:00.1012648Z  * [new branch]      main               -> origin/main
-2026-07-19T08:01:00.1030284Z [command]/usr/bin/git branch --list --remote origin/main
-2026-07-19T08:01:00.1066971Z   origin/main
-2026-07-19T08:01:00.1079411Z [command]/usr/bin/git rev-parse refs/remotes/origin/main
-2026-07-19T08:01:00.1109750Z 3b282e8467539647a6c599a755a38126ae24c84f
-2026-07-19T08:01:00.1121054Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules origin +8f15122e0408d8037795259e281679a8444284ee:refs/remotes/origin/main
-2026-07-19T08:01:00.1187967Z From https://github.com/ActiveInsighter/prompt-web
-2026-07-19T08:01:00.1189279Z  + 3b282e8...8f15122 8f15122e0408d8037795259e281679a8444284ee -> origin/main  (forced update)
-2026-07-19T08:01:00.1214776Z ##[endgroup]
-2026-07-19T08:01:00.1216084Z ##[group]Determining the checkout info
-2026-07-19T08:01:00.1217739Z ##[endgroup]
-2026-07-19T08:01:00.1222420Z [command]/usr/bin/git sparse-checkout disable
-2026-07-19T08:01:00.1283233Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
-2026-07-19T08:01:00.1316728Z ##[group]Checking out the ref
-2026-07-19T08:01:00.1320443Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
-2026-07-19T08:01:00.1394908Z Switched to a new branch 'main'
-2026-07-19T08:01:00.1402383Z branch 'main' set up to track 'origin/main'.
-2026-07-19T08:01:00.1405466Z ##[endgroup]
-2026-07-19T08:01:00.1450335Z [command]/usr/bin/git log -1 --format=%H
-2026-07-19T08:01:00.1481251Z 8f15122e0408d8037795259e281679a8444284ee
-2026-07-19T08:01:00.1817757Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
-2026-07-19T08:01:00.1820559Z ##[group]Run actions/setup-node@v4
-2026-07-19T08:01:00.1820994Z with:
-2026-07-19T08:01:00.1821296Z   node-version: 24
-2026-07-19T08:01:00.1821623Z   always-auth: false
-2026-07-19T08:01:00.1822256Z   check-latest: false
-2026-07-19T08:01:00.1827085Z   token: ***
-2026-07-19T08:01:00.1827432Z ##[endgroup]
-2026-07-19T08:01:00.3524789Z (node:2014) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-2026-07-19T08:01:00.3539514Z (Use `node --trace-deprecation ...` to show where the warning was created)
-2026-07-19T08:01:00.3912862Z Found in cache @ /opt/hostedtoolcache/node/24.18.0/x64
-2026-07-19T08:01:00.3914381Z ##[group]Environment details
-2026-07-19T08:01:00.9285344Z node: v24.18.0
-2026-07-19T08:01:00.9303278Z npm: 11.16.0
-2026-07-19T08:01:00.9303913Z yarn: 1.22.22
-2026-07-19T08:01:00.9305062Z ##[endgroup]
-2026-07-19T08:01:00.9433074Z ##[group]Run node scripts/record-run-state.mjs start
-2026-07-19T08:01:00.9433537Z [36;1mnode scripts/record-run-state.mjs start[0m
-2026-07-19T08:01:00.9524411Z shell: /usr/bin/bash -e {0}
-2026-07-19T08:01:00.9525132Z ##[endgroup]
-2026-07-19T08:01:01.0086196Z Recorded run 29679070219: running
-2026-07-19T08:01:01.0169503Z ##[group]Run node scripts/git-commit-state.mjs "Record workflow start [skip ci]"
-2026-07-19T08:01:01.0170112Z [36;1mnode scripts/git-commit-state.mjs "Record workflow start [skip ci]"[0m
-2026-07-19T08:01:01.0234288Z shell: /usr/bin/bash -e {0}
-2026-07-19T08:01:01.0234579Z ##[endgroup]
-2026-07-19T08:01:01.0838441Z [main 34a4459] Record workflow start [skip ci]
-2026-07-19T08:01:01.0850525Z  4 files changed, 29 insertions(+), 7 deletions(-)
-2026-07-19T08:01:01.3495588Z To https://github.com/ActiveInsighter/prompt-web
-2026-07-19T08:01:01.3496554Z  ! [rejected]        HEAD -> main (non-fast-forward)
-2026-07-19T08:01:01.3497848Z error: failed to push some refs to 'https://github.com/ActiveInsighter/prompt-web'
-2026-07-19T08:01:01.3525050Z hint: Updates were rejected because the tip of your current branch is behind
-2026-07-19T08:01:01.3526301Z hint: its remote counterpart. If you want to integrate the remote changes,
-2026-07-19T08:01:01.3527465Z hint: use 'git pull' before pushing again.
-2026-07-19T08:01:01.3528579Z hint: See the 'Note about fast-forwards' in 'git push --help' for details.
-2026-07-19T08:01:01.3547825Z Push attempt 1 failed; rebasing onto origin/main.
-2026-07-19T08:01:01.6815527Z From https://github.com/ActiveInsighter/prompt-web
-2026-07-19T08:01:01.6832969Z  * branch            main       -> FETCH_HEAD
-2026-07-19T08:01:01.6851237Z    8f15122..3b282e8  main       -> origin/main
-2026-07-19T08:01:01.7108853Z Auto-merging .github/build-history.json
-2026-07-19T08:01:01.7109907Z Rebasing (1/1)
-2026-07-19T08:01:01.7114759Z Auto-merging .github/latest-run.json
-2026-07-19T08:01:01.7117236Z error: could not apply 34a4459... Record workflow start [skip ci]
-2026-07-19T08:01:01.7133428Z CONFLICT (content): Merge conflict in .github/latest-run.json
-2026-07-19T08:01:01.7153536Z hint: Resolve all conflicts manually, mark them as resolved with
-2026-07-19T08:01:01.7155103Z hint: "git add/rm <conflicted_files>", then run "git rebase --continue".
-2026-07-19T08:01:01.7171164Z hint: You can instead skip this commit: run "git rebase --skip".
-2026-07-19T08:01:01.7183264Z hint: To abort and get back to the state before "git rebase", run "git rebase --abort".
-2026-07-19T08:01:01.7191289Z hint: Disable this message with "git config set advice.mergeConflict false"
-2026-07-19T08:01:01.7192527Z Could not apply 34a4459... # Record workflow start [skip ci]
-2026-07-19T08:01:01.7202028Z ##[error]Process completed with exit code 1.
-2026-07-19T08:01:01.7311122Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
-2026-07-19T08:01:01.7312546Z ##[group]Run actions/upload-artifact@v4
-2026-07-19T08:01:01.7312828Z with:
-2026-07-19T08:01:01.7313058Z   name: prompt-web-build-log-29679070219
-2026-07-19T08:01:01.7313355Z   path: .github/latest-build-log.txt
-2026-07-19T08:01:01.7313626Z   if-no-files-found: error
-2026-07-19T08:01:01.7313860Z   retention-days: 14
-2026-07-19T08:01:01.7314096Z   compression-level: 6
-2026-07-19T08:01:01.7314316Z   overwrite: false
-2026-07-19T08:01:01.7314538Z   include-hidden-files: false
-2026-07-19T08:01:01.7314787Z ##[endgroup]
-2026-07-19T08:01:01.8997767Z (node:2088) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-2026-07-19T08:01:01.8999584Z (Use `node --trace-deprecation ...` to show where the warning was created)
-2026-07-19T08:01:01.9098907Z With the provided path, there will be 1 file uploaded
-2026-07-19T08:01:01.9100016Z Artifact name is valid!
-2026-07-19T08:01:01.9100762Z Root directory input is valid!
-2026-07-19T08:01:02.1167106Z Beginning upload of artifact content to blob storage
-2026-07-19T08:01:02.1322543Z (node:2088) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
-2026-07-19T08:01:02.2451146Z Uploaded bytes 555
-2026-07-19T08:01:02.2795307Z Finished uploading artifact content to blob storage!
-2026-07-19T08:01:02.2796482Z SHA256 digest of uploaded artifact zip is fcacba7cd0a13ebc105afb330fd08497f508e1eba0e7cae07ef2ae0459cb61ee
-2026-07-19T08:01:02.2800126Z Finalizing artifact upload
-2026-07-19T08:01:02.4583014Z Artifact prompt-web-build-log-29679070219.zip successfully finalized. Artifact ID 8439947376
-2026-07-19T08:01:02.4584640Z Artifact prompt-web-build-log-29679070219 has been successfully uploaded! Final size is 555 bytes. Artifact ID is 8439947376
-2026-07-19T08:01:02.4586270Z Artifact download URL: https://github.com/ActiveInsighter/prompt-web/actions/runs/29679070219/artifacts/8439947376
-2026-07-19T08:01:02.4690970Z ##[group]Run node scripts/record-run-state.mjs finish
-2026-07-19T08:01:02.4691403Z [36;1mnode scripts/record-run-state.mjs finish[0m
-2026-07-19T08:01:02.4756035Z shell: /usr/bin/bash -e {0}
-2026-07-19T08:01:02.4756310Z env:
-2026-07-19T08:01:02.4756524Z   CI_OUTCOME: skipped
-2026-07-19T08:01:02.4756959Z   ARTIFACT_OUTCOME: success
-2026-07-19T08:01:02.4757203Z ##[endgroup]
-2026-07-19T08:01:02.5238730Z Recorded run 29679070219: failure
-2026-07-19T08:01:02.5304334Z ##[group]Run node scripts/git-commit-state.mjs "Record workflow finish [skip ci]"
-2026-07-19T08:01:02.5305048Z [36;1mnode scripts/git-commit-state.mjs "Record workflow finish [skip ci]"[0m
-2026-07-19T08:01:02.5368273Z shell: /usr/bin/bash -e {0}
-2026-07-19T08:01:02.5368587Z ##[endgroup]
-2026-07-19T08:01:02.5938503Z [detached HEAD fc23b6f] Record workflow finish [skip ci]
-2026-07-19T08:01:02.5946408Z  4 files changed, 31 insertions(+), 9 deletions(-)
-2026-07-19T08:01:03.4699850Z To https://github.com/ActiveInsighter/prompt-web
-2026-07-19T08:01:03.4722545Z    3b282e8..fc23b6f  HEAD -> main
-2026-07-19T08:01:03.4863150Z ##[group]Run [[ "$CI_OUTCOME" == "success" && "$ARTIFACT_OUTCOME" == "success" ]]
-2026-07-19T08:01:03.4863969Z [36;1m[[ "$CI_OUTCOME" == "success" && "$ARTIFACT_OUTCOME" == "success" ]][0m
-2026-07-19T08:01:03.4929167Z shell: /usr/bin/bash -e {0}
-2026-07-19T08:01:03.4929512Z env:
-2026-07-19T08:01:03.4929791Z   CI_OUTCOME: skipped
-2026-07-19T08:01:03.4930119Z   ARTIFACT_OUTCOME: success
-2026-07-19T08:01:03.4930464Z ##[endgroup]
-2026-07-19T08:01:03.5041529Z ##[error]Process completed with exit code 1.
-2026-07-19T08:01:03.5130428Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
-2026-07-19T08:01:03.5131623Z Post job cleanup.
-2026-07-19T08:01:03.6062609Z [command]/usr/bin/git version
-2026-07-19T08:01:03.6122534Z git version 2.54.0
-2026-07-19T08:01:03.6232245Z Temporarily overriding HOME='/home/runner/work/_temp/da929bc8-9cce-497b-a6fb-f62839e11304' before making global git config changes
-2026-07-19T08:01:03.6243887Z Adding repository directory to the temporary git global config as a safe directory
-2026-07-19T08:01:03.6265634Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/prompt-web/prompt-web
-2026-07-19T08:01:03.6315975Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-2026-07-19T08:01:03.6344641Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-2026-07-19T08:01:03.6655474Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-2026-07-19T08:01:03.6696404Z http.https://github.com/.extraheader
-2026-07-19T08:01:03.6729799Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-2026-07-19T08:01:03.6777312Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-2026-07-19T08:01:03.7293131Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-2026-07-19T08:01:03.7373375Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-2026-07-19T08:01:03.8089311Z Cleaning up orphan processes
-2026-07-19T08:01:03.8342399Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+===== JOB: build (success) =====
+2026-07-19T08:39:24.9022579Z Current runner version: '2.335.1'
+2026-07-19T08:39:24.9059269Z ##[group]Runner Image Provisioner
+2026-07-19T08:39:24.9061111Z Hosted Compute Agent
+2026-07-19T08:39:24.9062276Z Version: 20260707.563
+2026-07-19T08:39:24.9063491Z Commit: 02667638d2b423fbc733a8e32a88b44996a3ba6e
+2026-07-19T08:39:24.9064801Z Build Date: 2026-07-07T19:33:50Z
+2026-07-19T08:39:24.9066999Z Worker ID: {b0e1a568-a87b-4227-a2a7-89c57ace4de5}
+2026-07-19T08:39:24.9068281Z Azure Region: westus
+2026-07-19T08:39:24.9069254Z ##[endgroup]
+2026-07-19T08:39:24.9072028Z ##[group]Operating System
+2026-07-19T08:39:24.9073072Z Ubuntu
+2026-07-19T08:39:24.9074003Z 24.04.4
+2026-07-19T08:39:24.9074947Z LTS
+2026-07-19T08:39:24.9075776Z ##[endgroup]
+2026-07-19T08:39:24.9076897Z ##[group]Runner Image
+2026-07-19T08:39:24.9078012Z Image: ubuntu-24.04
+2026-07-19T08:39:24.9079071Z Version: 20260714.240.1
+2026-07-19T08:39:24.9081887Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260714.240/images/ubuntu/Ubuntu2404-Readme.md
+2026-07-19T08:39:24.9084853Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260714.240
+2026-07-19T08:39:24.9086557Z ##[endgroup]
+2026-07-19T08:39:24.9088687Z ##[group]GITHUB_TOKEN Permissions
+2026-07-19T08:39:24.9091901Z Actions: read
+2026-07-19T08:39:24.9093039Z Contents: write
+2026-07-19T08:39:24.9094042Z Metadata: read
+2026-07-19T08:39:24.9095019Z ##[endgroup]
+2026-07-19T08:39:24.9098019Z Secret source: Actions
+2026-07-19T08:39:24.9100133Z Prepare workflow directory
+2026-07-19T08:39:24.9615242Z Prepare all required actions
+2026-07-19T08:39:24.9674822Z Getting action download info
+2026-07-19T08:39:25.3148200Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
+2026-07-19T08:39:25.4688005Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+2026-07-19T08:39:25.5674392Z Download action repository 'actions/setup-python@v5' (SHA:a26af69be951a213d495a4c3e4e4022e16d87065)
+2026-07-19T08:39:25.6585549Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2026-07-19T08:39:25.8914564Z Complete job name: build
+2026-07-19T08:39:25.9700710Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-19T08:39:25.9710200Z ##[group]Run actions/checkout@v4
+2026-07-19T08:39:25.9710977Z with:
+2026-07-19T08:39:25.9711392Z   fetch-depth: 0
+2026-07-19T08:39:25.9711872Z   repository: ActiveInsighter/prompt-web
+2026-07-19T08:39:25.9715943Z   token: ***
+2026-07-19T08:39:25.9716364Z   ssh-strict: true
+2026-07-19T08:39:25.9716788Z   ssh-user: git
+2026-07-19T08:39:25.9717216Z   persist-credentials: true
+2026-07-19T08:39:25.9717703Z   clean: true
+2026-07-19T08:39:25.9718151Z   sparse-checkout-cone-mode: true
+2026-07-19T08:39:25.9718685Z   fetch-tags: false
+2026-07-19T08:39:25.9719117Z   show-progress: true
+2026-07-19T08:39:25.9719553Z   lfs: false
+2026-07-19T08:39:25.9720185Z   submodules: false
+2026-07-19T08:39:25.9720643Z   set-safe-directory: true
+2026-07-19T08:39:25.9721406Z ##[endgroup]
+2026-07-19T08:39:26.0948673Z Syncing repository: ActiveInsighter/prompt-web
+2026-07-19T08:39:26.0952082Z ##[group]Getting Git version info
+2026-07-19T08:39:26.0953629Z Working directory is '/home/runner/work/prompt-web/prompt-web'
+2026-07-19T08:39:26.0955815Z [command]/usr/bin/git version
+2026-07-19T08:39:26.1024725Z git version 2.54.0
+2026-07-19T08:39:26.1117959Z ##[endgroup]
+2026-07-19T08:39:26.1133087Z Temporarily overriding HOME='/home/runner/work/_temp/2e9f97a4-73ed-45ca-9bc9-ffcbd66ce95d' before making global git config changes
+2026-07-19T08:39:26.1136174Z Adding repository directory to the temporary git global config as a safe directory
+2026-07-19T08:39:26.1138608Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/prompt-web/prompt-web
+2026-07-19T08:39:26.1177978Z Deleting the contents of '/home/runner/work/prompt-web/prompt-web'
+2026-07-19T08:39:26.1180464Z ##[group]Initializing the repository
+2026-07-19T08:39:26.1181706Z [command]/usr/bin/git init /home/runner/work/prompt-web/prompt-web
+2026-07-19T08:39:26.1306673Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-07-19T08:39:26.1386739Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-07-19T08:39:26.1388536Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-07-19T08:39:26.1390414Z hint: call:
+2026-07-19T08:39:26.1391259Z hint:
+2026-07-19T08:39:26.1392221Z hint: 	git config --global init.defaultBranch <name>
+2026-07-19T08:39:26.1393307Z hint:
+2026-07-19T08:39:26.1394326Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-07-19T08:39:26.1396111Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-07-19T08:39:26.1397509Z hint:
+2026-07-19T08:39:26.1398264Z hint: 	git branch -m <name>
+2026-07-19T08:39:26.1399112Z hint:
+2026-07-19T08:39:26.1400596Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-07-19T08:39:26.1402814Z Initialized empty Git repository in /home/runner/work/prompt-web/prompt-web/.git/
+2026-07-19T08:39:26.1406193Z [command]/usr/bin/git remote add origin https://github.com/ActiveInsighter/prompt-web
+2026-07-19T08:39:26.1435832Z ##[endgroup]
+2026-07-19T08:39:26.1437345Z ##[group]Disabling automatic garbage collection
+2026-07-19T08:39:26.1460678Z [command]/usr/bin/git config --local gc.auto 0
+2026-07-19T08:39:26.1521105Z ##[endgroup]
+2026-07-19T08:39:26.1522792Z ##[group]Setting up auth
+2026-07-19T08:39:26.1534265Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-07-19T08:39:26.1582715Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-07-19T08:39:26.2062024Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-07-19T08:39:26.2126999Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-07-19T08:39:26.2446644Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-07-19T08:39:26.2484832Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-07-19T08:39:26.2733143Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-07-19T08:39:26.2777886Z ##[endgroup]
+2026-07-19T08:39:26.2779573Z ##[group]Fetching the repository
+2026-07-19T08:39:26.2791687Z [command]/usr/bin/git -c protocol.version=2 fetch --prune --no-recurse-submodules origin +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/*
+2026-07-19T08:39:27.0160283Z From https://github.com/ActiveInsighter/prompt-web
+2026-07-19T08:39:27.0162505Z  * [new branch]      agent/ci-run-state-bootstrap -> origin/agent/ci-run-state-bootstrap
+2026-07-19T08:39:27.0178433Z  * [new branch]      chore/capture-deploy-logs -> origin/chore/capture-deploy-logs
+2026-07-19T08:39:27.0180464Z  * [new branch]      ci/deployment-smoke-test -> origin/ci/deployment-smoke-test
+2026-07-19T08:39:27.0184746Z  * [new branch]      feat/cloudflare-prompt-mcp -> origin/feat/cloudflare-prompt-mcp
+2026-07-19T08:39:27.0185948Z  * [new branch]      feat/content-library-sync -> origin/feat/content-library-sync
+2026-07-19T08:39:27.0187549Z  * [new branch]      feat/project-file-library -> origin/feat/project-file-library
+2026-07-19T08:39:27.0188979Z  * [new branch]      fix/remote-kv-seed -> origin/fix/remote-kv-seed
+2026-07-19T08:39:27.0190451Z  * [new branch]      main               -> origin/main
+2026-07-19T08:39:27.0197328Z [command]/usr/bin/git branch --list --remote origin/main
+2026-07-19T08:39:27.0198761Z   origin/main
+2026-07-19T08:39:27.0203330Z [command]/usr/bin/git rev-parse refs/remotes/origin/main
+2026-07-19T08:39:27.0204706Z 9f10949536daaa85669685cb222a44df5a91f6b0
+2026-07-19T08:39:27.0207275Z ##[endgroup]
+2026-07-19T08:39:27.0208343Z ##[group]Determining the checkout info
+2026-07-19T08:39:27.0209265Z ##[endgroup]
+2026-07-19T08:39:27.0210452Z [command]/usr/bin/git sparse-checkout disable
+2026-07-19T08:39:27.0212646Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-07-19T08:39:27.0214442Z ##[group]Checking out the ref
+2026-07-19T08:39:27.0215293Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-07-19T08:39:27.0216155Z Switched to a new branch 'main'
+2026-07-19T08:39:27.0216751Z branch 'main' set up to track 'origin/main'.
+2026-07-19T08:39:27.0218268Z ##[endgroup]
+2026-07-19T08:39:27.0290949Z [command]/usr/bin/git log -1 --format=%H
+2026-07-19T08:39:27.0292329Z 9f10949536daaa85669685cb222a44df5a91f6b0
+2026-07-19T08:39:27.0493030Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-19T08:39:27.0495843Z ##[group]Run actions/setup-node@v4
+2026-07-19T08:39:27.0496397Z with:
+2026-07-19T08:39:27.0496836Z   node-version: 24
+2026-07-19T08:39:27.0497340Z   always-auth: false
+2026-07-19T08:39:27.0497860Z   check-latest: false
+2026-07-19T08:39:27.0502235Z   token: ***
+2026-07-19T08:39:27.0502721Z ##[endgroup]
+2026-07-19T08:39:27.2060544Z Found in cache @ /opt/hostedtoolcache/node/24.18.0/x64
+2026-07-19T08:39:27.2063393Z (node:2054) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-07-19T08:39:27.2066854Z ##[group]Environment details
+2026-07-19T08:39:27.2071714Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-07-19T08:39:27.7152338Z node: v24.18.0
+2026-07-19T08:39:27.7154072Z npm: 11.16.0
+2026-07-19T08:39:27.7170921Z yarn: 1.22.22
+2026-07-19T08:39:27.7191618Z ##[endgroup]
+2026-07-19T08:39:27.7473478Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-19T08:39:27.7479185Z ##[group]Run actions/setup-python@v5
+2026-07-19T08:39:27.7480572Z with:
+2026-07-19T08:39:27.7481462Z   python-version: 3.13
+2026-07-19T08:39:27.7482499Z   check-latest: false
+2026-07-19T08:39:27.7493851Z   token: ***
+2026-07-19T08:39:27.7494810Z   update-environment: true
+2026-07-19T08:39:27.7495920Z   allow-prereleases: false
+2026-07-19T08:39:27.7497034Z   freethreaded: false
+2026-07-19T08:39:27.7498011Z ##[endgroup]
+2026-07-19T08:39:27.8932167Z ##[group]Installed versions
+2026-07-19T08:39:27.9078848Z (node:2088) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-07-19T08:39:27.9081923Z Successfully set up CPython (3.13.14)
+2026-07-19T08:39:27.9083815Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-07-19T08:39:27.9086178Z ##[endgroup]
+2026-07-19T08:39:27.9331506Z ##[group]Run node scripts/record-run-state.mjs start
+2026-07-19T08:39:27.9333980Z [36;1mnode scripts/record-run-state.mjs start[0m
+2026-07-19T08:39:27.9461908Z shell: /usr/bin/bash -e {0}
+2026-07-19T08:39:27.9463590Z env:
+2026-07-19T08:39:27.9465258Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:39:27.9468139Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
+2026-07-19T08:39:27.9472002Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:39:27.9474922Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:39:27.9477173Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:39:27.9480338Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
+2026-07-19T08:39:27.9482633Z ##[endgroup]
+2026-07-19T08:39:28.0110265Z Recorded run 29680188182: running
+2026-07-19T08:39:28.0248226Z ##[group]Run node scripts/git-commit-state.mjs "Record workflow start [skip ci]"
+2026-07-19T08:39:28.0250808Z [36;1mnode scripts/git-commit-state.mjs "Record workflow start [skip ci]"[0m
+2026-07-19T08:39:28.0313596Z shell: /usr/bin/bash -e {0}
+2026-07-19T08:39:28.0314593Z env:
+2026-07-19T08:39:28.0315629Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:39:28.0317389Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
+2026-07-19T08:39:28.0319166Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:39:28.0321023Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:39:28.0322639Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:39:28.0324258Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
+2026-07-19T08:39:28.0325613Z ##[endgroup]
+2026-07-19T08:39:28.0958770Z [main df7d81c] Record workflow start [skip ci]
+2026-07-19T08:39:28.0970753Z  4 files changed, 35 insertions(+), 16 deletions(-)
+2026-07-19T08:39:29.1375479Z To https://github.com/ActiveInsighter/prompt-web
+2026-07-19T08:39:29.1379125Z    9f10949..df7d81c  HEAD -> main
+2026-07-19T08:39:29.1524305Z ##[group]Run mkdir -p .github
+2026-07-19T08:39:29.1525446Z [36;1mmkdir -p .github[0m
+2026-07-19T08:39:29.1526504Z [36;1m: > .github/latest-build-log.txt[0m
+2026-07-19T08:39:29.1527655Z [36;1m{[0m
+2026-07-19T08:39:29.1528603Z [36;1m  echo "repository=$GITHUB_REPOSITORY"[0m
+2026-07-19T08:39:29.1530227Z [36;1m  echo "workflow=$GITHUB_WORKFLOW"[0m
+2026-07-19T08:39:29.1531459Z [36;1m  echo "run_id=$GITHUB_RUN_ID"[0m
+2026-07-19T08:39:29.1532743Z [36;1m  echo "run_attempt=$GITHUB_RUN_ATTEMPT"[0m
+2026-07-19T08:39:29.1534020Z [36;1m  echo "head_sha=$GITHUB_SHA"[0m
+2026-07-19T08:39:29.1535332Z [36;1m  echo "started_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"[0m
+2026-07-19T08:39:29.1536772Z [36;1m} | tee -a .github/latest-build-log.txt[0m
+2026-07-19T08:39:29.1604265Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-07-19T08:39:29.1605610Z env:
+2026-07-19T08:39:29.1606660Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:39:29.1608466Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
+2026-07-19T08:39:29.1610390Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:39:29.1611998Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:39:29.1613631Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:39:29.1615268Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
+2026-07-19T08:39:29.1616624Z ##[endgroup]
+2026-07-19T08:39:29.1748511Z repository=ActiveInsighter/prompt-web
+2026-07-19T08:39:29.1750208Z workflow=Prompt Web CI
+2026-07-19T08:39:29.1751274Z run_id=29680188182
+2026-07-19T08:39:29.1752177Z run_attempt=1
+2026-07-19T08:39:29.1753282Z head_sha=9f10949536daaa85669685cb222a44df5a91f6b0
+2026-07-19T08:39:29.1758809Z started_at=2026-07-19T08:39:29Z
+2026-07-19T08:39:29.1831599Z ##[group]Run set -o pipefail
+2026-07-19T08:39:29.1832688Z [36;1mset -o pipefail[0m
+2026-07-19T08:39:29.1833768Z [36;1mif [[ -f package-lock.json ]]; then[0m
+2026-07-19T08:39:29.1835349Z [36;1m  npm ci --no-audit --no-fund 2>&1 | tee -a .github/latest-build-log.txt[0m
+2026-07-19T08:39:29.1836931Z [36;1melif [[ -f package.json ]]; then[0m
+2026-07-19T08:39:29.1838794Z [36;1m  npm install --no-package-lock --no-audit --no-fund 2>&1 | tee -a .github/latest-build-log.txt[0m
+2026-07-19T08:39:29.1840950Z [36;1melse[0m
+2026-07-19T08:39:29.1842551Z [36;1m  echo "No package.json; dependency installation skipped." | tee -a .github/latest-build-log.txt[0m
+2026-07-19T08:39:29.1844706Z [36;1mfi[0m
+2026-07-19T08:39:29.1846157Z [36;1mpython -m pip install --disable-pip-version-check -r scripts/requirements.txt 2>&1 \[0m
+2026-07-19T08:39:29.1848042Z [36;1m  | tee -a .github/latest-build-log.txt[0m
+2026-07-19T08:39:29.1913231Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-07-19T08:39:29.1914527Z env:
+2026-07-19T08:39:29.1915502Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:39:29.1917173Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
+2026-07-19T08:39:29.1918848Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:39:29.1920667Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:39:29.1922201Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:39:29.1923733Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
+2026-07-19T08:39:29.1925038Z ##[endgroup]
+2026-07-19T08:39:50.4838537Z 
+2026-07-19T08:39:50.4840505Z added 212 packages in 21s
+2026-07-19T08:39:50.4857537Z npm warn allow-scripts 4 packages have install scripts not yet covered by allowScripts:
+2026-07-19T08:39:50.4859291Z npm warn allow-scripts   esbuild@0.28.1 (postinstall: node install.js)
+2026-07-19T08:39:50.4880784Z npm warn allow-scripts   core-js-pure@3.49.0 (postinstall: node -e "try{require('./postinstall')}catch(e){}")
+2026-07-19T08:39:50.4882425Z npm warn allow-scripts   workerd@1.20260708.1 (postinstall: node install.js)
+2026-07-19T08:39:50.4890603Z npm warn allow-scripts   sharp@0.34.5 (install: node install/check.js || npm run build)
+2026-07-19T08:39:50.4891753Z npm warn allow-scripts
+2026-07-19T08:39:50.4911131Z npm warn allow-scripts Run `npm approve-scripts --allow-scripts-pending` to review, or `npm approve-scripts <pkg>` to allow.
+2026-07-19T08:39:51.3643489Z Collecting PyYAML<7,>=6.0.2 (from -r scripts/requirements.txt (line 1))
+2026-07-19T08:39:51.4190326Z   Downloading pyyaml-6.0.3-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.4 kB)
+2026-07-19T08:39:51.4271515Z Downloading pyyaml-6.0.3-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (801 kB)
+2026-07-19T08:39:51.4685808Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 801.6/801.6 kB 55.4 MB/s  0:00:00
+2026-07-19T08:39:51.4827490Z Installing collected packages: PyYAML
+2026-07-19T08:39:51.5441104Z Successfully installed PyYAML-6.0.3
+2026-07-19T08:39:51.5935063Z ##[group]Run node scripts/run-ci-with-log.mjs
+2026-07-19T08:39:51.5935452Z [36;1mnode scripts/run-ci-with-log.mjs[0m
+2026-07-19T08:39:51.5996565Z shell: /usr/bin/bash -e {0}
+2026-07-19T08:39:51.5996816Z env:
+2026-07-19T08:39:51.5997082Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:39:51.5997532Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
+2026-07-19T08:39:51.5997972Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:39:51.5998357Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:39:51.5998771Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:39:51.5999153Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
+2026-07-19T08:39:51.5999475Z ##[endgroup]
+2026-07-19T08:39:51.6380951Z 
+2026-07-19T08:39:51.6381816Z ## Project CI
+2026-07-19T08:39:51.6384041Z command=npm run project:ci
+2026-07-19T08:39:51.6386604Z started_at=2026-07-19T08:39:51.638Z
+2026-07-19T08:39:51.6387402Z 
+2026-07-19T08:39:51.7501630Z 
+2026-07-19T08:39:51.7506747Z > prompt-web@0.4.0 project:ci
+2026-07-19T08:39:51.7508938Z > npm run typecheck && npm run db:migrate:local && npm run content:validate && npm run content:build && npm run content:test && npm test && npm run worker:dry-run
+2026-07-19T08:39:51.7510647Z 
+2026-07-19T08:39:51.8710010Z 
+2026-07-19T08:39:51.8715201Z > prompt-web@0.4.0 typecheck
+2026-07-19T08:39:51.8717419Z > tsc --noEmit
+2026-07-19T08:39:51.8718044Z 
+2026-07-19T08:39:53.8398676Z 
+2026-07-19T08:39:53.8400085Z > prompt-web@0.4.0 db:migrate:local
+2026-07-19T08:39:53.8424402Z > wrangler d1 migrations apply DB --local
+2026-07-19T08:39:53.8425740Z 
+2026-07-19T08:39:54.9025493Z 
+2026-07-19T08:39:54.9029944Z  ⛅️ wrangler 4.109.0
+2026-07-19T08:39:54.9033162Z ────────────────────
+2026-07-19T08:39:54.9033982Z Resource location: local 
+2026-07-19T08:39:54.9036187Z 
+2026-07-19T08:39:54.9036908Z Use --remote if you want to access the remote instance.
+2026-07-19T08:39:54.9037647Z 
+2026-07-19T08:39:55.7440887Z Migrations to be applied:
+2026-07-19T08:39:55.7484589Z ┌───────────────────────────────────┐
+2026-07-19T08:39:55.7502580Z │ name                              │
+2026-07-19T08:39:55.7503535Z ├───────────────────────────────────┤
+2026-07-19T08:39:55.7504699Z │ 0001_create_prompts.sql           │
+2026-07-19T08:39:55.7512837Z ├───────────────────────────────────┤
+2026-07-19T08:39:55.7513851Z │ 0002_create_project_file_tree.sql │
+2026-07-19T08:39:55.7514844Z ├───────────────────────────────────┤
+2026-07-19T08:39:55.7516747Z │ 0003_create_content_sync.sql      │
+2026-07-19T08:39:55.7517811Z └───────────────────────────────────┘
+2026-07-19T08:39:55.7518689Z ? About to apply 3 migration(s)
+2026-07-19T08:39:55.7520100Z Your database may not be available to serve requests during the migration, continue?
+2026-07-19T08:39:55.7521592Z 🤖 Using fallback value in non-interactive context: yes
+2026-07-19T08:39:55.7531265Z 🌀 Executing on local database DB (00000000-0000-0000-0000-000000000000) from .wrangler/state/v3/d1:
+2026-07-19T08:39:55.7545068Z 🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+2026-07-19T08:39:56.0385489Z 🚣 12 commands executed successfully.
+2026-07-19T08:39:56.0398385Z ┌───────────────────────────────────┬────────┐
+2026-07-19T08:39:56.0407265Z │ name                              │ status │
+2026-07-19T08:39:56.0408357Z ├───────────────────────────────────┼────────┤
+2026-07-19T08:39:56.0409353Z │ 0001_create_prompts.sql           │ ✅     │
+2026-07-19T08:39:56.0414364Z ├───────────────────────────────────┼────────┤
+2026-07-19T08:39:56.0415575Z │ 0002_create_project_file_tree.sql │ 🕒️    │
+2026-07-19T08:39:56.0416679Z ├───────────────────────────────────┼────────┤
+2026-07-19T08:39:56.0418614Z │ 0003_create_content_sync.sql      │ 🕒️    │
+2026-07-19T08:39:56.0420436Z └───────────────────────────────────┴────────┘
+2026-07-19T08:39:56.0422881Z 🌀 Executing on local database DB (00000000-0000-0000-0000-000000000000) from .wrangler/state/v3/d1:
+2026-07-19T08:39:56.0426379Z 🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+2026-07-19T08:39:56.3991322Z 🚣 29 commands executed successfully.
+2026-07-19T08:39:56.4004905Z ┌───────────────────────────────────┬────────┐
+2026-07-19T08:39:56.4009197Z │ name                              │ status │
+2026-07-19T08:39:56.4011128Z ├───────────────────────────────────┼────────┤
+2026-07-19T08:39:56.4012213Z │ 0001_create_prompts.sql           │ ✅     │
+2026-07-19T08:39:56.4013395Z ├───────────────────────────────────┼────────┤
+2026-07-19T08:39:56.4014900Z │ 0002_create_project_file_tree.sql │ ✅     │
+2026-07-19T08:39:56.4015912Z ├───────────────────────────────────┼────────┤
+2026-07-19T08:39:56.4016962Z │ 0003_create_content_sync.sql      │ 🕒️    │
+2026-07-19T08:39:56.4018017Z └───────────────────────────────────┴────────┘
+2026-07-19T08:39:56.4019918Z 🌀 Executing on local database DB (00000000-0000-0000-0000-000000000000) from .wrangler/state/v3/d1:
+2026-07-19T08:39:56.4021634Z 🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+2026-07-19T08:39:56.6681844Z 🚣 7 commands executed successfully.
+2026-07-19T08:39:56.6697726Z ┌───────────────────────────────────┬────────┐
+2026-07-19T08:39:56.6711098Z │ name                              │ status │
+2026-07-19T08:39:56.6720630Z ├───────────────────────────────────┼────────┤
+2026-07-19T08:39:56.6739473Z │ 0001_create_prompts.sql           │ ✅     │
+2026-07-19T08:39:56.6750595Z ├───────────────────────────────────┼────────┤
+2026-07-19T08:39:56.6751758Z │ 0002_create_project_file_tree.sql │ ✅     │
+2026-07-19T08:39:56.6755287Z ├───────────────────────────────────┼────────┤
+2026-07-19T08:39:56.6758668Z │ 0003_create_content_sync.sql      │ ✅     │
+2026-07-19T08:39:56.6761812Z └───────────────────────────────────┴────────┘
+2026-07-19T08:39:56.8229365Z 
+2026-07-19T08:39:56.8230445Z > prompt-web@0.4.0 content:validate
+2026-07-19T08:39:56.8231310Z > python -m scripts.cli validate
+2026-07-19T08:39:56.8231819Z 
+2026-07-19T08:39:56.9285829Z Content validation succeeded: projects=1 folders=2 files=2 manifest=sha256:9a55813d8e782d2abacb93dca80c0f7e7d66661f5db72464fcdc7392cb3a78c0
+2026-07-19T08:39:57.0472077Z 
+2026-07-19T08:39:57.0472972Z > prompt-web@0.4.0 content:build
+2026-07-19T08:39:57.0473829Z > python -m scripts.cli build
+2026-07-19T08:39:57.0474384Z 
+2026-07-19T08:39:57.1471813Z Wrote /home/runner/work/prompt-web/prompt-web/.prompt-sync/manifest.json: projects=1 folders=2 files=2 manifest=sha256:9a55813d8e782d2abacb93dca80c0f7e7d66661f5db72464fcdc7392cb3a78c0
+2026-07-19T08:39:57.2632080Z 
+2026-07-19T08:39:57.2640935Z > prompt-web@0.4.0 content:test
+2026-07-19T08:39:57.2641999Z > python -m unittest discover -s scripts/tests -p "test_*.py"
+2026-07-19T08:39:57.2642681Z 
+2026-07-19T08:39:57.4326330Z ....
+2026-07-19T08:39:57.4328439Z ----------------------------------------------------------------------
+2026-07-19T08:39:57.4329294Z Ran 4 tests in 0.013s
+2026-07-19T08:39:57.4329890Z 
+2026-07-19T08:39:57.4330211Z OK
+2026-07-19T08:39:57.5559870Z 
+2026-07-19T08:39:57.5562193Z > prompt-web@0.4.0 test
+2026-07-19T08:39:57.5563310Z > node scripts/test-run-state.mjs
+2026-07-19T08:39:57.5571010Z 
+2026-07-19T08:39:58.6836485Z Run-state self test passed.
+2026-07-19T08:39:58.7968290Z 
+2026-07-19T08:39:58.7982527Z > prompt-web@0.4.0 worker:dry-run
+2026-07-19T08:39:58.8003953Z > wrangler deploy --dry-run --outdir .wrangler/dry-run
+2026-07-19T08:39:58.8008367Z 
+2026-07-19T08:39:59.7150813Z 
+2026-07-19T08:39:59.7191087Z  ⛅️ wrangler 4.109.0 (update available 4.112.0)
+2026-07-19T08:39:59.7210337Z ───────────────────────────────────────────────
+2026-07-19T08:39:59.7432375Z 
+2026-07-19T08:39:59.7451568Z Cloudflare collects anonymous telemetry about your usage of Wrangler. Learn more at https://github.com/cloudflare/workers-sdk/tree/main/packages/wrangler/telemetry.md
+2026-07-19T08:40:00.3430628Z Total Upload: 2190.64 KiB / gzip: 397.35 KiB
+2026-07-19T08:40:00.3509377Z Your Worker has access to the following bindings:
+2026-07-19T08:40:00.3516250Z Binding                                                 Resource                  
+2026-07-19T08:40:00.3531259Z env.PROMPT_KV (00000000000000000000000000000000)        KV Namespace              
+2026-07-19T08:40:00.3532605Z env.DB (prompt-web-db)                                  D1 Database               
+2026-07-19T08:40:00.3533608Z env.ENVIRONMENT ("development")                         Environment Variable      
+2026-07-19T08:40:00.3534148Z 
+2026-07-19T08:40:00.3534340Z --dry-run: exiting now.
+2026-07-19T08:40:00.4271217Z 
+2026-07-19T08:40:00.4272396Z finished_at=2026-07-19T08:40:00.426Z
+2026-07-19T08:40:00.4273551Z exit_code=0
+2026-07-19T08:40:00.4412040Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-19T08:40:00.4414028Z ##[group]Run actions/upload-artifact@v4
+2026-07-19T08:40:00.4414466Z with:
+2026-07-19T08:40:00.4414815Z   name: prompt-web-build-29680188182
+2026-07-19T08:40:00.4415405Z   path: .github/latest-build-log.txt
+.prompt-sync/manifest.json
+
+2026-07-19T08:40:00.4415959Z   if-no-files-found: error
+2026-07-19T08:40:00.4416207Z   retention-days: 14
+2026-07-19T08:40:00.4416432Z   compression-level: 6
+2026-07-19T08:40:00.4416655Z   overwrite: false
+2026-07-19T08:40:00.4416869Z   include-hidden-files: false
+2026-07-19T08:40:00.4417099Z env:
+2026-07-19T08:40:00.4417358Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:40:00.4417850Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
+2026-07-19T08:40:00.4418292Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:40:00.4418678Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:40:00.4419066Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:40:00.4419451Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
+2026-07-19T08:40:00.4420248Z ##[endgroup]
+2026-07-19T08:40:00.6461358Z (node:2711) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-07-19T08:40:00.6465151Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-07-19T08:40:00.6660661Z Multiple search paths detected. Calculating the least common ancestor of all paths
+2026-07-19T08:40:00.6736055Z The least common ancestor is /home/runner/work/prompt-web/prompt-web. This will be the root directory of the artifact
+2026-07-19T08:40:00.6764179Z With the provided path, there will be 2 files uploaded
+2026-07-19T08:40:00.6830588Z Artifact name is valid!
+2026-07-19T08:40:00.6842678Z Root directory input is valid!
+2026-07-19T08:40:00.9947682Z Beginning upload of artifact content to blob storage
+2026-07-19T08:40:01.0176054Z (node:2711) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-07-19T08:40:01.3073549Z Uploaded bytes 4256
+2026-07-19T08:40:01.3923447Z Finished uploading artifact content to blob storage!
+2026-07-19T08:40:01.3931289Z SHA256 digest of uploaded artifact zip is dacee2aa55dc3d1e880f81ceaba23fe6dcaca80a5facd7230ce1365d3a011cd6
+2026-07-19T08:40:01.3932539Z Finalizing artifact upload
+2026-07-19T08:40:01.5879845Z Artifact prompt-web-build-29680188182.zip successfully finalized. Artifact ID 8440303959
+2026-07-19T08:40:01.5882140Z Artifact prompt-web-build-29680188182 has been successfully uploaded! Final size is 4256 bytes. Artifact ID is 8440303959
+2026-07-19T08:40:01.5888231Z Artifact download URL: https://github.com/ActiveInsighter/prompt-web/actions/runs/29680188182/artifacts/8440303959
+2026-07-19T08:40:01.6030318Z ##[group]Run node scripts/record-run-state.mjs finish
+2026-07-19T08:40:01.6030769Z [36;1mnode scripts/record-run-state.mjs finish[0m
+2026-07-19T08:40:01.6092862Z shell: /usr/bin/bash -e {0}
+2026-07-19T08:40:01.6093113Z env:
+2026-07-19T08:40:01.6093381Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:40:01.6093843Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
+2026-07-19T08:40:01.6094286Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:40:01.6094670Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:40:01.6095054Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:40:01.6095445Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
+2026-07-19T08:40:01.6095789Z   CI_OUTCOME: success
+2026-07-19T08:40:01.6096024Z   ARTIFACT_OUTCOME: success
+2026-07-19T08:40:01.6096255Z ##[endgroup]
+2026-07-19T08:40:01.6544348Z Recorded run 29680188182: success
+2026-07-19T08:40:01.6620626Z ##[group]Run node scripts/git-commit-state.mjs "Record workflow finish [skip ci]"
+2026-07-19T08:40:01.6621281Z [36;1mnode scripts/git-commit-state.mjs "Record workflow finish [skip ci]"[0m
+2026-07-19T08:40:01.6681956Z shell: /usr/bin/bash -e {0}
+2026-07-19T08:40:01.6682209Z env:
+2026-07-19T08:40:01.6682483Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:40:01.6682946Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
+2026-07-19T08:40:01.6683382Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:40:01.6683776Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:40:01.6684162Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:40:01.6684564Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
+2026-07-19T08:40:01.6684892Z ##[endgroup]
+2026-07-19T08:40:01.7242341Z [main ed0695a] Record workflow finish [skip ci]
+2026-07-19T08:40:01.7246659Z  3 files changed, 137 insertions(+), 14 deletions(-)
+2026-07-19T08:40:02.7165231Z To https://github.com/ActiveInsighter/prompt-web
+2026-07-19T08:40:02.7166125Z    df7d81c..ed0695a  HEAD -> main
+2026-07-19T08:40:02.7268512Z ##[group]Run {
+2026-07-19T08:40:02.7268773Z [36;1m{[0m
+2026-07-19T08:40:02.7268979Z [36;1m  echo "## Prompt Web CI"[0m
+2026-07-19T08:40:02.7269246Z [36;1m  echo[0m
+2026-07-19T08:40:02.7269486Z [36;1m  echo "- Run ID: \`$GITHUB_RUN_ID\`"[0m
+2026-07-19T08:40:02.7270167Z [36;1m  echo "- Commit: \`$GITHUB_SHA\`"[0m
+2026-07-19T08:40:02.7270503Z [36;1m  echo "- Project checks: \`success\`"[0m
+2026-07-19T08:40:02.7270836Z [36;1m  echo "- Build artifact: \`success\`"[0m
+2026-07-19T08:40:02.7271143Z [36;1m} >> "$GITHUB_STEP_SUMMARY"[0m
+2026-07-19T08:40:02.7329409Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-07-19T08:40:02.7330079Z env:
+2026-07-19T08:40:02.7330353Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:40:02.7330883Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
+2026-07-19T08:40:02.7331476Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:40:02.7332189Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:40:02.7332711Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:40:02.7333258Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
+2026-07-19T08:40:02.7333786Z ##[endgroup]
+2026-07-19T08:40:02.7467302Z ##[group]Run [[ "$CI_OUTCOME" == "success" && "$ARTIFACT_OUTCOME" == "success" ]]
+2026-07-19T08:40:02.7467826Z [36;1m[[ "$CI_OUTCOME" == "success" && "$ARTIFACT_OUTCOME" == "success" ]][0m
+2026-07-19T08:40:02.7521183Z shell: /usr/bin/bash -e {0}
+2026-07-19T08:40:02.7521433Z env:
+2026-07-19T08:40:02.7521872Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:40:02.7522323Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
+2026-07-19T08:40:02.7522754Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:40:02.7523142Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:40:02.7523533Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-19T08:40:02.7523920Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
+2026-07-19T08:40:02.7524240Z   CI_OUTCOME: success
+2026-07-19T08:40:02.7524454Z   ARTIFACT_OUTCOME: success
+2026-07-19T08:40:02.7524678Z ##[endgroup]
+2026-07-19T08:40:02.7677205Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-19T08:40:02.7678488Z Post job cleanup.
+2026-07-19T08:40:02.8967869Z (node:2760) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-07-19T08:40:02.8969865Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-07-19T08:40:02.9170421Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-19T08:40:02.9172580Z Post job cleanup.
+2026-07-19T08:40:03.1581745Z (node:2768) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-07-19T08:40:03.1600708Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-07-19T08:40:03.2040377Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-19T08:40:03.2042568Z Post job cleanup.
+2026-07-19T08:40:03.3150657Z [command]/usr/bin/git version
+2026-07-19T08:40:03.3290958Z git version 2.54.0
+2026-07-19T08:40:03.3393854Z Temporarily overriding HOME='/home/runner/work/_temp/1fe192cc-787d-4de0-95f6-dc069f54b1f2' before making global git config changes
+2026-07-19T08:40:03.3440990Z Adding repository directory to the temporary git global config as a safe directory
+2026-07-19T08:40:03.3458376Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/prompt-web/prompt-web
+2026-07-19T08:40:03.3540860Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-07-19T08:40:03.3631615Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-07-19T08:40:03.4241058Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-07-19T08:40:03.4268300Z http.https://github.com/.extraheader
+2026-07-19T08:40:03.4341637Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-07-19T08:40:03.4424578Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-07-19T08:40:03.4831831Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-07-19T08:40:03.4921387Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-07-19T08:40:03.5345476Z Cleaning up orphan processes
+2026-07-19T08:40:03.5618813Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/setup-python@v5, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
 
