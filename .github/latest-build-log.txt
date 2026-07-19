@@ -1,9 +1,9 @@
 repository=ActiveInsighter/prompt-web
 workflow=Prompt Web CI
-run_id=29676891679
+run_id=29677762399
 run_attempt=1
-head_sha=caed776cf5f2a8c86c712aefbfba4636260c28d1
-started_at=2026-07-19T06:43:09Z
+head_sha=bde7e5c7b99fc4ef1f2be9d08ba140d0c196815c
+started_at=2026-07-19T07:14:19Z
 
 added 212 packages in 21s
 npm warn allow-scripts 4 packages have install scripts not yet covered by allowScripts:
@@ -16,21 +16,63 @@ npm warn allow-scripts Run `npm approve-scripts --allow-scripts-pending` to revi
 
 ## Project CI
 command=npm run project:ci
-started_at=2026-07-19T06:43:30.372Z
+started_at=2026-07-19T07:14:40.691Z
 
 
-> prompt-web@0.2.0 project:ci
-> npm run typecheck && npm test
+> prompt-web@0.3.0 project:ci
+> npm run typecheck && npm run db:migrate:local && npm test
 
 
-> prompt-web@0.2.0 typecheck
+> prompt-web@0.3.0 typecheck
 > tsc --noEmit
 
 
-> prompt-web@0.2.0 test
+> prompt-web@0.3.0 db:migrate:local
+> wrangler d1 migrations apply DB --local
+
+
+ ⛅️ wrangler 4.109.0
+────────────────────
+Resource location: local 
+
+Use --remote if you want to access the remote instance.
+
+Migrations to be applied:
+┌───────────────────────────────────┐
+│ name                              │
+├───────────────────────────────────┤
+│ 0001_create_prompts.sql           │
+├───────────────────────────────────┤
+│ 0002_create_project_file_tree.sql │
+└───────────────────────────────────┘
+? About to apply 2 migration(s)
+Your database may not be available to serve requests during the migration, continue?
+🤖 Using fallback value in non-interactive context: yes
+🌀 Executing on local database DB (00000000-0000-0000-0000-000000000000) from .wrangler/state/v3/d1:
+🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+🚣 12 commands executed successfully.
+┌───────────────────────────────────┬────────┐
+│ name                              │ status │
+├───────────────────────────────────┼────────┤
+│ 0001_create_prompts.sql           │ ✅     │
+├───────────────────────────────────┼────────┤
+│ 0002_create_project_file_tree.sql │ 🕒️    │
+└───────────────────────────────────┴────────┘
+🌀 Executing on local database DB (00000000-0000-0000-0000-000000000000) from .wrangler/state/v3/d1:
+🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+🚣 29 commands executed successfully.
+┌───────────────────────────────────┬────────┐
+│ name                              │ status │
+├───────────────────────────────────┼────────┤
+│ 0001_create_prompts.sql           │ ✅     │
+├───────────────────────────────────┼────────┤
+│ 0002_create_project_file_tree.sql │ ✅     │
+└───────────────────────────────────┴────────┘
+
+> prompt-web@0.3.0 test
 > node scripts/test-run-state.mjs
 
 Run-state self test passed.
 
-finished_at=2026-07-19T06:43:33.498Z
+finished_at=2026-07-19T07:14:47.437Z
 exit_code=0
