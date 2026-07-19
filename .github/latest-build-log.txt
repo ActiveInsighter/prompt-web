@@ -1,11 +1,11 @@
 repository=ActiveInsighter/prompt-web
 workflow=Prompt Web CI
-run_id=29679060909
+run_id=29680188182
 run_attempt=1
-head_sha=1372c395298068ac11c0f3345a60653d19d4c787
-started_at=2026-07-19T08:00:29Z
+head_sha=9f10949536daaa85669685cb222a44df5a91f6b0
+started_at=2026-07-19T08:39:29Z
 
-added 212 packages in 20s
+added 212 packages in 21s
 npm warn allow-scripts 4 packages have install scripts not yet covered by allowScripts:
 npm warn allow-scripts   esbuild@0.28.1 (postinstall: node install.js)
 npm warn allow-scripts   core-js-pure@3.49.0 (postinstall: node -e "try{require('./postinstall')}catch(e){}")
@@ -13,3 +13,126 @@ npm warn allow-scripts   workerd@1.20260708.1 (postinstall: node install.js)
 npm warn allow-scripts   sharp@0.34.5 (install: node install/check.js || npm run build)
 npm warn allow-scripts
 npm warn allow-scripts Run `npm approve-scripts --allow-scripts-pending` to review, or `npm approve-scripts <pkg>` to allow.
+Collecting PyYAML<7,>=6.0.2 (from -r scripts/requirements.txt (line 1))
+  Downloading pyyaml-6.0.3-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.4 kB)
+Downloading pyyaml-6.0.3-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (801 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 801.6/801.6 kB 55.4 MB/s  0:00:00
+Installing collected packages: PyYAML
+Successfully installed PyYAML-6.0.3
+
+## Project CI
+command=npm run project:ci
+started_at=2026-07-19T08:39:51.638Z
+
+
+> prompt-web@0.4.0 project:ci
+> npm run typecheck && npm run db:migrate:local && npm run content:validate && npm run content:build && npm run content:test && npm test && npm run worker:dry-run
+
+
+> prompt-web@0.4.0 typecheck
+> tsc --noEmit
+
+
+> prompt-web@0.4.0 db:migrate:local
+> wrangler d1 migrations apply DB --local
+
+
+ ⛅️ wrangler 4.109.0
+────────────────────
+Resource location: local 
+
+Use --remote if you want to access the remote instance.
+
+Migrations to be applied:
+┌───────────────────────────────────┐
+│ name                              │
+├───────────────────────────────────┤
+│ 0001_create_prompts.sql           │
+├───────────────────────────────────┤
+│ 0002_create_project_file_tree.sql │
+├───────────────────────────────────┤
+│ 0003_create_content_sync.sql      │
+└───────────────────────────────────┘
+? About to apply 3 migration(s)
+Your database may not be available to serve requests during the migration, continue?
+🤖 Using fallback value in non-interactive context: yes
+🌀 Executing on local database DB (00000000-0000-0000-0000-000000000000) from .wrangler/state/v3/d1:
+🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+🚣 12 commands executed successfully.
+┌───────────────────────────────────┬────────┐
+│ name                              │ status │
+├───────────────────────────────────┼────────┤
+│ 0001_create_prompts.sql           │ ✅     │
+├───────────────────────────────────┼────────┤
+│ 0002_create_project_file_tree.sql │ 🕒️    │
+├───────────────────────────────────┼────────┤
+│ 0003_create_content_sync.sql      │ 🕒️    │
+└───────────────────────────────────┴────────┘
+🌀 Executing on local database DB (00000000-0000-0000-0000-000000000000) from .wrangler/state/v3/d1:
+🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+🚣 29 commands executed successfully.
+┌───────────────────────────────────┬────────┐
+│ name                              │ status │
+├───────────────────────────────────┼────────┤
+│ 0001_create_prompts.sql           │ ✅     │
+├───────────────────────────────────┼────────┤
+│ 0002_create_project_file_tree.sql │ ✅     │
+├───────────────────────────────────┼────────┤
+│ 0003_create_content_sync.sql      │ 🕒️    │
+└───────────────────────────────────┴────────┘
+🌀 Executing on local database DB (00000000-0000-0000-0000-000000000000) from .wrangler/state/v3/d1:
+🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+🚣 7 commands executed successfully.
+┌───────────────────────────────────┬────────┐
+│ name                              │ status │
+├───────────────────────────────────┼────────┤
+│ 0001_create_prompts.sql           │ ✅     │
+├───────────────────────────────────┼────────┤
+│ 0002_create_project_file_tree.sql │ ✅     │
+├───────────────────────────────────┼────────┤
+│ 0003_create_content_sync.sql      │ ✅     │
+└───────────────────────────────────┴────────┘
+
+> prompt-web@0.4.0 content:validate
+> python -m scripts.cli validate
+
+Content validation succeeded: projects=1 folders=2 files=2 manifest=sha256:9a55813d8e782d2abacb93dca80c0f7e7d66661f5db72464fcdc7392cb3a78c0
+
+> prompt-web@0.4.0 content:build
+> python -m scripts.cli build
+
+Wrote /home/runner/work/prompt-web/prompt-web/.prompt-sync/manifest.json: projects=1 folders=2 files=2 manifest=sha256:9a55813d8e782d2abacb93dca80c0f7e7d66661f5db72464fcdc7392cb3a78c0
+
+> prompt-web@0.4.0 content:test
+> python -m unittest discover -s scripts/tests -p "test_*.py"
+
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.013s
+
+OK
+
+> prompt-web@0.4.0 test
+> node scripts/test-run-state.mjs
+
+Run-state self test passed.
+
+> prompt-web@0.4.0 worker:dry-run
+> wrangler deploy --dry-run --outdir .wrangler/dry-run
+
+
+ ⛅️ wrangler 4.109.0 (update available 4.112.0)
+───────────────────────────────────────────────
+
+Cloudflare collects anonymous telemetry about your usage of Wrangler. Learn more at https://github.com/cloudflare/workers-sdk/tree/main/packages/wrangler/telemetry.md
+Total Upload: 2190.64 KiB / gzip: 397.35 KiB
+Your Worker has access to the following bindings:
+Binding                                                 Resource                  
+env.PROMPT_KV (00000000000000000000000000000000)        KV Namespace              
+env.DB (prompt-web-db)                                  D1 Database               
+env.ENVIRONMENT ("development")                         Environment Variable      
+
+--dry-run: exiting now.
+
+finished_at=2026-07-19T08:40:00.426Z
+exit_code=0
