@@ -2,19 +2,22 @@ import { createMcpHandler } from 'agents/mcp';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
-import { resolveAccessContext } from './auth';
+import { hasValidBearerToken, resolveAccessContext } from './auth';
+import { contentSyncRequestSchema } from './content-sync/schema';
+import { ContentSyncService } from './content-sync/service';
 import { createPromptMcpServer } from './mcp/server';
 import { PromptRepository } from './repositories/prompt-repository';
 import type { Env, PromptRole, PromptSearchOptions, PromptVisibility } from './types';
 
 const app = new Hono<{ Bindings: Env }>();
+const MAX_CONTENT_SYNC_BODY_BYTES = 8_000_000;
 
 app.use('*', logger());
 app.use(
   '/api/*',
   cors({
     origin: '*',
-    allowMethods: ['GET', 'OPTIONS'],
+    allowMethods: ['GET', 'POST', 'OPTIONS'],
     allowHeaders: ['Authorization', 'Content-Type'],
     maxAge: 86400,
   }),
@@ -37,10 +40,23 @@ function parsePromptRole(value?: string): PromptRole | undefined {
     : undefined;
 }
 
+async function readLimitedJson(request: Request): Promise<unknown> {
+  const declaredLength = Number(request.headers.get('content-length') ?? 0);
+  if (Number.isFinite(declaredLength) && declaredLength > MAX_CONTENT_SYNC_BODY_BYTES) {
+    throw new RangeError('Content sync request exceeds the 8 MB limit.');
+  }
+
+  const body = await request.text();
+  if (new TextEncoder().encode(body).byteLength > MAX_CONTENT_SYNC_BODY_BYTES) {
+    throw new RangeError('Content sync request exceeds the 8 MB limit.');
+  }
+  return JSON.parse(body) as unknown;
+}
+
 app.get('/', (context) =>
   context.json({
     service: 'prompt-library-mcp',
-    version: '0.3.0',
+    version: '0.4.0',
     status: 'ok',
     endpoints: {
       health: '/health',
@@ -49,18 +65,32 @@ app.get('/', (context) =>
       search: '/api/files/search?q=<keywords>',
       fetch: '/api/files/fetch?identifier=<id-or-uri>',
       bootstrap: '/api/bootstrap/:client/:profile',
+      contentSyncSnapshot: '/api/admin/library/snapshot',
+      contentSync: '/api/admin/library/sync',
       mcp: '/mcp',
     },
   }),
 );
 
 app.get('/health', async (context) => {
-  const [database, projectCount, bootstrapManifest] = await Promise.all([
+  const [database, projectCount, bootstrapManifest, latestContentSync] = await Promise.all([
     context.env.DB.prepare('SELECT 1 AS ok').first<{ ok: number }>(),
     context.env.DB.prepare(
       'SELECT COUNT(*) AS count FROM projects WHERE deleted_at IS NULL',
     ).first<{ count: number }>(),
     context.env.PROMPT_KV.get('manifest:bootstrap:chatgpt:default'),
+    context.env.DB.prepare(
+      `SELECT id, status, manifest_hash, started_at, finished_at
+       FROM content_sync_runs
+       ORDER BY started_at DESC
+       LIMIT 1`,
+    ).first<{
+      id: string;
+      status: string;
+      manifest_hash: string;
+      started_at: string;
+      finished_at: string | null;
+    }>(),
   ]);
 
   return context.json({
@@ -68,6 +98,15 @@ app.get('/health', async (context) => {
     database: database?.ok === 1,
     projectCount: Number(projectCount?.count ?? 0),
     kvSeeded: Boolean(bootstrapManifest),
+    contentSync: latestContentSync
+      ? {
+          runId: latestContentSync.id,
+          status: latestContentSync.status,
+          manifestHash: latestContentSync.manifest_hash,
+          startedAt: latestContentSync.started_at,
+          finishedAt: latestContentSync.finished_at,
+        }
+      : null,
     environment: context.env.ENVIRONMENT ?? 'unknown',
   });
 });
@@ -129,6 +168,51 @@ app.get('/api/bootstrap/:client/:profile', async (context) => {
     context.req.param('profile'),
   );
   return result ? context.json(result) : context.json({ error: 'Bootstrap context not found.' }, 404);
+});
+
+app.get('/api/admin/library/snapshot', async (context) => {
+  if (!context.env.CONTENT_SYNC_TOKEN) {
+    return context.json({ error: 'Content sync is not configured.' }, 503);
+  }
+  if (!hasValidBearerToken(context.req.raw, context.env.CONTENT_SYNC_TOKEN)) {
+    return context.json({ error: 'Unauthorized.' }, 401);
+  }
+
+  const service = new ContentSyncService(context.env);
+  return context.json(await service.snapshot());
+});
+
+app.post('/api/admin/library/sync', async (context) => {
+  if (!context.env.CONTENT_SYNC_TOKEN) {
+    return context.json({ error: 'Content sync is not configured.' }, 503);
+  }
+  if (!hasValidBearerToken(context.req.raw, context.env.CONTENT_SYNC_TOKEN)) {
+    return context.json({ error: 'Unauthorized.' }, 401);
+  }
+
+  try {
+    const payload = contentSyncRequestSchema.safeParse(await readLimitedJson(context.req.raw));
+    if (!payload.success) {
+      return context.json(
+        {
+          error: 'Invalid content manifest.',
+          details: payload.error.flatten(),
+        },
+        400,
+      );
+    }
+
+    const service = new ContentSyncService(context.env);
+    return context.json(await service.sync(payload.data));
+  } catch (error) {
+    if (error instanceof RangeError) {
+      return context.json({ error: error.message }, 413);
+    }
+    if (error instanceof SyntaxError) {
+      return context.json({ error: 'Request body must be valid JSON.' }, 400);
+    }
+    throw error;
+  }
 });
 
 // Compatibility routes for clients using the original flat prompt API.

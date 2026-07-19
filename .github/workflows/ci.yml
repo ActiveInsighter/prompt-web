@@ -42,6 +42,11 @@ jobs:
         with:
           node-version: 24
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
       - name: Record run start
         run: node scripts/record-run-state.mjs start
 
@@ -74,20 +79,24 @@ jobs:
           else
             echo "No package.json; dependency installation skipped." | tee -a .github/latest-build-log.txt
           fi
+          python -m pip install --disable-pip-version-check -r scripts/requirements.txt 2>&1 \
+            | tee -a .github/latest-build-log.txt
 
       - name: Run project checks
         id: project_ci
         continue-on-error: true
         run: node scripts/run-ci-with-log.mjs
 
-      - name: Upload latest build log
+      - name: Upload build outputs
         id: upload_log
         if: always()
         continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
-          name: prompt-web-build-log-${{ github.run_id }}
-          path: .github/latest-build-log.txt
+          name: prompt-web-build-${{ github.run_id }}
+          path: |
+            .github/latest-build-log.txt
+            .prompt-sync/manifest.json
           if-no-files-found: error
           retention-days: 14
 
@@ -102,6 +111,19 @@ jobs:
         if: always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         continue-on-error: true
         run: node scripts/git-commit-state.mjs "Record workflow finish [skip ci]"
+
+      - name: Write workflow summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## Prompt Web CI"
+            echo
+            echo "- Run ID: \`$GITHUB_RUN_ID\`"
+            echo "- Commit: \`$GITHUB_SHA\`"
+            echo "- Project checks: \`${{ steps.project_ci.outcome }}\`"
+            echo "- Build artifact: \`${{ steps.upload_log.outcome }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Fail when project checks fail
         if: always()

@@ -22,12 +22,13 @@ function constantTimeEqual(left: string, right: string): boolean {
   return difference === 0;
 }
 
-export function resolveAccessContext(request: Request, configuredToken?: string): AccessContext {
+export function hasValidBearerToken(request: Request, configuredToken?: string): boolean {
   const candidate = extractBearerToken(request);
-  const authenticated = Boolean(
-    configuredToken && candidate && constantTimeEqual(candidate, configuredToken),
-  );
+  return Boolean(configuredToken && candidate && constantTimeEqual(candidate, configuredToken));
+}
 
+export function resolveAccessContext(request: Request, configuredToken?: string): AccessContext {
+  const authenticated = hasValidBearerToken(request, configuredToken);
   return authenticated
     ? { authenticated: true, allowedVisibilities: ['public', 'private'] }
     : { authenticated: false, allowedVisibilities: ['public'] };
