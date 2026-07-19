@@ -7,6 +7,7 @@ export interface Env {
   PROMPT_KV: KVNamespace;
   ENVIRONMENT?: string;
   MCP_BEARER_TOKEN?: string;
+  CONTENT_SYNC_TOKEN?: string;
 }
 
 export interface AccessContext {
