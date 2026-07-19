@@ -1,12 +1,30 @@
 {
   "name": "prompt-web",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
     "test": "node scripts/test-run-state.mjs",
+    "project:ci": "npm run typecheck && npm test",
     "ci": "node scripts/run-ci-with-log.mjs",
     "run:latest": "node scripts/get-latest-run.mjs",
-    "log:latest": "node scripts/get-latest-run.mjs --logs"
+    "log:latest": "node scripts/get-latest-run.mjs --logs",
+    "db:migrate:local": "wrangler d1 migrations apply DB --local",
+    "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
+    "kv:seed": "wrangler kv bulk put seed/kv-prompts.json --binding PROMPT_KV"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "agents": "0.17.4",
+    "hono": "4.12.5",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20260719.1",
+    "typescript": "5.9.3",
+    "wrangler": "4.109.0"
   }
 }
