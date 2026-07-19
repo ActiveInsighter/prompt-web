@@ -25,7 +25,7 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 30
     environment: production
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -82,18 +82,16 @@ jobs:
       - name: Seed public KV prompts
         run: npx wrangler kv bulk put seed/kv-prompts.json --binding PROMPT_KV --remote --config wrangler.deploy.jsonc
 
-      - name: Deploy Worker
-        id: deploy
+      # The first deployment guarantees that the Worker exists in a new account before
+      # wrangler secret put is called. A second deployment below pins the new code and
+      # both secrets into the version that receives synchronization requests.
+      - name: Bootstrap Worker deployment
+        id: bootstrap_deploy
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy --config wrangler.deploy.jsonc
-
-      - name: Upload private-access bearer token
-        if: env.MCP_BEARER_TOKEN != ''
-        shell: bash
-        run: printf '%s' "$MCP_BEARER_TOKEN" | npx wrangler secret put MCP_BEARER_TOKEN --config wrangler.deploy.jsonc
 
       - name: Rotate content synchronization token
         shell: bash
@@ -102,9 +100,22 @@ jobs:
           echo "::add-mask::$token"
           echo "CONTENT_SYNC_TOKEN=$token" >> "$GITHUB_ENV"
 
+      - name: Upload private-access bearer token
+        if: env.MCP_BEARER_TOKEN != ''
+        shell: bash
+        run: printf '%s' "$MCP_BEARER_TOKEN" | npx wrangler secret put MCP_BEARER_TOKEN --config wrangler.deploy.jsonc
+
       - name: Upload content synchronization token
         shell: bash
         run: printf '%s' "$CONTENT_SYNC_TOKEN" | npx wrangler secret put CONTENT_SYNC_TOKEN --config wrangler.deploy.jsonc
+
+      - name: Deploy Worker with synchronized secrets
+        id: deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy --config wrangler.deploy.jsonc
 
       - name: Synchronize repository content
         env:
@@ -205,5 +216,5 @@ jobs:
             echo "- Run ID: \`$GITHUB_RUN_ID\`"
             echo "- Commit: \`$GITHUB_SHA\`"
             echo "- URL: $DEPLOYMENT_URL"
-            echo "- D1 migrations, remote KV, content sync and production smoke tests are enforced by this job."
+            echo "- D1 migrations, remote KV, secret-pinned deployment, content sync and production smoke tests are enforced by this job."
           } >> "$GITHUB_STEP_SUMMARY"
