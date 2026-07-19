@@ -75,15 +75,43 @@ export const contentFileSchema = z.object({
   syncHash: z.string().trim().min(1).max(100),
 });
 
-export const contentManifestSchema = z.object({
-  schemaVersion: z.literal(1),
-  manifestHash: z.string().trim().regex(/^sha256:[a-f0-9]{64}$/u),
-  source: z.string().trim().min(1).max(100),
-  generatedAt: z.string().datetime(),
-  projects: z.array(contentProjectSchema).max(50),
-  folders: z.array(contentFolderSchema).max(5000),
-  files: z.array(contentFileSchema).max(2000),
-});
+export const contentManifestSchema = z
+  .object({
+    schemaVersion: z.literal(1),
+    manifestHash: z.string().trim().regex(/^sha256:[a-f0-9]{64}$/u),
+    source: z.string().trim().min(1).max(100),
+    generatedAt: z.string().datetime(),
+    projects: z.array(contentProjectSchema).max(50),
+    folders: z.array(contentFolderSchema).max(5000),
+    files: z.array(contentFileSchema).max(2000),
+  })
+  .superRefine((manifest, context) => {
+    const nodeIds = new Map<string, 'folder' | 'file'>();
+    for (const folder of manifest.folders) {
+      const existing = nodeIds.get(folder.id);
+      if (existing) {
+        context.addIssue({
+          code: 'custom',
+          path: ['folders'],
+          message: `Node id ${folder.id} is already used by a ${existing}.`,
+        });
+      } else {
+        nodeIds.set(folder.id, 'folder');
+      }
+    }
+    for (const file of manifest.files) {
+      const existing = nodeIds.get(file.id);
+      if (existing) {
+        context.addIssue({
+          code: 'custom',
+          path: ['files'],
+          message: `Node id ${file.id} is already used by a ${existing}.`,
+        });
+      } else {
+        nodeIds.set(file.id, 'file');
+      }
+    }
+  });
 
 export const contentSyncRequestSchema = z.object({
   manifest: contentManifestSchema,

@@ -5,6 +5,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
+from scripts.library.models import ManifestValidationError
 from scripts.library.scanner import ContentValidationError, scan_content
 
 
@@ -93,6 +94,26 @@ variables:
 
             with self.assertRaises(ContentValidationError):
                 scan_content(root / "content", root)
+
+    def test_rejects_duplicate_node_id_between_folder_and_file(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            project = root / "content" / "test"
+            folder = project / "guides"
+            folder.mkdir(parents=True)
+            (project / "_project.yaml").write_text(PROJECT_YAML, encoding="utf-8")
+            (folder / "_folder.yaml").write_text(
+                "id: shared-node-id\n",
+                encoding="utf-8",
+            )
+            (folder / "example.md").write_text(
+                "---\nid: shared-node-id\ntitle: Example\n---\n\n# Example\n",
+                encoding="utf-8",
+            )
+
+            manifest = scan_content(root / "content", root)
+            with self.assertRaises(ManifestValidationError):
+                manifest.to_dict()
 
 
 if __name__ == "__main__":

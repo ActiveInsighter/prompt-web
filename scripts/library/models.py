@@ -7,6 +7,10 @@ import json
 from typing import Any
 
 
+class ManifestValidationError(ValueError):
+    """Raised when an in-memory manifest cannot map safely to the D1 schema."""
+
+
 def canonical_json(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
@@ -132,6 +136,16 @@ class ContentManifest:
     )
 
     def to_dict(self) -> dict[str, Any]:
+        node_ids: dict[str, str] = {}
+        for entity_type, entities in (("folder", self.folders), ("file", self.files)):
+            for entity in entities:
+                existing = node_ids.get(entity.id)
+                if existing is not None:
+                    raise ManifestValidationError(
+                        f"Node id {entity.id} is already used by a {existing}."
+                    )
+                node_ids[entity.id] = entity_type
+
         projects = [item.to_dict() for item in self.projects]
         folders = [item.to_dict() for item in self.folders]
         files = [item.to_dict() for item in self.files]
