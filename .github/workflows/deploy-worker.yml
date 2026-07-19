@@ -82,40 +82,41 @@ jobs:
       - name: Seed public KV prompts
         run: npx wrangler kv bulk put seed/kv-prompts.json --binding PROMPT_KV --remote --config wrangler.deploy.jsonc
 
-      # The first deployment guarantees that the Worker exists in a new account before
-      # wrangler secret put is called. A second deployment below pins the new code and
-      # both secrets into the version that receives synchronization requests.
-      - name: Bootstrap Worker deployment
-        id: bootstrap_deploy
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy --config wrangler.deploy.jsonc
-
-      - name: Rotate content synchronization token
+      # Upload code and synchronization credentials in one Worker version. Splitting
+      # secret rotation and deployment across versions can leave the sync client using
+      # a token that is not bound to the version currently serving production traffic.
+      - name: Prepare atomic Worker secrets file
         shell: bash
         run: |
+          set -euo pipefail
           token="$(openssl rand -hex 32)"
           echo "::add-mask::$token"
           echo "CONTENT_SYNC_TOKEN=$token" >> "$GITHUB_ENV"
 
-      - name: Upload private-access bearer token
-        if: env.MCP_BEARER_TOKEN != ''
-        shell: bash
-        run: printf '%s' "$MCP_BEARER_TOKEN" | npx wrangler secret put MCP_BEARER_TOKEN --config wrangler.deploy.jsonc
+          CONTENT_SYNC_TOKEN="$token" python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
 
-      - name: Upload content synchronization token
-        shell: bash
-        run: printf '%s' "$CONTENT_SYNC_TOKEN" | npx wrangler secret put CONTENT_SYNC_TOKEN --config wrangler.deploy.jsonc
+          secrets = {"CONTENT_SYNC_TOKEN": os.environ["CONTENT_SYNC_TOKEN"]}
+          mcp_token = os.environ.get("MCP_BEARER_TOKEN", "").strip()
+          if mcp_token:
+              secrets["MCP_BEARER_TOKEN"] = mcp_token
 
-      - name: Deploy Worker with synchronized secrets
+          Path(".wrangler.secrets.json").write_text(
+              json.dumps(secrets, separators=(",", ":")),
+              encoding="utf-8",
+          )
+          PY
+          chmod 600 .wrangler.secrets.json
+
+      - name: Deploy Worker with atomic secrets
         id: deploy
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy --config wrangler.deploy.jsonc
+          command: deploy --config wrangler.deploy.jsonc --secrets-file .wrangler.secrets.json
 
       - name: Synchronize repository content
         env:
@@ -204,6 +205,11 @@ jobs:
           }
           NODE
 
+      - name: Remove local secrets file
+        if: always()
+        shell: bash
+        run: rm -f .wrangler.secrets.json
+
       - name: Write deployment summary
         if: always()
         shell: bash
@@ -216,5 +222,5 @@ jobs:
             echo "- Run ID: \`$GITHUB_RUN_ID\`"
             echo "- Commit: \`$GITHUB_SHA\`"
             echo "- URL: $DEPLOYMENT_URL"
-            echo "- D1 migrations, remote KV, secret-pinned deployment, content sync and production smoke tests are enforced by this job."
+            echo "- D1 migrations, remote KV, atomic secret deployment, content sync and production smoke tests are enforced by this job."
           } >> "$GITHUB_STEP_SUMMARY"
