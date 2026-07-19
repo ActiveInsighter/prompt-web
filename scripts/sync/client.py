@@ -8,6 +8,9 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 
+DEFAULT_USER_AGENT = "curl/8.10.1 prompt-web-content-sync/1.0"
+
+
 class ContentSyncClientError(RuntimeError):
     pass
 
@@ -21,16 +24,20 @@ class ContentSyncClient:
         attempts: int = 6,
         retry_delay: float = 2.0,
         timeout: float = 30.0,
+        user_agent: str = DEFAULT_USER_AGENT,
     ) -> None:
         self.base_url = base_url.rstrip("/")
         self.token = token.strip()
         self.attempts = attempts
         self.retry_delay = retry_delay
         self.timeout = timeout
+        self.user_agent = user_agent.strip()
         if not self.base_url.startswith(("http://", "https://")):
             raise ContentSyncClientError("Base URL must start with http:// or https://.")
         if not self.token:
             raise ContentSyncClientError("Content sync token is empty.")
+        if not self.user_agent:
+            raise ContentSyncClientError("Content sync user agent is empty.")
 
     @classmethod
     def from_environment(
@@ -40,7 +47,8 @@ class ContentSyncClient:
     ) -> "ContentSyncClient":
         resolved_url = base_url or os.environ.get("PROMPT_API_BASE_URL", "")
         token = os.environ.get(token_env, "")
-        return cls(resolved_url, token)
+        user_agent = os.environ.get("CONTENT_SYNC_USER_AGENT", DEFAULT_USER_AGENT)
+        return cls(resolved_url, token, user_agent=user_agent)
 
     def _request(self, method: str, path: str, payload: Any | None = None) -> Any:
         body = (
@@ -55,6 +63,7 @@ class ContentSyncClient:
             headers={
                 "Authorization": f"Bearer {self.token}",
                 "Accept": "application/json",
+                "User-Agent": self.user_agent,
                 **({"Content-Type": "application/json; charset=utf-8"} if body else {}),
             },
         )
