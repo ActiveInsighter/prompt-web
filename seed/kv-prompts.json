@@ -1,14 +1,30 @@
 [
   {
-    "key": "index:public",
-    "value": "[{\"id\":\"kv-structured-explainer\",\"slug\":\"general/structured-explainer\",\"title\":\"结构化概念讲解\",\"description\":\"面向指定受众，分层讲解一个概念并给出例子。\",\"category\":\"general\",\"language\":\"zh-CN\",\"visibility\":\"public\",\"tags\":[\"讲解\",\"学习\",\"结构化\"],\"updatedAt\":\"2026-07-19T00:00:00Z\",\"key\":\"prompt:general/structured-explainer\"},{\"id\":\"kv-code-review\",\"slug\":\"coding/code-review\",\"title\":\"代码审查助手\",\"description\":\"从正确性、安全性、可维护性和性能角度审查代码。\",\"category\":\"coding\",\"language\":\"zh-CN\",\"visibility\":\"public\",\"tags\":[\"代码审查\",\"开发\",\"质量\"],\"updatedAt\":\"2026-07-19T00:00:00Z\",\"key\":\"prompt:coding/code-review\"}]"
+    "key": "index:common",
+    "value": "[{\"key\":\"common:structured-output:v1\",\"title\":\"结构化输出基础提示词\",\"description\":\"要求回答结构清晰、先给结论并标明不确定性。\",\"version\":1,\"updatedAt\":\"2026-07-19T00:00:00Z\"},{\"key\":\"common:code-review:v1\",\"title\":\"代码审查基础提示词\",\"description\":\"从正确性、安全性、可维护性和性能角度审查代码。\",\"version\":1,\"updatedAt\":\"2026-07-19T00:00:00Z\"}]"
   },
   {
-    "key": "prompt:general/structured-explainer",
-    "value": "{\"id\":\"kv-structured-explainer\",\"slug\":\"general/structured-explainer\",\"title\":\"结构化概念讲解\",\"description\":\"面向指定受众，分层讲解一个概念并给出例子。\",\"content\":\"请面向{{audience}}，系统讲解“{{topic}}”。先给出直观理解，再解释核心原理，最后给出至少两个由浅入深的例子和常见误区。\",\"category\":\"general\",\"language\":\"zh-CN\",\"visibility\":\"public\",\"tags\":[\"讲解\",\"学习\",\"结构化\"],\"variables\":[\"audience\",\"topic\"],\"metadata\":{\"starter\":true},\"source\":\"kv\",\"createdAt\":\"2026-07-19T00:00:00Z\",\"updatedAt\":\"2026-07-19T00:00:00Z\"}"
+    "key": "common:structured-output:v1",
+    "value": "{\"key\":\"common:structured-output:v1\",\"title\":\"结构化输出基础提示词\",\"description\":\"要求回答结构清晰、先给结论并标明不确定性。\",\"content\":\"回答时先识别用户真正要完成的任务，再给出直接可执行的结果。复杂内容使用清晰层级；事实、推断和不确定性要区分；不要为了形式重复用户已经提供的信息。\",\"language\":\"zh-CN\",\"variables\":[],\"metadata\":{\"scope\":\"common\"},\"version\":1,\"updatedAt\":\"2026-07-19T00:00:00Z\"}"
   },
   {
-    "key": "prompt:coding/code-review",
-    "value": "{\"id\":\"kv-code-review\",\"slug\":\"coding/code-review\",\"title\":\"代码审查助手\",\"description\":\"从正确性、安全性、可维护性和性能角度审查代码。\",\"content\":\"请审查以下{{language}}代码：\\n\\n{{code}}\\n\\n按“严重问题、改进建议、可选优化、修改后代码”四部分输出，并说明每项判断的依据。\",\"category\":\"coding\",\"language\":\"zh-CN\",\"visibility\":\"public\",\"tags\":[\"代码审查\",\"开发\",\"质量\"],\"variables\":[\"language\",\"code\"],\"metadata\":{\"starter\":true},\"source\":\"kv\",\"createdAt\":\"2026-07-19T00:00:00Z\",\"updatedAt\":\"2026-07-19T00:00:00Z\"}"
+    "key": "common:code-review:v1",
+    "value": "{\"key\":\"common:code-review:v1\",\"title\":\"代码审查基础提示词\",\"description\":\"从正确性、安全性、可维护性和性能角度审查代码。\",\"content\":\"请审查以下{{language}}代码：\\n\\n{{code}}\\n\\n优先指出会导致错误、数据损坏或安全问题的缺陷，再说明可维护性和性能问题。每项结论必须给出依据，并在适合时提供可直接替换的代码。\",\"language\":\"zh-CN\",\"variables\":[\"language\",\"code\"],\"metadata\":{\"scope\":\"common\"},\"version\":1,\"updatedAt\":\"2026-07-19T00:00:00Z\"}"
+  },
+  {
+    "key": "bundle:chatgpt:default:v1",
+    "value": "{\"version\":1,\"title\":\"ChatGPT 默认提示词库上下文\",\"content\":\"这是一个按项目、目录和文件组织的提示词库。查询内容时先使用 list_projects 或 search_files 定位文件，再用 fetch_file 读取完整内容。不要把 KV 当作模糊搜索数据库；KV 只用于本基础上下文和明确 key 的公共提示词。同一会话中如 bundle 版本未变化，不要重复读取。\",\"items\":[\"common:structured-output:v1\"],\"updatedAt\":\"2026-07-19T00:00:00Z\"}"
+  },
+  {
+    "key": "bundle:codex:default:v1",
+    "value": "{\"version\":1,\"title\":\"Codex 默认提示词库上下文\",\"content\":\"这是一个按项目、目录和文件组织的提示词库。需要项目规范或开发提示词时，先使用 search_files 缩小范围，再用 fetch_files 批量读取最多十个相关文件。返回结果中的 prompt:// URI 可作为稳定的外部读取标识。\",\"items\":[\"common:structured-output:v1\",\"common:code-review:v1\"],\"updatedAt\":\"2026-07-19T00:00:00Z\"}"
+  },
+  {
+    "key": "manifest:bootstrap:chatgpt:default",
+    "value": "{\"version\":1,\"bundleKey\":\"bundle:chatgpt:default:v1\"}"
+  },
+  {
+    "key": "manifest:bootstrap:codex:default",
+    "value": "{\"version\":1,\"bundleKey\":\"bundle:codex:default:v1\"}"
   }
 ]

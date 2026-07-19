@@ -1,6 +1,6 @@
 {
   "name": "prompt-web",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -8,7 +8,7 @@
     "deploy": "wrangler deploy",
     "typecheck": "tsc --noEmit",
     "test": "node scripts/test-run-state.mjs",
-    "project:ci": "npm run typecheck && npm test",
+    "project:ci": "npm run typecheck && npm run db:migrate:local && npm test",
     "ci": "node scripts/run-ci-with-log.mjs",
     "run:latest": "node scripts/get-latest-run.mjs",
     "log:latest": "node scripts/get-latest-run.mjs --logs",

@@ -59,6 +59,9 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      - name: Validate D1 migrations locally
+        run: npx wrangler d1 migrations apply DB --local --config wrangler.deploy.jsonc
+
       - name: Apply D1 migrations
         run: npx wrangler d1 migrations apply DB --remote --config wrangler.deploy.jsonc
 
