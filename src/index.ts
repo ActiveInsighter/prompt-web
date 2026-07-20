@@ -5,6 +5,7 @@ import { logger } from 'hono/logger';
 import { hasValidBearerToken, resolveAccessContext } from './auth';
 import { contentSyncRequestSchema } from './content-sync/schema';
 import { ContentSyncService } from './content-sync/service';
+import { serializeAiSafeJson } from './http/ai-safe-json';
 import { createPromptMcpServer } from './mcp/server';
 import { PromptRepository } from './repositories/prompt-repository';
 import type { Env, PromptRole, PromptSearchOptions, PromptVisibility } from './types';
@@ -50,6 +51,12 @@ function parsePromptRole(value?: string): PromptRole | undefined {
     : undefined;
 }
 
+function getFileCacheControl(visibility: PromptVisibility): string {
+  return visibility === 'public'
+    ? 'public, max-age=60, s-maxage=3600, stale-while-revalidate=86400'
+    : 'private, no-store';
+}
+
 function getServiceInfo() {
   return {
     service: 'prompt-library-mcp',
@@ -59,6 +66,7 @@ function getServiceInfo() {
       frontend: '/',
       viewer: '/p/<project>/<path-to-file.md>',
       raw: '/raw/<project>/<path-to-file.md>',
+      aiFile: '/api/files/<project>/<path-to-file.md>',
       info: '/api/info',
       health: '/health',
       projects: '/api/projects',
@@ -84,15 +92,28 @@ async function serveRawFile(context: AppContext, identifier: string) {
   const file = await repository.get(normalizedIdentifier, access);
   if (!file) return context.json({ error: 'Prompt file not found.' }, 404);
 
-  const cacheControl =
-    file.visibility === 'public'
-      ? 'public, max-age=60, s-maxage=3600, stale-while-revalidate=86400'
-      : 'private, no-store';
-
   return context.body(file.content, 200, {
     'Content-Type': 'text/plain; charset=utf-8',
     'Content-Disposition': `inline; filename*=UTF-8''${encodeURIComponent(file.fileName)}`,
-    'Cache-Control': cacheControl,
+    'Cache-Control': getFileCacheControl(file.visibility),
+    'X-Content-Type-Options': 'nosniff',
+  });
+}
+
+async function serveAiSafeFile(context: AppContext, identifier: string) {
+  const normalizedIdentifier = identifier.normalize('NFKC').trim();
+  if (!normalizedIdentifier) {
+    return context.json({ error: 'Missing file identifier.' }, 400);
+  }
+
+  const access = resolveAccessContext(context.req.raw, context.env.MCP_BEARER_TOKEN);
+  const repository = new PromptRepository(context.env);
+  const file = await repository.get(normalizedIdentifier, access);
+  if (!file) return context.json({ error: 'Prompt file not found.' }, 404);
+
+  return context.body(serializeAiSafeJson(file), 200, {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Cache-Control': getFileCacheControl(file.visibility),
     'X-Content-Type-Options': 'nosniff',
   });
 }
@@ -208,6 +229,12 @@ app.get('/api/files/fetch', async (context) => {
   const repository = new PromptRepository(context.env);
   const file = await repository.get(identifier, access);
   return file ? context.json(file) : context.json({ error: 'Prompt file not found.' }, 404);
+});
+
+app.get('/api/files/:project/:path{.+}', async (context) => {
+  const project = context.req.param('project');
+  const path = context.req.param('path');
+  return serveAiSafeFile(context, `prompt://${project}/${path}`);
 });
 
 app.get('/raw', async (context) => {
