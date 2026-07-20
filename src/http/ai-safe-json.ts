@@ -14,7 +14,12 @@ const JSON_ESCAPE_BY_CHARACTER: Record<string, string> = {
  * generic HTML/text extractors cannot mistake JSX or MDX fragments for tags.
  */
 export function serializeAiSafeJson(value: unknown): string {
-  return JSON.stringify(value).replace(
+  const serialized = JSON.stringify(value);
+  if (serialized === undefined) {
+    throw new TypeError('Value is not JSON serializable.');
+  }
+
+  return serialized.replace(
     HTML_SIGNIFICANT_CHARACTERS,
     (character) => JSON_ESCAPE_BY_CHARACTER[character] ?? character,
   );
