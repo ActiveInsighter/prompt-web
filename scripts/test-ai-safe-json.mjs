@@ -18,9 +18,9 @@ const serialized = serializeAiSafeJson(source);
 assert.equal(serialized.includes('<'), false, 'Serialized JSON must not contain literal < characters.');
 assert.equal(serialized.includes('>'), false, 'Serialized JSON must not contain literal > characters.');
 assert.equal(serialized.includes('&'), false, 'Serialized JSON must not contain literal & characters.');
-assert.match(serialized, /\\u003cProgress value=\{33\} \/\\u003e/);
-assert.match(serialized, /\\u003cTabsTrigger/);
-assert.match(serialized, /\\u003eCommand\\u003c\\\/TabsTrigger\\u003e/);
+assert.ok(serialized.includes('\\u003cProgress value={33} /\\u003e'));
+assert.ok(serialized.includes('\\u003cTabsTrigger'));
+assert.ok(serialized.includes('\\u003eCommand\\u003c/TabsTrigger\\u003e'));
 assert.deepEqual(JSON.parse(serialized), source, 'AI-safe JSON must preserve the exact source after parsing.');
 
 console.log('AI-safe JSON serialization tests passed.');
