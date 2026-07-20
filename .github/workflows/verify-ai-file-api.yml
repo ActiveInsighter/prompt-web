@@ -1,0 +1,90 @@
+name: Verify AI-safe File API
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '.github/latest-run-id.txt'
+      - '.github/latest-run-url.txt'
+      - '.github/latest-run.json'
+      - '.github/build-history.json'
+      - '.github/latest-build-log.txt'
+      - '.github/latest-actions-log.txt'
+      - '.github/latest-deploy-run.json'
+      - '.github/latest-deploy-actions-log.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-ai-safe-file-api
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Verify production AI-safe file response
+        shell: bash
+        env:
+          BASE_URL: https://prompt.2212148739lbw.workers.dev
+        run: |
+          set -euo pipefail
+
+          body_file="$(mktemp)"
+          headers_file="$(mktemp)"
+          trap 'rm -f "$body_file" "$headers_file"' EXIT
+
+          curl \
+            --fail \
+            --silent \
+            --show-error \
+            --retry 6 \
+            --retry-delay 2 \
+            --retry-all-errors \
+            --max-time 20 \
+            --dump-header "$headers_file" \
+            --output "$body_file" \
+            "$BASE_URL/api/files/shadcn-ui-docs/components/progress.md"
+
+          grep -Eiq '^content-type: application/json; charset=utf-8' "$headers_file"
+
+          BODY_FILE="$body_file" node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+
+          const raw = readFileSync(process.env.BODY_FILE, 'utf8');
+          if (raw.includes('<') || raw.includes('>') || raw.includes('&')) {
+            throw new Error('AI-safe response contains literal HTML-significant characters.');
+          }
+          if (!raw.includes('\\u003cProgress') || !raw.includes('\\u003cTabsTrigger')) {
+            throw new Error('AI-safe response does not contain escaped JSX/MDX markers.');
+          }
+
+          const file = JSON.parse(raw);
+          const requiredFragments = [
+            'return <Progress value={progress} className="w-[60%]" />',
+            '<Progress value={33} />',
+            '<TabsTrigger value="cli">Command</TabsTrigger>',
+            '<Slider',
+            '<ProgressLabel>Upload progress</ProgressLabel>',
+          ];
+
+          if (
+            file.uri !== 'prompt://shadcn-ui-docs/components/progress.md' ||
+            file.path !== '/components/progress.md'
+          ) {
+            throw new Error(`Unexpected file identity: ${JSON.stringify({ uri: file.uri, path: file.path })}`);
+          }
+
+          for (const fragment of requiredFragments) {
+            if (!file.content.includes(fragment)) {
+              throw new Error(`Parsed Markdown is missing: ${fragment}`);
+            }
+          }
+
+          console.log('Production AI-safe file API preserved all tested JSX/MDX fragments.');
+          NODE
