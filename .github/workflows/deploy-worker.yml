@@ -133,7 +133,7 @@ jobs:
           base_url="${DEPLOYMENT_URL%/}"
           echo "Testing $base_url"
 
-          request_json() {
+          request_body() {
             curl \
               --fail \
               --silent \
@@ -145,18 +145,28 @@ jobs:
               "$1"
           }
 
-          health_json="$(request_json "$base_url/health")"
-          projects_json="$(request_json "$base_url/api/projects")"
-          bootstrap_json="$(request_json "$base_url/api/bootstrap/chatgpt/default")"
-          search_json="$(request_json "$base_url/api/files/search?q=sync&project=prompt-library&limit=5")"
-          file_json="$(request_json "$base_url/api/files/fetch?identifier=prompt-library-content-sync-guide")"
+          frontend_html="$(request_body "$base_url/")"
+          viewer_html="$(request_body "$base_url/p/prompt-library/guides/content-sync.md")"
+          raw_markdown="$(request_body "$base_url/raw/prompt-library/guides/content-sync.md")"
+          info_json="$(request_body "$base_url/api/info")"
+          health_json="$(request_body "$base_url/health")"
+          projects_json="$(request_body "$base_url/api/projects")"
+          bootstrap_json="$(request_body "$base_url/api/bootstrap/chatgpt/default")"
+          search_json="$(request_body "$base_url/api/files/search?q=sync&project=prompt-library&limit=5")"
+          file_json="$(request_body "$base_url/api/files/fetch?identifier=prompt-library-content-sync-guide")"
 
+          echo "info=$info_json"
           echo "health=$health_json"
           echo "projects=$projects_json"
           echo "bootstrap=$bootstrap_json"
           echo "search=$search_json"
           echo "file=$file_json"
+          echo "raw_markdown_prefix=${raw_markdown:0:120}"
 
+          FRONTEND_HTML="$frontend_html" \
+          VIEWER_HTML="$viewer_html" \
+          RAW_MARKDOWN="$raw_markdown" \
+          INFO_JSON="$info_json" \
           HEALTH_JSON="$health_json" \
           PROJECTS_JSON="$projects_json" \
           BOOTSTRAP_JSON="$bootstrap_json" \
@@ -166,12 +176,28 @@ jobs:
           import { readFileSync } from 'node:fs';
 
           const manifest = JSON.parse(readFileSync('.prompt-sync/manifest.json', 'utf8'));
+          const frontend = process.env.FRONTEND_HTML ?? '';
+          const viewer = process.env.VIEWER_HTML ?? '';
+          const rawMarkdown = process.env.RAW_MARKDOWN ?? '';
+          const info = JSON.parse(process.env.INFO_JSON);
           const health = JSON.parse(process.env.HEALTH_JSON);
           const projects = JSON.parse(process.env.PROJECTS_JSON);
           const bootstrap = JSON.parse(process.env.BOOTSTRAP_JSON);
           const search = JSON.parse(process.env.SEARCH_JSON);
           const file = JSON.parse(process.env.FILE_JSON);
 
+          if (!frontend.includes('id="open-source-form"') || !frontend.includes('/app.js')) {
+            throw new Error('The production Markdown viewer homepage was not served.');
+          }
+          if (!viewer.includes('id="open-source-form"') || !viewer.includes('/app.js')) {
+            throw new Error('The Markdown viewer SPA fallback route was not served.');
+          }
+          if (!rawMarkdown.includes('content/') || rawMarkdown.trimStart().startsWith('{')) {
+            throw new Error('The raw Markdown route did not return source text.');
+          }
+          if (info.version !== '0.5.0' || info.endpoints?.viewer !== '/p/<project>/<path-to-file.md>') {
+            throw new Error(`Invalid service info response: ${JSON.stringify(info)}`);
+          }
           if (health.status !== 'ok' || health.database !== true) {
             throw new Error(`Unhealthy Worker response: ${JSON.stringify(health)}`);
           }
@@ -222,5 +248,5 @@ jobs:
             echo "- Run ID: \`$GITHUB_RUN_ID\`"
             echo "- Commit: \`$GITHUB_SHA\`"
             echo "- URL: $DEPLOYMENT_URL"
-            echo "- D1 migrations, remote KV, atomic secret deployment, content sync and production smoke tests are enforced by this job."
+            echo "- D1 migrations, remote KV, atomic secret deployment, content sync, Markdown frontend and production smoke tests are enforced by this job."
           } >> "$GITHUB_STEP_SUMMARY"
