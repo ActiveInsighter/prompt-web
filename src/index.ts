@@ -110,9 +110,15 @@ async function readLimitedJson(request: Request): Promise<unknown> {
   return JSON.parse(body) as unknown;
 }
 
-app.get('/', (context) => context.env.ASSETS.fetch(context.req.raw));
-app.get('/p', (context) => context.env.ASSETS.fetch(context.req.raw));
-app.get('/p/*', (context) => context.env.ASSETS.fetch(context.req.raw));
+app.get('/', (context) =>
+  context.env.ASSETS.fetch(new URL('/index.html', context.req.url)),
+);
+app.get('/p', (context) =>
+  context.env.ASSETS.fetch(new URL('/index.html', context.req.url)),
+);
+app.get('/p/*', (context) =>
+  context.env.ASSETS.fetch(new URL('/index.html', context.req.url)),
+);
 app.get('/api/info', (context) => context.json(getServiceInfo()));
 
 app.get('/health', async (context) => {
@@ -210,10 +216,9 @@ app.get('/raw', async (context) => {
   return serveRawFile(context, identifier);
 });
 
-app.get('/raw/:project/*', async (context) => {
+app.get('/raw/:project/:path{.+}', async (context) => {
   const project = context.req.param('project');
-  const path = context.req.param('*');
-  if (!project || !path) return context.json({ error: 'Missing project or file path.' }, 400);
+  const path = context.req.param('path');
   return serveRawFile(context, `prompt://${project}/${path}`);
 });
 
