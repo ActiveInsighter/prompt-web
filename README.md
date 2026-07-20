@@ -5,6 +5,7 @@
 ## 架构
 
 - **Cloudflare Worker**：统一 HTTP、MCP、鉴权、内容同步与业务入口。
+- **Worker Static Assets**：托管 Markdown 源码查看前端，并为 `/p/...` 提供 SPA 路由回退。
 - **D1**：主查询数据库，使用“项目 → 无限层目录 → 文件”组织提示词。
 - **D1 FTS5**：搜索标题、文件名、路径、说明、正文和标签，并使用 `LIKE` 补充中文子串匹配。
 - **KV**：只保存少量版本化的会话基础上下文和可按精确 key 读取的公共提示词，不参与普通模糊搜索。
@@ -30,6 +31,23 @@ content_sync_entries
 
 ```text
 prompt://prompt-library/guides/content-sync.md
+```
+
+## Markdown 源码查看前端
+
+Worker 根路径提供一个轻量前端，可输入文件 ID、Prompt URI、项目路径、前端链接、Raw 链接或文件 API 链接。文件打开后使用纯文本节点显示原始 Markdown，不执行 Markdown 或 HTML 渲染。
+
+```text
+/                                      # 地址输入页
+/p/prompt-library/guides/content-sync.md
+/raw/prompt-library/guides/content-sync.md
+```
+
+其中 `/p/...` 是前端源码查看地址，`/raw/...` 是后端直接返回 `text/plain; charset=utf-8` 的地址。也可以使用查询参数形式：
+
+```text
+/p?identifier=prompt-library-content-sync-guide
+/raw?identifier=prompt-library-content-sync-guide
 ```
 
 ## content/ 目录规范
@@ -106,6 +124,11 @@ Manifest 在本地按照 Worker 接口限制进行校验，包括路径、标题
 
 公共读取：
 
+- `GET /`
+- `GET /p/<project>/<path-to-file>`
+- `GET /raw/<project>/<path-to-file>`
+- `GET /raw?identifier=<id-or-uri>`
+- `GET /api/info`
 - `GET /health`
 - `GET /api/projects`
 - `GET /api/tree?project=prompt-library&path=/guides`
@@ -119,7 +142,7 @@ Manifest 在本地按照 Worker 接口限制进行校验，包括路径、标题
 - `GET /api/admin/library/snapshot`
 - `POST /api/admin/library/sync`
 
-内容发布接口使用独立的 `CONTENT_SYNC_TOKEN` Bearer Token，不复用 MCP 私有读取令牌。生产工作流每次部署都会生成并轮换该令牌。为避免 Cloudflare Secret 版本传播期间使用旧令牌，工作流会先建立 Worker、写入 Secret，再执行一次最终部署后同步 Manifest；客户端仍会对短暂的 401 传播窗口做有限重试。
+内容发布接口使用独立的 `CONTENT_SYNC_TOKEN` Bearer Token，不复用 MCP 私有读取令牌。生产工作流每次部署都会生成并轮换该令牌。为避免 Cloudflare Secret 版本传播期间使用旧令牌，工作流会把 Worker 代码和 Secret 原子部署到同一个版本，再使用同一令牌同步 Manifest。
 
 ## 本地开发与检查
 
@@ -141,8 +164,8 @@ npm run dev
 2. 全部本地 D1 migrations；
 3. content 目录校验和 Manifest 生成；
 4. Python 单元测试；
-5. 既有运行状态测试；
-6. Wrangler Worker dry run。
+5. 运行状态和 Markdown 查看器 URL 单元测试；
+6. Wrangler Worker 与静态资源 dry run。
 
 ## GitHub Actions 与生产发布
 
@@ -154,7 +177,7 @@ npm run dev
 | `CLOUDFLARE_ACCOUNT_ID` | 是 | Cloudflare Account ID |
 | `MCP_BEARER_TOKEN` | 否 | 读取 private 文件 |
 
-`CONTENT_SYNC_TOKEN` 不需要预先配置。部署工作流会生成随机值、写入 Worker Secret、执行最终部署与同步，然后在下一次部署时轮换。
+`CONTENT_SYNC_TOKEN` 不需要预先配置。部署工作流会生成随机值，并和 Worker 代码一起原子部署，然后在下一次部署时轮换。
 
 ### Variables
 
@@ -173,11 +196,9 @@ npm run dev
 → 本地迁移验证
 → 远程 D1 migrations
 → 远程 KV 种子
-→ Worker 引导部署
-→ 轮换并上传 MCP / CONTENT_SYNC Secret
-→ Worker 最终部署（固定新 Secret）
+→ Worker + Static Assets + Secrets 原子部署
 → content/ 增量同步
-→ health / search / fetch 冒烟测试
+→ health / search / fetch / frontend / raw 冒烟测试
 ```
 
 ## ChatGPT / Codex

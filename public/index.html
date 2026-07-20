@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Open a Prompt Web Markdown file by prompt URI, project path, API URL, raw URL, or file ID."
+    />
+    <title>Prompt Markdown Source</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="home-shell">
+      <section class="source-opener" aria-labelledby="page-title">
+        <p class="eyebrow">Prompt Web</p>
+        <h1 id="page-title">打开 Markdown 源文件</h1>
+        <p class="intro">
+          输入文件 ID、Prompt URI、项目路径、前端查看链接或后端 Raw 链接。打开后只显示原始 Markdown 文本，不进行渲染。
+        </p>
+
+        <form id="open-source-form" class="source-form" novalidate>
+          <label for="source-target">Markdown 地址或标识符</label>
+          <div class="input-row">
+            <input
+              id="source-target"
+              name="source-target"
+              type="text"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="prompt://prompt-library/guides/content-sync.md"
+              required
+            />
+            <button type="submit">打开源码</button>
+          </div>
+          <p id="form-message" class="form-message" role="alert"></p>
+        </form>
+
+        <div class="examples" aria-label="Supported link examples">
+          <p>支持以下格式：</p>
+          <code>prompt://prompt-library/guides/content-sync.md</code>
+          <code>prompt-library:/guides/content-sync.md</code>
+          <code>/p/prompt-library/guides/content-sync.md</code>
+          <code>/raw/prompt-library/guides/content-sync.md</code>
+          <code>prompt-library-content-sync-guide</code>
+        </div>
+
+        <div class="sample-links">
+          <a href="/p/prompt-library/guides/content-sync.md">打开示例源码</a>
+          <a href="/raw/prompt-library/guides/content-sync.md">打开后端 Raw</a>
+          <a href="/api/info">查看 API 信息</a>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

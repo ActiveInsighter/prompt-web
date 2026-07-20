@@ -1,5 +1,5 @@
 import { createMcpHandler } from 'agents/mcp';
-import { Hono } from 'hono';
+import { Hono, type Context } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { hasValidBearerToken, resolveAccessContext } from './auth';
@@ -11,6 +11,7 @@ import type { Env, PromptRole, PromptSearchOptions, PromptVisibility } from './t
 
 const app = new Hono<{ Bindings: Env }>();
 const MAX_CONTENT_SYNC_BODY_BYTES = 8_000_000;
+type AppContext = Context<{ Bindings: Env }>;
 
 app.use('*', logger());
 app.use(
@@ -19,6 +20,15 @@ app.use(
     origin: '*',
     allowMethods: ['GET', 'POST', 'OPTIONS'],
     allowHeaders: ['Authorization', 'Content-Type'],
+    maxAge: 86400,
+  }),
+);
+app.use(
+  '/raw*',
+  cors({
+    origin: '*',
+    allowMethods: ['GET', 'OPTIONS'],
+    allowHeaders: ['Authorization'],
     maxAge: 86400,
   }),
 );
@@ -40,6 +50,53 @@ function parsePromptRole(value?: string): PromptRole | undefined {
     : undefined;
 }
 
+function getServiceInfo() {
+  return {
+    service: 'prompt-library-mcp',
+    version: '0.5.0',
+    status: 'ok',
+    endpoints: {
+      frontend: '/',
+      viewer: '/p/<project>/<path-to-file.md>',
+      raw: '/raw/<project>/<path-to-file.md>',
+      info: '/api/info',
+      health: '/health',
+      projects: '/api/projects',
+      tree: '/api/tree?project=<slug>&path=/',
+      search: '/api/files/search?q=<keywords>',
+      fetch: '/api/files/fetch?identifier=<id-or-uri>',
+      bootstrap: '/api/bootstrap/:client/:profile',
+      contentSyncSnapshot: '/api/admin/library/snapshot',
+      contentSync: '/api/admin/library/sync',
+      mcp: '/mcp',
+    },
+  };
+}
+
+async function serveRawFile(context: AppContext, identifier: string) {
+  const normalizedIdentifier = identifier.normalize('NFKC').trim();
+  if (!normalizedIdentifier) {
+    return context.json({ error: 'Missing Markdown file identifier.' }, 400);
+  }
+
+  const access = resolveAccessContext(context.req.raw, context.env.MCP_BEARER_TOKEN);
+  const repository = new PromptRepository(context.env);
+  const file = await repository.get(normalizedIdentifier, access);
+  if (!file) return context.json({ error: 'Prompt file not found.' }, 404);
+
+  const cacheControl =
+    file.visibility === 'public'
+      ? 'public, max-age=60, s-maxage=3600, stale-while-revalidate=86400'
+      : 'private, no-store';
+
+  return context.body(file.content, 200, {
+    'Content-Type': 'text/plain; charset=utf-8',
+    'Content-Disposition': `inline; filename*=UTF-8''${encodeURIComponent(file.fileName)}`,
+    'Cache-Control': cacheControl,
+    'X-Content-Type-Options': 'nosniff',
+  });
+}
+
 async function readLimitedJson(request: Request): Promise<unknown> {
   const declaredLength = Number(request.headers.get('content-length') ?? 0);
   if (Number.isFinite(declaredLength) && declaredLength > MAX_CONTENT_SYNC_BODY_BYTES) {
@@ -53,24 +110,8 @@ async function readLimitedJson(request: Request): Promise<unknown> {
   return JSON.parse(body) as unknown;
 }
 
-app.get('/', (context) =>
-  context.json({
-    service: 'prompt-library-mcp',
-    version: '0.4.0',
-    status: 'ok',
-    endpoints: {
-      health: '/health',
-      projects: '/api/projects',
-      tree: '/api/tree?project=<slug>&path=/',
-      search: '/api/files/search?q=<keywords>',
-      fetch: '/api/files/fetch?identifier=<id-or-uri>',
-      bootstrap: '/api/bootstrap/:client/:profile',
-      contentSyncSnapshot: '/api/admin/library/snapshot',
-      contentSync: '/api/admin/library/sync',
-      mcp: '/mcp',
-    },
-  }),
-);
+app.get('/', (context) => context.json(getServiceInfo()));
+app.get('/api/info', (context) => context.json(getServiceInfo()));
 
 app.get('/health', async (context) => {
   const [database, projectCount, bootstrapManifest, latestContentSync] = await Promise.all([
@@ -159,6 +200,19 @@ app.get('/api/files/fetch', async (context) => {
   const repository = new PromptRepository(context.env);
   const file = await repository.get(identifier, access);
   return file ? context.json(file) : context.json({ error: 'Prompt file not found.' }, 404);
+});
+
+app.get('/raw', async (context) => {
+  const identifier = context.req.query('identifier');
+  if (!identifier) return context.json({ error: 'Missing identifier query parameter.' }, 400);
+  return serveRawFile(context, identifier);
+});
+
+app.get('/raw/:project/*', async (context) => {
+  const project = context.req.param('project');
+  const path = context.req.param('*');
+  if (!project || !path) return context.json({ error: 'Missing project or file path.' }, 400);
+  return serveRawFile(context, `prompt://${project}/${path}`);
 });
 
 app.get('/api/bootstrap/:client/:profile', async (context) => {
