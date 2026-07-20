@@ -28,7 +28,9 @@ function parsePromptIdentifier(identifier) {
     };
   }
 
-  const projectPath = normalized.match(/^([^:/?#]+):(\/.*)$/u);
+  // project:/path uses exactly one slash after the colon. This deliberately
+  // excludes URL schemes such as https:// so complete viewer URLs are parsed below.
+  const projectPath = normalized.match(/^([^:/?#]+):(\/(?!\/).*)$/u);
   if (projectPath) {
     return {
       project: projectPath[1].trim(),
