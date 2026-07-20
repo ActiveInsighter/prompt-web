@@ -22,5 +22,6 @@ assert.ok(serialized.includes('\\u003cProgress value={33} /\\u003e'));
 assert.ok(serialized.includes('\\u003cTabsTrigger'));
 assert.ok(serialized.includes('\\u003eCommand\\u003c/TabsTrigger\\u003e'));
 assert.deepEqual(JSON.parse(serialized), source, 'AI-safe JSON must preserve the exact source after parsing.');
+assert.throws(() => serializeAiSafeJson(undefined), /not JSON serializable/i);
 
 console.log('AI-safe JSON serialization tests passed.');
