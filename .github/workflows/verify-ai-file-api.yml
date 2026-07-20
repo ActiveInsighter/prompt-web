@@ -13,13 +13,16 @@ on:
       - '.github/latest-actions-log.txt'
       - '.github/latest-deploy-run.json'
       - '.github/latest-deploy-actions-log.txt'
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: verify-ai-safe-file-api
+  group: verify-ai-safe-file-api-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
