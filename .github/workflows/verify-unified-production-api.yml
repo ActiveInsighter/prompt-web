@@ -25,10 +25,11 @@ jobs:
     timeout-minutes: 5
 
     steps:
-      - name: Verify directory, file, and search endpoints
+      - name: Verify directory, file, search, and indexing endpoints
         shell: bash
         env:
           BASE_URL: https://prompt.2212148739lbw.workers.dev
+          VERIFY_AI_SEARCH_INDEX: ${{ github.event_name != 'pull_request' }}
         run: |
           set -euo pipefail
 
@@ -51,11 +52,27 @@ jobs:
               "$url"
           }
 
-          get_json "$BASE_URL/api/files/shadcn-ui-docs" "$temp_dir/root-no-slash.json"
-          get_json "$BASE_URL/api/files/shadcn-ui-docs/" "$temp_dir/root.json"
+          get_text() {
+            local url="$1"
+            local output="$2"
+            curl \
+              --fail \
+              --silent \
+              --show-error \
+              --retry 12 \
+              --retry-delay 3 \
+              --retry-all-errors \
+              --max-time 20 \
+              --output "$output" \
+              "$url"
+          }
+
+          get_json "$BASE_URL/api/files/shadcn-ui-docs" "$temp_dir/project-no-slash.json"
+          get_json "$BASE_URL/api/files/shadcn-ui-docs/" "$temp_dir/project-slash.json"
           get_json "$BASE_URL/api/files/shadcn-ui-docs/components/" "$temp_dir/components.json"
           get_json "$BASE_URL/api/files/shadcn-ui-docs/components/progress.md" "$temp_dir/file.json"
-          get_json "$BASE_URL/api/v1/search?q=progress&project=shadcn-ui-docs&path=/components&limit=5" "$temp_dir/search-get.json"
+          get_json "$BASE_URL/api/files/shadcn-ui-docs/components/progress.md/" "$temp_dir/file-slash.json"
+          get_json "$BASE_URL/api/v1/search/?q=progress&project=shadcn-ui-docs&path=/components&limit=5" "$temp_dir/search-get.json"
 
           curl \
             --fail \
@@ -69,25 +86,37 @@ jobs:
             --header 'Content-Type: application/json' \
             --data '{"query":"progress","filters":{"project":"shadcn-ui-docs","pathPrefix":"/components"},"options":{"limit":5}}' \
             --output "$temp_dir/search-post.json" \
-            "$BASE_URL/api/v1/search"
+            "$BASE_URL/api/v1/search/"
 
-          TEMP_DIR="$temp_dir" node --input-type=module <<'NODE'
+          if [[ "$VERIFY_AI_SEARCH_INDEX" == "true" ]]; then
+            get_json "$BASE_URL/api/files" "$temp_dir/api-root-no-slash.json"
+            get_json "$BASE_URL/api/files/" "$temp_dir/api-root-slash.json"
+            get_text "$BASE_URL/robots.txt" "$temp_dir/robots.txt"
+            get_text "$BASE_URL/sitemap.xml" "$temp_dir/sitemap.xml"
+          fi
+
+          TEMP_DIR="$temp_dir" \
+          VERIFY_AI_SEARCH_INDEX="$VERIFY_AI_SEARCH_INDEX" \
+          BASE_URL="$BASE_URL" \
+          node --input-type=module <<'NODE'
           import { readFileSync } from 'node:fs';
           import { join } from 'node:path';
 
           const directory = process.env.TEMP_DIR;
-          const read = (name) => JSON.parse(readFileSync(join(directory, name), 'utf8'));
+          const readJson = (name) => JSON.parse(readFileSync(join(directory, name), 'utf8'));
+          const readText = (name) => readFileSync(join(directory, name), 'utf8');
 
-          const rootNoSlash = read('root-no-slash.json');
-          const root = read('root.json');
-          const components = read('components.json');
-          const file = read('file.json');
-          const getSearch = read('search-get.json');
-          const postSearch = read('search-post.json');
+          const projectNoSlash = readJson('project-no-slash.json');
+          const projectSlash = readJson('project-slash.json');
+          const components = readJson('components.json');
+          const file = readJson('file.json');
+          const fileSlash = readJson('file-slash.json');
+          const getSearch = readJson('search-get.json');
+          const postSearch = readJson('search-post.json');
 
           for (const [name, value] of [
-            ['root without slash', rootNoSlash],
-            ['root with slash', root],
+            ['project without slash', projectNoSlash],
+            ['project with slash', projectSlash],
           ]) {
             if (
               value.schemaVersion !== '1.0' ||
@@ -109,13 +138,18 @@ jobs:
             throw new Error(`Invalid components directory response: ${JSON.stringify(components)}`);
           }
 
-          if (
-            file.type !== 'file' ||
-            file.uri !== 'prompt://shadcn-ui-docs/components/progress.md' ||
-            !file.content.includes('<Progress') ||
-            !file.content.includes('<TabsTrigger')
-          ) {
-            throw new Error(`Invalid file response: ${JSON.stringify({ type: file.type, uri: file.uri })}`);
+          for (const [name, value] of [
+            ['file without slash', file],
+            ['file with slash', fileSlash],
+          ]) {
+            if (
+              value.type !== 'file' ||
+              value.uri !== 'prompt://shadcn-ui-docs/components/progress.md' ||
+              !value.content.includes('<Progress') ||
+              !value.content.includes('<TabsTrigger')
+            ) {
+              throw new Error(`Invalid ${name} response: ${JSON.stringify({ type: value.type, uri: value.uri })}`);
+            }
           }
 
           for (const [name, value] of [
@@ -128,6 +162,46 @@ jobs:
               !value.results.some((item) => item.path === '/components/progress.md')
             ) {
               throw new Error(`Invalid ${name} response: ${JSON.stringify(value)}`);
+            }
+          }
+
+          if (process.env.VERIFY_AI_SEARCH_INDEX === 'true') {
+            const apiRootNoSlash = readJson('api-root-no-slash.json');
+            const apiRootSlash = readJson('api-root-slash.json');
+            const robots = readText('robots.txt');
+            const sitemap = readText('sitemap.xml');
+
+            for (const [name, value] of [
+              ['API root without slash', apiRootNoSlash],
+              ['API root with slash', apiRootSlash],
+            ]) {
+              if (
+                value.schemaVersion !== '1.0' ||
+                value.type !== 'directory' ||
+                value.path !== '/' ||
+                !Array.isArray(value.entries) ||
+                !value.entries.some((entry) => entry.type === 'project' && entry.slug === 'shadcn-ui-docs')
+              ) {
+                throw new Error(`Invalid ${name} response: ${JSON.stringify(value)}`);
+              }
+            }
+
+            if (
+              !robots.includes('User-agent: Cloudflare-AI-Search') ||
+              !robots.includes(`Sitemap: ${process.env.BASE_URL}/sitemap.xml`)
+            ) {
+              throw new Error(`Invalid robots.txt: ${robots}`);
+            }
+
+            if (
+              !sitemap.startsWith('<?xml version="1.0" encoding="UTF-8"?>') ||
+              !sitemap.includes(`<loc>${process.env.BASE_URL}/api/files</loc>`) ||
+              !sitemap.includes(
+                `<loc>${process.env.BASE_URL}/api/files/shadcn-ui-docs/components/progress.md</loc>`,
+              ) ||
+              !sitemap.includes('<lastmod>')
+            ) {
+              throw new Error('AI Search sitemap is missing required API URLs or metadata.');
             }
           }
 

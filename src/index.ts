@@ -5,7 +5,13 @@ import { logger } from 'hono/logger';
 import { hasValidBearerToken, resolveAccessContext } from './auth';
 import { contentSyncRequestSchema } from './content-sync/schema';
 import { ContentSyncService } from './content-sync/service';
+import {
+  buildAiSearchRobotsTxt,
+  buildAiSearchSitemap,
+  MAX_SITEMAP_URLS,
+} from './http/ai-search-index';
 import { serializeAiSafeJson } from './http/ai-safe-json';
+import { normalizeTrailingSlashRequest } from './http/trailing-slash';
 import { createPromptMcpServer } from './mcp/server';
 import { PromptRepository } from './repositories/prompt-repository';
 import type { Env, PromptRole, PromptSearchOptions, PromptVisibility } from './types';
@@ -13,6 +19,17 @@ import type { Env, PromptRole, PromptSearchOptions, PromptVisibility } from './t
 const app = new Hono<{ Bindings: Env }>({ strict: false });
 const MAX_CONTENT_SYNC_BODY_BYTES = 8_000_000;
 type AppContext = Context<{ Bindings: Env }>;
+
+interface D1AiSearchProjectRow {
+  slug: string;
+  updated_at: string;
+}
+
+interface D1AiSearchFileRow {
+  project_slug: string;
+  path: string;
+  updated_at: string;
+}
 
 app.use('*', logger());
 app.use(
@@ -146,8 +163,11 @@ function getServiceInfo() {
       frontend: '/',
       viewer: '/p/<project>/<path-to-file.md>',
       raw: '/raw/<project>/<path-to-file.md>',
+      aiRoot: '/api/files',
       aiFile: '/api/files/<project>/<path-to-file.md>',
       aiResource: '/api/files/<project>/<optional-path>',
+      aiSearchSitemap: '/sitemap.xml',
+      robots: '/robots.txt',
       v1Contents: '/api/v1/projects/<project>/contents/<optional-path>',
       info: '/api/info',
       health: '/health',
@@ -175,6 +195,43 @@ async function serveProjects(context: AppContext) {
   });
 }
 
+async function serveAiFilesRoot(context: AppContext) {
+  const access = resolveAccessContext(context.req.raw, context.env.MCP_BEARER_TOKEN);
+  const repository = new PromptRepository(context.env);
+  const projects = await repository.listProjects(access);
+
+  return aiSafeJson(
+    context,
+    {
+      schemaVersion: '1.0',
+      type: 'directory',
+      path: '/',
+      entries: projects.map((project) => ({
+        type: 'project',
+        id: project.id,
+        slug: project.slug,
+        name: project.name,
+        description: project.description,
+        visibility: project.visibility,
+        defaultLanguage: project.defaultLanguage,
+        path: `/${project.slug}`,
+        uri: `prompt://${project.slug}/`,
+        apiPath: `/api/files/${encodeURIComponent(project.slug)}`,
+        updatedAt: project.updatedAt,
+      })),
+      indexing: {
+        sitemap: '/sitemap.xml',
+        robots: '/robots.txt',
+      },
+      authenticated: access.authenticated,
+    },
+    200,
+    access.authenticated
+      ? 'private, no-store'
+      : 'public, max-age=60, s-maxage=3600, stale-while-revalidate=86400',
+  );
+}
+
 async function serveSearch(context: AppContext, options: PromptSearchOptions) {
   const access = resolveAccessContext(context.req.raw, context.env.MCP_BEARER_TOKEN);
   const repository = new PromptRepository(context.env);
@@ -196,6 +253,54 @@ async function serveSearch(context: AppContext, options: PromptSearchOptions) {
   });
 }
 
+async function serveAiSearchSitemap(context: AppContext) {
+  const projects = await context.env.DB.prepare(
+    `SELECT slug, updated_at
+     FROM projects
+     WHERE deleted_at IS NULL
+       AND visibility = 'public'
+     ORDER BY slug COLLATE NOCASE ASC`,
+  ).all<D1AiSearchProjectRow>();
+
+  const fileLimit = Math.max(0, MAX_SITEMAP_URLS - 1 - projects.results.length);
+  const files = await context.env.DB.prepare(
+    `SELECT project_slug, path, updated_at
+     FROM prompt_search_documents
+     WHERE visibility = 'public'
+     ORDER BY project_slug COLLATE NOCASE ASC, path COLLATE NOCASE ASC
+     LIMIT ?`,
+  )
+    .bind(fileLimit)
+    .all<D1AiSearchFileRow>();
+
+  const xml = buildAiSearchSitemap(
+    new URL(context.req.url).origin,
+    projects.results.map((project) => ({
+      slug: project.slug,
+      updatedAt: project.updated_at,
+    })),
+    files.results.map((file) => ({
+      projectSlug: file.project_slug,
+      path: file.path,
+      updatedAt: file.updated_at,
+    })),
+  );
+
+  return context.body(xml, 200, {
+    'Content-Type': 'application/xml; charset=utf-8',
+    'Cache-Control': 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400',
+    'X-Content-Type-Options': 'nosniff',
+  });
+}
+
+function serveAiSearchRobots(context: AppContext) {
+  return context.body(buildAiSearchRobotsTxt(new URL(context.req.url).origin), 200, {
+    'Content-Type': 'text/plain; charset=utf-8',
+    'Cache-Control': 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400',
+    'X-Content-Type-Options': 'nosniff',
+  });
+}
+
 async function serveRawFile(context: AppContext, identifier: string) {
   const normalizedIdentifier = identifier.normalize('NFKC').trim();
   if (!normalizedIdentifier) {
@@ -208,7 +313,7 @@ async function serveRawFile(context: AppContext, identifier: string) {
   if (!file) return context.json({ error: 'Prompt file not found.' }, 404);
 
   return context.body(file.content, 200, {
-    'Content-Type': 'text/plain; charset=utf-8',
+    'Content-Type': 'text/markdown; charset=utf-8',
     'Content-Disposition': `inline; filename*=UTF-8''${encodeURIComponent(file.fileName)}`,
     'Cache-Control': getFileCacheControl(file.visibility),
     'X-Content-Type-Options': 'nosniff',
@@ -293,6 +398,8 @@ async function readLimitedJson(request: Request): Promise<unknown> {
   return JSON.parse(body) as unknown;
 }
 
+app.get('/robots.txt', serveAiSearchRobots);
+app.get('/sitemap.xml', serveAiSearchSitemap);
 app.get('/', (context) =>
   context.env.ASSETS.fetch(new URL('/index.html', context.req.url)),
 );
@@ -356,6 +463,7 @@ app.get('/api/tree', async (context) => {
   return listing ? context.json(listing) : context.json({ error: 'Directory not found.' }, 404);
 });
 
+app.get('/api/files', serveAiFilesRoot);
 app.get('/api/files/search', (context) => serveSearch(context, parseSearchOptions(context)));
 app.get('/api/v1/search', (context) => serveSearch(context, parseSearchOptions(context)));
 app.post('/api/v1/search', async (context) => {
@@ -377,9 +485,6 @@ app.get('/api/files/fetch', async (context) => {
 app.get('/api/files/:project', (context) =>
   serveAiSafeResource(context, context.req.param('project')),
 );
-app.get('/api/files/:project/', (context) =>
-  serveAiSafeResource(context, context.req.param('project')),
-);
 app.get('/api/files/:project/:path{.+}', (context) =>
   serveAiSafeResource(
     context,
@@ -389,9 +494,6 @@ app.get('/api/files/:project/:path{.+}', (context) =>
 );
 
 app.get('/api/v1/projects/:project/contents', (context) =>
-  serveAiSafeResource(context, context.req.param('project')),
-);
-app.get('/api/v1/projects/:project/contents/', (context) =>
   serveAiSafeResource(context, context.req.param('project')),
 );
 app.get('/api/v1/projects/:project/contents/:path{.+}', (context) =>
@@ -498,4 +600,8 @@ app.onError((error, context) => {
   return context.json({ error: 'Internal server error.' }, 500);
 });
 
-export default app;
+export default {
+  fetch(request, env, executionContext) {
+    return app.fetch(normalizeTrailingSlashRequest(request), env, executionContext);
+  },
+} satisfies ExportedHandler<Env>;
