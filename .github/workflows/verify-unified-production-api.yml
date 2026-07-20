@@ -1,0 +1,132 @@
+name: Verify Unified Production API
+
+on:
+  workflow_run:
+    workflows:
+      - Deploy Prompt MCP Worker
+    types:
+      - completed
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-unified-production-api
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Verify directory, file, and search endpoints
+        shell: bash
+        env:
+          BASE_URL: https://prompt.2212148739lbw.workers.dev
+        run: |
+          set -euo pipefail
+
+          temp_dir="$(mktemp -d)"
+          trap 'rm -rf "$temp_dir"' EXIT
+
+          get_json() {
+            local url="$1"
+            local output="$2"
+            curl \
+              --fail \
+              --silent \
+              --show-error \
+              --retry 12 \
+              --retry-delay 3 \
+              --retry-all-errors \
+              --max-time 20 \
+              --header 'Accept: application/json' \
+              --output "$output" \
+              "$url"
+          }
+
+          get_json "$BASE_URL/api/files/shadcn-ui-docs" "$temp_dir/root-no-slash.json"
+          get_json "$BASE_URL/api/files/shadcn-ui-docs/" "$temp_dir/root.json"
+          get_json "$BASE_URL/api/files/shadcn-ui-docs/components/" "$temp_dir/components.json"
+          get_json "$BASE_URL/api/files/shadcn-ui-docs/components/progress.md" "$temp_dir/file.json"
+          get_json "$BASE_URL/api/v1/search?q=progress&project=shadcn-ui-docs&path=/components&limit=5" "$temp_dir/search-get.json"
+
+          curl \
+            --fail \
+            --silent \
+            --show-error \
+            --retry 12 \
+            --retry-delay 3 \
+            --retry-all-errors \
+            --max-time 20 \
+            --header 'Accept: application/json' \
+            --header 'Content-Type: application/json' \
+            --data '{"query":"progress","filters":{"project":"shadcn-ui-docs","pathPrefix":"/components"},"options":{"limit":5}}' \
+            --output "$temp_dir/search-post.json" \
+            "$BASE_URL/api/v1/search"
+
+          TEMP_DIR="$temp_dir" node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          import { join } from 'node:path';
+
+          const directory = process.env.TEMP_DIR;
+          const read = (name) => JSON.parse(readFileSync(join(directory, name), 'utf8'));
+
+          const rootNoSlash = read('root-no-slash.json');
+          const root = read('root.json');
+          const components = read('components.json');
+          const file = read('file.json');
+          const getSearch = read('search-get.json');
+          const postSearch = read('search-post.json');
+
+          for (const [name, value] of [
+            ['root without slash', rootNoSlash],
+            ['root with slash', root],
+          ]) {
+            if (
+              value.schemaVersion !== '1.0' ||
+              value.type !== 'directory' ||
+              value.project?.slug !== 'shadcn-ui-docs' ||
+              value.path !== '/' ||
+              !Array.isArray(value.entries) ||
+              value.entries.length === 0
+            ) {
+              throw new Error(`Invalid ${name} response: ${JSON.stringify(value)}`);
+            }
+          }
+
+          if (
+            components.type !== 'directory' ||
+            components.path !== '/components' ||
+            !components.entries.some((entry) => entry.type === 'file' && entry.name === 'progress.md')
+          ) {
+            throw new Error(`Invalid components directory response: ${JSON.stringify(components)}`);
+          }
+
+          if (
+            file.type !== 'file' ||
+            file.uri !== 'prompt://shadcn-ui-docs/components/progress.md' ||
+            !file.content.includes('<Progress') ||
+            !file.content.includes('<TabsTrigger')
+          ) {
+            throw new Error(`Invalid file response: ${JSON.stringify({ type: file.type, uri: file.uri })}`);
+          }
+
+          for (const [name, value] of [
+            ['GET search', getSearch],
+            ['POST search', postSearch],
+          ]) {
+            if (
+              value.schemaVersion !== '1.0' ||
+              !Array.isArray(value.results) ||
+              !value.results.some((item) => item.path === '/components/progress.md')
+            ) {
+              throw new Error(`Invalid ${name} response: ${JSON.stringify(value)}`);
+            }
+          }
+
+          console.log('Unified production API verification passed.');
+          NODE

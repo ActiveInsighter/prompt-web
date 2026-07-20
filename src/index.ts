@@ -10,7 +10,7 @@ import { createPromptMcpServer } from './mcp/server';
 import { PromptRepository } from './repositories/prompt-repository';
 import type { Env, PromptRole, PromptSearchOptions, PromptVisibility } from './types';
 
-const app = new Hono<{ Bindings: Env }>();
+const app = new Hono<{ Bindings: Env }>({ strict: false });
 const MAX_CONTENT_SYNC_BODY_BYTES = 8_000_000;
 type AppContext = Context<{ Bindings: Env }>;
 
