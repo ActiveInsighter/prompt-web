@@ -57,6 +57,86 @@ function getFileCacheControl(visibility: PromptVisibility): string {
     : 'private, no-store';
 }
 
+function aiSafeJson(
+  context: AppContext,
+  value: unknown,
+  status: 200 | 400 | 404 = 200,
+  cacheControl = 'no-store',
+) {
+  return context.body(serializeAiSafeJson(value), status, {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Cache-Control': cacheControl,
+    'X-Content-Type-Options': 'nosniff',
+  });
+}
+
+function parseSearchOptions(context: AppContext): PromptSearchOptions {
+  return {
+    query: context.req.query('q'),
+    project: context.req.query('project'),
+    directory: context.req.query('path') ?? context.req.query('directory'),
+    recursive: context.req.query('recursive') !== 'false',
+    language: context.req.query('language'),
+    tags: parseTags(context.req.queries('tag')),
+    visibility: parseVisibility(context.req.query('visibility')),
+    promptRole: parsePromptRole(
+      context.req.query('role') ?? context.req.query('promptRole'),
+    ),
+    limit: Number(context.req.query('limit') ?? 10),
+  };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function optionalString(value: unknown): string | undefined {
+  return typeof value === 'string' ? value : undefined;
+}
+
+function parseSearchBody(value: unknown): PromptSearchOptions {
+  const body = isRecord(value) ? value : {};
+  const filters = isRecord(body.filters) ? body.filters : {};
+  const options = isRecord(body.options) ? body.options : {};
+  const tagsValue = filters.tags ?? body.tags;
+  const tags = Array.isArray(tagsValue)
+    ? tagsValue.filter((tag): tag is string => typeof tag === 'string')
+    : [];
+
+  return {
+    query: optionalString(body.query) ?? optionalString(body.q),
+    project:
+      optionalString(filters.project) ??
+      (Array.isArray(filters.projects) ? optionalString(filters.projects[0]) : undefined) ??
+      optionalString(body.project),
+    directory:
+      optionalString(filters.pathPrefix) ??
+      optionalString(filters.path) ??
+      optionalString(body.path) ??
+      optionalString(body.directory),
+    recursive:
+      typeof filters.recursive === 'boolean'
+        ? filters.recursive
+        : typeof body.recursive === 'boolean'
+          ? body.recursive
+          : true,
+    language:
+      optionalString(filters.language) ??
+      (Array.isArray(filters.languages) ? optionalString(filters.languages[0]) : undefined) ??
+      optionalString(body.language),
+    tags,
+    visibility: parseVisibility(
+      optionalString(filters.visibility) ?? optionalString(body.visibility),
+    ),
+    promptRole: parsePromptRole(
+      optionalString(filters.role) ??
+        optionalString(body.role) ??
+        optionalString(body.promptRole),
+    ),
+    limit: Number(options.limit ?? body.limit ?? 10),
+  };
+}
+
 function getServiceInfo() {
   return {
     service: 'prompt-library-mcp',
@@ -67,11 +147,15 @@ function getServiceInfo() {
       viewer: '/p/<project>/<path-to-file.md>',
       raw: '/raw/<project>/<path-to-file.md>',
       aiFile: '/api/files/<project>/<path-to-file.md>',
+      aiResource: '/api/files/<project>/<optional-path>',
+      v1Contents: '/api/v1/projects/<project>/contents/<optional-path>',
       info: '/api/info',
       health: '/health',
       projects: '/api/projects',
+      v1Projects: '/api/v1/projects',
       tree: '/api/tree?project=<slug>&path=/',
       search: '/api/files/search?q=<keywords>',
+      v1Search: '/api/v1/search?q=<keywords>',
       fetch: '/api/files/fetch?identifier=<id-or-uri>',
       bootstrap: '/api/bootstrap/:client/:profile',
       contentSyncSnapshot: '/api/admin/library/snapshot',
@@ -79,6 +163,37 @@ function getServiceInfo() {
       mcp: '/mcp',
     },
   };
+}
+
+async function serveProjects(context: AppContext) {
+  const access = resolveAccessContext(context.req.raw, context.env.MCP_BEARER_TOKEN);
+  const repository = new PromptRepository(context.env);
+  return aiSafeJson(context, {
+    schemaVersion: '1.0',
+    projects: await repository.listProjects(access),
+    authenticated: access.authenticated,
+  });
+}
+
+async function serveSearch(context: AppContext, options: PromptSearchOptions) {
+  const access = resolveAccessContext(context.req.raw, context.env.MCP_BEARER_TOKEN);
+  const repository = new PromptRepository(context.env);
+  return aiSafeJson(context, {
+    schemaVersion: '1.0',
+    query: {
+      text: options.query ?? '',
+      project: options.project ?? null,
+      path: options.directory ?? null,
+      recursive: options.recursive !== false,
+      language: options.language ?? null,
+      tags: options.tags ?? [],
+      visibility: options.visibility ?? null,
+      role: options.promptRole ?? null,
+      limit: Number.isFinite(options.limit) ? options.limit : 10,
+    },
+    results: await repository.search(options, access),
+    authenticated: access.authenticated,
+  });
 }
 
 async function serveRawFile(context: AppContext, identifier: string) {
@@ -111,11 +226,58 @@ async function serveAiSafeFile(context: AppContext, identifier: string) {
   const file = await repository.get(normalizedIdentifier, access);
   if (!file) return context.json({ error: 'Prompt file not found.' }, 404);
 
-  return context.body(serializeAiSafeJson(file), 200, {
-    'Content-Type': 'application/json; charset=utf-8',
-    'Cache-Control': getFileCacheControl(file.visibility),
-    'X-Content-Type-Options': 'nosniff',
-  });
+  return aiSafeJson(
+    context,
+    { schemaVersion: '1.0', type: 'file', ...file },
+    200,
+    getFileCacheControl(file.visibility),
+  );
+}
+
+async function serveAiSafeResource(
+  context: AppContext,
+  projectIdentifier: string,
+  requestedPath?: string,
+) {
+  const project = projectIdentifier.normalize('NFKC').trim();
+  if (!project) return aiSafeJson(context, { error: 'Missing project identifier.' }, 400);
+
+  const path = (requestedPath ?? '')
+    .normalize('NFKC')
+    .trim()
+    .replace(/^\/+/, '')
+    .replace(/\/+$/, '');
+  const access = resolveAccessContext(context.req.raw, context.env.MCP_BEARER_TOKEN);
+  const repository = new PromptRepository(context.env);
+
+  if (path) {
+    const file = await repository.get(`prompt://${project}/${path}`, access);
+    if (file) {
+      return aiSafeJson(
+        context,
+        { schemaVersion: '1.0', type: 'file', ...file },
+        200,
+        getFileCacheControl(file.visibility),
+      );
+    }
+  }
+
+  const directoryPath = path ? `/${path}` : '/';
+  const listing = await repository.listDirectory(project, directoryPath, access);
+  if (!listing) {
+    return aiSafeJson(context, { error: 'File or directory not found.' }, 404);
+  }
+
+  return aiSafeJson(
+    context,
+    {
+      schemaVersion: '1.0',
+      type: 'directory',
+      ...listing,
+    },
+    200,
+    getFileCacheControl(listing.project.visibility),
+  );
 }
 
 async function readLimitedJson(request: Request): Promise<unknown> {
@@ -181,14 +343,8 @@ app.get('/health', async (context) => {
   });
 });
 
-app.get('/api/projects', async (context) => {
-  const access = resolveAccessContext(context.req.raw, context.env.MCP_BEARER_TOKEN);
-  const repository = new PromptRepository(context.env);
-  return context.json({
-    projects: await repository.listProjects(access),
-    authenticated: access.authenticated,
-  });
-});
+app.get('/api/projects', serveProjects);
+app.get('/api/v1/projects', serveProjects);
 
 app.get('/api/tree', async (context) => {
   const project = context.req.query('project');
@@ -200,42 +356,51 @@ app.get('/api/tree', async (context) => {
   return listing ? context.json(listing) : context.json({ error: 'Directory not found.' }, 404);
 });
 
-app.get('/api/files/search', async (context) => {
-  const access = resolveAccessContext(context.req.raw, context.env.MCP_BEARER_TOKEN);
-  const options: PromptSearchOptions = {
-    query: context.req.query('q'),
-    project: context.req.query('project'),
-    directory: context.req.query('directory'),
-    recursive: context.req.query('recursive') !== 'false',
-    language: context.req.query('language'),
-    tags: parseTags(context.req.queries('tag')),
-    visibility: parseVisibility(context.req.query('visibility')),
-    promptRole: parsePromptRole(context.req.query('promptRole')),
-    limit: Number(context.req.query('limit') ?? 10),
-  };
-
-  const repository = new PromptRepository(context.env);
-  return context.json({
-    results: await repository.search(options, access),
-    authenticated: access.authenticated,
-  });
+app.get('/api/files/search', (context) => serveSearch(context, parseSearchOptions(context)));
+app.get('/api/v1/search', (context) => serveSearch(context, parseSearchOptions(context)));
+app.post('/api/v1/search', async (context) => {
+  let body: unknown;
+  try {
+    body = await context.req.json();
+  } catch {
+    return aiSafeJson(context, { error: 'Request body must be valid JSON.' }, 400);
+  }
+  return serveSearch(context, parseSearchBody(body));
 });
 
 app.get('/api/files/fetch', async (context) => {
   const identifier = context.req.query('identifier');
   if (!identifier) return context.json({ error: 'Missing identifier query parameter.' }, 400);
-
-  const access = resolveAccessContext(context.req.raw, context.env.MCP_BEARER_TOKEN);
-  const repository = new PromptRepository(context.env);
-  const file = await repository.get(identifier, access);
-  return file ? context.json(file) : context.json({ error: 'Prompt file not found.' }, 404);
+  return serveAiSafeFile(context, identifier);
 });
 
-app.get('/api/files/:project/:path{.+}', async (context) => {
-  const project = context.req.param('project');
-  const path = context.req.param('path');
-  return serveAiSafeFile(context, `prompt://${project}/${path}`);
-});
+app.get('/api/files/:project', (context) =>
+  serveAiSafeResource(context, context.req.param('project')),
+);
+app.get('/api/files/:project/', (context) =>
+  serveAiSafeResource(context, context.req.param('project')),
+);
+app.get('/api/files/:project/:path{.+}', (context) =>
+  serveAiSafeResource(
+    context,
+    context.req.param('project'),
+    context.req.param('path'),
+  ),
+);
+
+app.get('/api/v1/projects/:project/contents', (context) =>
+  serveAiSafeResource(context, context.req.param('project')),
+);
+app.get('/api/v1/projects/:project/contents/', (context) =>
+  serveAiSafeResource(context, context.req.param('project')),
+);
+app.get('/api/v1/projects/:project/contents/:path{.+}', (context) =>
+  serveAiSafeResource(
+    context,
+    context.req.param('project'),
+    context.req.param('path'),
+  ),
+);
 
 app.get('/raw', async (context) => {
   const identifier = context.req.query('identifier');
@@ -304,32 +469,15 @@ app.post('/api/admin/library/sync', async (context) => {
 });
 
 // Compatibility routes for clients using the original flat prompt API.
-app.get('/api/prompts/search', async (context) => {
-  const access = resolveAccessContext(context.req.raw, context.env.MCP_BEARER_TOKEN);
-  const options: PromptSearchOptions = {
-    query: context.req.query('q'),
-    project: context.req.query('project') ?? context.req.query('category'),
-    directory: context.req.query('directory'),
-    recursive: context.req.query('recursive') !== 'false',
-    language: context.req.query('language'),
-    tags: parseTags(context.req.queries('tag')),
-    visibility: parseVisibility(context.req.query('visibility')),
-    promptRole: parsePromptRole(context.req.query('promptRole')),
-    limit: Number(context.req.query('limit') ?? 10),
-  };
-
-  const repository = new PromptRepository(context.env);
-  return context.json({
-    results: await repository.search(options, access),
-    authenticated: access.authenticated,
-  });
+app.get('/api/prompts/search', (context) => {
+  const options = parseSearchOptions(context);
+  options.project = options.project ?? context.req.query('category');
+  return serveSearch(context, options);
 });
 
 app.get('/api/prompts/:identifier', async (context) => {
-  const access = resolveAccessContext(context.req.raw, context.env.MCP_BEARER_TOKEN);
-  const repository = new PromptRepository(context.env);
-  const file = await repository.get(context.req.param('identifier'), access);
-  return file ? context.json(file) : context.json({ error: 'Prompt file not found.' }, 404);
+  const identifier = context.req.param('identifier');
+  return serveAiSafeFile(context, identifier);
 });
 
 app.all('/mcp', async (context) => {
