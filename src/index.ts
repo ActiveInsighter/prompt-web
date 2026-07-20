@@ -110,7 +110,9 @@ async function readLimitedJson(request: Request): Promise<unknown> {
   return JSON.parse(body) as unknown;
 }
 
-app.get('/', (context) => context.json(getServiceInfo()));
+app.get('/', (context) => context.env.ASSETS.fetch(context.req.raw));
+app.get('/p', (context) => context.env.ASSETS.fetch(context.req.raw));
+app.get('/p/*', (context) => context.env.ASSETS.fetch(context.req.raw));
 app.get('/api/info', (context) => context.json(getServiceInfo()));
 
 app.get('/health', async (context) => {
