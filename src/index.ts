@@ -110,9 +110,15 @@ async function readLimitedJson(request: Request): Promise<unknown> {
   return JSON.parse(body) as unknown;
 }
 
-app.get('/', (context) => context.env.ASSETS.fetch(context.req.raw));
-app.get('/p', (context) => context.env.ASSETS.fetch(context.req.raw));
-app.get('/p/*', (context) => context.env.ASSETS.fetch(context.req.raw));
+app.get('/', (context) =>
+  context.env.ASSETS.fetch(new URL('/index.html', context.req.url)),
+);
+app.get('/p', (context) =>
+  context.env.ASSETS.fetch(new URL('/index.html', context.req.url)),
+);
+app.get('/p/*', (context) =>
+  context.env.ASSETS.fetch(new URL('/index.html', context.req.url)),
+);
 app.get('/api/info', (context) => context.json(getServiceInfo()));
 
 app.get('/health', async (context) => {
