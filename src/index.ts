@@ -216,10 +216,9 @@ app.get('/raw', async (context) => {
   return serveRawFile(context, identifier);
 });
 
-app.get('/raw/:project/*', async (context) => {
+app.get('/raw/:project/:path{.+}', async (context) => {
   const project = context.req.param('project');
-  const path = context.req.param('*');
-  if (!project || !path) return context.json({ error: 'Missing project or file path.' }, 400);
+  const path = context.req.param('path');
   return serveRawFile(context, `prompt://${project}/${path}`);
 });
 
