@@ -3,6 +3,7 @@ export type PromptRole = 'system' | 'developer' | 'user' | 'template' | 'referen
 export type LibraryNodeType = 'folder' | 'file';
 
 export interface Env {
+  ASSETS: Fetcher;
   DB: D1Database;
   PROMPT_KV: KVNamespace;
   ENVIRONMENT?: string;
