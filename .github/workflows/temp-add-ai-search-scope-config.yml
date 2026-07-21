@@ -1,0 +1,70 @@
+name: Add AI Search scope configuration
+
+on:
+  push:
+    branches:
+      - fix/ai-search-project-scope-fallback
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/ai-search-project-scope-fallback
+          fetch-depth: 0
+
+      - name: Patch scope types and configuration
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          utils_path = Path('src/http/cloudflare-ai-search-utils.ts')
+          utils = utils_path.read_text(encoding='utf-8')
+          type_marker = "export type AiSearchGrouping = 'files' | 'chunks';\n"
+          type_insert = type_marker + "export type AiSearchProjectScopeMode = 'source' | 'metadata' | 'auto';\n"
+          if "export type AiSearchProjectScopeMode" not in utils:
+              if type_marker not in utils:
+                  raise SystemExit('AI Search grouping type marker not found')
+              utils = utils.replace(type_marker, type_insert, 1)
+
+          parser_marker = "function parseGrouping(value: string | null): AiSearchGrouping {\n  const normalized = value?.trim().toLowerCase() || 'files';\n  if (normalized === 'files' || normalized === 'chunks') return normalized;\n  throw new AiSearchRequestError('group must be either files or chunks.', 'invalid_group');\n}\n"
+          parser_insert = parser_marker + "\nexport function parseAiSearchProjectScopeMode(\n  value: string | undefined,\n): AiSearchProjectScopeMode {\n  const normalized = value?.normalize('NFKC').trim().toLowerCase();\n  if (normalized === 'metadata' || normalized === 'auto') return normalized;\n  return 'source';\n}\n"
+          if 'export function parseAiSearchProjectScopeMode' not in utils:
+              if parser_marker not in utils:
+                  raise SystemExit('AI Search grouping parser marker not found')
+              utils = utils.replace(parser_marker, parser_insert, 1)
+          utils_path.write_text(utils, encoding='utf-8')
+
+          types_path = Path('src/types.ts')
+          types = types_path.read_text(encoding='utf-8')
+          env_marker = "  AI_SEARCH_FOLDER_ROOT?: string;\n"
+          env_insert = env_marker + "  AI_SEARCH_PROJECT_SCOPE_MODE?: string;\n"
+          if 'AI_SEARCH_PROJECT_SCOPE_MODE?: string;' not in types:
+              if env_marker not in types:
+                  raise SystemExit('Env marker not found')
+              types = types.replace(env_marker, env_insert, 1)
+          types_path.write_text(types, encoding='utf-8')
+
+          wrangler_path = Path('wrangler.jsonc')
+          wrangler = wrangler_path.read_text(encoding='utf-8')
+          vars_marker = '    "AI_SEARCH_FOLDER_ROOT": "https://prompt.2212148739lbw.workers.dev/api/files"\n'
+          vars_insert = '    "AI_SEARCH_FOLDER_ROOT": "https://prompt.2212148739lbw.workers.dev/api/files",\n    "AI_SEARCH_PROJECT_SCOPE_MODE": "source"\n'
+          if '"AI_SEARCH_PROJECT_SCOPE_MODE"' not in wrangler:
+              if vars_marker not in wrangler:
+                  raise SystemExit('Wrangler AI Search folder root marker not found')
+              wrangler = wrangler.replace(vars_marker, vars_insert, 1)
+          wrangler_path.write_text(wrangler, encoding='utf-8')
+          PY
+
+      - name: Remove temporary workflow and commit
+        run: |
+          rm .github/workflows/temp-add-ai-search-scope-config.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/http/cloudflare-ai-search-utils.ts src/types.ts wrangler.jsonc .github/workflows/temp-add-ai-search-scope-config.yml
+          git commit -m "feat: configure AI Search project scoping strategy"
+          git push origin HEAD:fix/ai-search-project-scope-fallback
