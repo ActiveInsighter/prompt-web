@@ -1,10 +1,9 @@
 export const MAX_SITEMAP_URLS = 50_000;
 
-const AI_INDEX_ESCAPE_PATTERN = /[<>&]/gu;
+const AI_INDEX_ESCAPE_PATTERN = /[<>]/gu;
 const AI_INDEX_ESCAPE_BY_CHARACTER: Record<string, string> = {
   '<': '\\u003c',
   '>': '\\u003e',
-  '&': '\\u0026',
 };
 
 export interface AiSearchProjectEntry {
