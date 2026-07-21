@@ -148,6 +148,9 @@ jobs:
           frontend_html="$(request_body "$base_url/")"
           viewer_html="$(request_body "$base_url/p/prompt-library/guides/content-sync.md")"
           raw_markdown="$(request_body "$base_url/raw/prompt-library/guides/content-sync.md")"
+          ai_index_root_html="$(request_body "$base_url/ai-index")"
+          ai_index_project_html="$(request_body "$base_url/ai-index/shadcn-ui-docs")"
+          ai_index_file_text="$(request_body "$base_url/ai-index/shadcn-ui-docs/components/progress.md")"
           info_json="$(request_body "$base_url/api/info")"
           health_json="$(request_body "$base_url/health")"
           projects_json="$(request_body "$base_url/api/projects")"
@@ -162,10 +165,16 @@ jobs:
           echo "search=$search_json"
           echo "file=$file_json"
           echo "raw_markdown_prefix=${raw_markdown:0:120}"
+          echo "ai_index_root_prefix=${ai_index_root_html:0:120}"
+          echo "ai_index_file_prefix=${ai_index_file_text:0:120}"
 
+          DEPLOYMENT_BASE_URL="$base_url" \
           FRONTEND_HTML="$frontend_html" \
           VIEWER_HTML="$viewer_html" \
           RAW_MARKDOWN="$raw_markdown" \
+          AI_INDEX_ROOT_HTML="$ai_index_root_html" \
+          AI_INDEX_PROJECT_HTML="$ai_index_project_html" \
+          AI_INDEX_FILE_TEXT="$ai_index_file_text" \
           INFO_JSON="$info_json" \
           HEALTH_JSON="$health_json" \
           PROJECTS_JSON="$projects_json" \
@@ -176,9 +185,13 @@ jobs:
           import { readFileSync } from 'node:fs';
 
           const manifest = JSON.parse(readFileSync('.prompt-sync/manifest.json', 'utf8'));
+          const baseUrl = process.env.DEPLOYMENT_BASE_URL ?? '';
           const frontend = process.env.FRONTEND_HTML ?? '';
           const viewer = process.env.VIEWER_HTML ?? '';
           const rawMarkdown = process.env.RAW_MARKDOWN ?? '';
+          const aiIndexRoot = process.env.AI_INDEX_ROOT_HTML ?? '';
+          const aiIndexProject = process.env.AI_INDEX_PROJECT_HTML ?? '';
+          const aiIndexFile = process.env.AI_INDEX_FILE_TEXT ?? '';
           const info = JSON.parse(process.env.INFO_JSON);
           const health = JSON.parse(process.env.HEALTH_JSON);
           const projects = JSON.parse(process.env.PROJECTS_JSON);
@@ -194,6 +207,27 @@ jobs:
           }
           if (!rawMarkdown.includes('content/') || rawMarkdown.trimStart().startsWith('{')) {
             throw new Error('The raw Markdown route did not return source text.');
+          }
+          if (
+            !aiIndexRoot.startsWith('<!doctype html>') ||
+            !aiIndexRoot.includes(`href="${baseUrl}/ai-index/shadcn-ui-docs"`)
+          ) {
+            throw new Error(`The AI index root was not crawlable: ${aiIndexRoot.slice(0, 500)}`);
+          }
+          if (
+            !aiIndexProject.startsWith('<!doctype html>') ||
+            !aiIndexProject.includes(
+              `href="${baseUrl}/ai-index/shadcn-ui-docs/components"`,
+            )
+          ) {
+            throw new Error(`The AI index project directory was not crawlable: ${aiIndexProject.slice(0, 500)}`);
+          }
+          if (
+            !aiIndexFile.includes('\\u003cProgress') ||
+            !aiIndexFile.includes('\\u003cTabsTrigger') ||
+            aiIndexFile.includes('<Progress')
+          ) {
+            throw new Error(`The AI index document was not safely escaped: ${aiIndexFile.slice(0, 500)}`);
           }
           if (info.version !== '0.5.0' || info.endpoints?.viewer !== '/p/<project>/<path-to-file.md>') {
             throw new Error(`Invalid service info response: ${JSON.stringify(info)}`);
@@ -248,5 +282,5 @@ jobs:
             echo "- Run ID: \`$GITHUB_RUN_ID\`"
             echo "- Commit: \`$GITHUB_SHA\`"
             echo "- URL: $DEPLOYMENT_URL"
-            echo "- D1 migrations, remote KV, atomic secret deployment, content sync, Markdown frontend and production smoke tests are enforced by this job."
+            echo "- D1 migrations, remote KV, atomic secret deployment, content sync, Markdown frontend, AI index crawlability, and production smoke tests are enforced by this job."
           } >> "$GITHUB_STEP_SUMMARY"
