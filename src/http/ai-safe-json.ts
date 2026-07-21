@@ -1,7 +1,16 @@
 const HTML_SIGNIFICANT_CHARACTERS = /[<>&\u2028\u2029]/g;
-const AI_INDEX_ESCAPED_LESS_THAN = '\\u003c';
-const AI_INDEX_ESCAPED_GREATER_THAN = '\\u003e';
-const AI_SEARCH_MARKDOWN_ESCAPED_CHARACTERS = new Set(['#', '`', '*', '_', '[', ']']);
+const AI_INDEX_ESCAPED_LESS_THAN = /\\+u003c/giu;
+const AI_INDEX_ESCAPED_GREATER_THAN = /\\+u003e/giu;
+const AI_SEARCH_MARKDOWN_ESCAPED_CHARACTERS = new Set([
+  '#',
+  '`',
+  '*',
+  '_',
+  '[',
+  ']',
+  '<',
+  '>',
+]);
 
 const JSON_ESCAPE_BY_CHARACTER: Record<string, string> = {
   '<': '\\u003c',
@@ -59,8 +68,8 @@ function restoreAiSearchMarkdownEscapes(value: string): string {
 function restoreAiIndexSearchText(value: string): string {
   return restoreAiSearchMarkdownEscapes(
     value
-      .replaceAll(AI_INDEX_ESCAPED_LESS_THAN, '<')
-      .replaceAll(AI_INDEX_ESCAPED_GREATER_THAN, '>'),
+      .replace(AI_INDEX_ESCAPED_LESS_THAN, '<')
+      .replace(AI_INDEX_ESCAPED_GREATER_THAN, '>'),
   );
 }
 
@@ -122,8 +131,8 @@ function normalizeAiSearchPayload(value: unknown): unknown {
 /**
  * Serializes JSON without leaving literal HTML-significant characters in the
  * response body. AI Search responses are also reduced to the fields callers
- * need. For /ai-index results, crawl-safe tag escapes and the Markdown escapes
- * added by Cloudflare AI Search are restored before the final JSON encoding.
+ * need. For /ai-index results, one or more crawl/indexer escape layers around
+ * tags and Markdown punctuation are restored before the final JSON encoding.
  */
 export function serializeAiSafeJson(value: unknown): string {
   const serialized = JSON.stringify(normalizeAiSearchPayload(value));
