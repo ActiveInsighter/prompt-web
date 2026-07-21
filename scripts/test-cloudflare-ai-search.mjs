@@ -51,22 +51,36 @@ assert.equal(parseAiSearchProjectScopeMode(' METADATA '), 'metadata');
 assert.equal(parseAiSearchProjectScopeMode('Auto'), 'auto');
 assert.equal(parseAiSearchProjectScopeMode('unsupported'), 'source');
 
-assert.equal(normalizeAiSearchFolderRoot('/raw///'), '/raw');
+assert.equal(normalizeAiSearchFolderRoot('/ai-index///'), '/ai-index');
 assert.equal(
-  normalizeAiSearchFolderRoot('https://prompt.example.com/raw///'),
-  'https://prompt.example.com/raw',
+  normalizeAiSearchFolderRoot('https://prompt.example.com/ai-index///'),
+  'https://prompt.example.com/ai-index',
 );
 assert.equal(
   resolveAiSearchFolderRoot(undefined, 'https://prompt.example.com/api/ai-search?q=x'),
-  'https://prompt.example.com/raw',
+  'https://prompt.example.com/ai-index',
 );
 assert.deepEqual(
-  buildProjectFolderFilter('shadcn-ui-docs', 'https://prompt.example.com/raw'),
+  buildProjectFolderFilter('shadcn-ui-docs', 'https://prompt.example.com/ai-index'),
   {
     folder: {
-      $gte: 'https://prompt.example.com/raw/shadcn-ui-docs/',
-      $lt: 'https://prompt.example.com/raw/shadcn-ui-docs0',
+      $gte: 'https://prompt.example.com/ai-index/shadcn-ui-docs/',
+      $lt: 'https://prompt.example.com/ai-index/shadcn-ui-docs0',
     },
+  },
+);
+
+assert.deepEqual(
+  parseIndexedSourceKey(
+    'https://prompt.example.com/ai-index/shadcn-ui-docs/components/button.md',
+  ),
+  {
+    url: 'https://prompt.example.com/ai-index/shadcn-ui-docs/components/button.md',
+    project: 'shadcn-ui-docs',
+    path: '/components/button.md',
+    apiPath: '/api/files/shadcn-ui-docs/components/button.md',
+    viewerPath: '/p/shadcn-ui-docs/components/button.md',
+    rawPath: '/raw/shadcn-ui-docs/components/button.md',
   },
 );
 
@@ -104,10 +118,10 @@ const buttonChunk = {
   score: 0.91,
   text: 'Button component',
   item: {
-    key: 'https://prompt.example.com/raw/shadcn-ui-docs/components/button.md',
+    key: 'https://prompt.example.com/ai-index/shadcn-ui-docs/components/button.md',
     timestamp: 123,
     metadata: {
-      folder: 'https://prompt.example.com/raw/shadcn-ui-docs/components/',
+      folder: 'https://prompt.example.com/ai-index/shadcn-ui-docs/components/',
     },
   },
   scoring_details: { vector_score: 0.9 },
@@ -116,7 +130,7 @@ const sourceOnlyButtonChunk = {
   ...buttonChunk,
   id: 'button-source-only',
   item: {
-    key: 'https://prompt.example.com/raw/shadcn-ui-docs/components/input.md',
+    key: 'https://prompt.example.com/ai-index/shadcn-ui-docs/components/input.md',
     metadata: { schema_version: 2 },
   },
 };
@@ -125,8 +139,8 @@ const zustandChunk = {
   ...buttonChunk,
   id: 'zustand-1',
   item: {
-    key: 'https://prompt.example.com/raw/zustand-docs/guide.md',
-    metadata: { folder: 'https://prompt.example.com/raw/zustand-docs/' },
+    key: 'https://prompt.example.com/ai-index/zustand-docs/guide.md',
+    metadata: { folder: 'https://prompt.example.com/ai-index/zustand-docs/' },
   },
 };
 
@@ -134,7 +148,7 @@ assert.equal(
   chunkMatchesProject(
     buttonChunk,
     'shadcn-ui-docs',
-    'https://prompt.example.com/raw',
+    'https://prompt.example.com/ai-index',
   ),
   true,
 );
@@ -142,7 +156,7 @@ assert.equal(
   chunkMatchesProject(
     sourceOnlyButtonChunk,
     'shadcn-ui-docs',
-    'https://prompt.example.com/raw',
+    'https://prompt.example.com/ai-index',
   ),
   true,
 );
@@ -150,7 +164,7 @@ assert.equal(
   chunkMatchesProject(
     zustandChunk,
     'shadcn-ui-docs',
-    'https://prompt.example.com/raw',
+    'https://prompt.example.com/ai-index',
   ),
   false,
 );
@@ -159,7 +173,7 @@ assert.deepEqual(
   formatAiSearchResults(
     [buttonChunk, duplicateButtonChunk, zustandChunk],
     { grouping: 'files', limit: 5, project: 'shadcn-ui-docs' },
-    'https://prompt.example.com/raw',
+    'https://prompt.example.com/ai-index',
   ),
   {
     results: [
@@ -169,8 +183,8 @@ assert.deepEqual(
         score: 0.91,
         text: 'Button component',
         source: {
-          key: 'https://prompt.example.com/raw/shadcn-ui-docs/components/button.md',
-          url: 'https://prompt.example.com/raw/shadcn-ui-docs/components/button.md',
+          key: 'https://prompt.example.com/ai-index/shadcn-ui-docs/components/button.md',
+          url: 'https://prompt.example.com/ai-index/shadcn-ui-docs/components/button.md',
           project: 'shadcn-ui-docs',
           path: '/components/button.md',
           apiPath: '/api/files/shadcn-ui-docs/components/button.md',
@@ -178,7 +192,7 @@ assert.deepEqual(
           rawPath: '/raw/shadcn-ui-docs/components/button.md',
           timestamp: 123,
           metadata: {
-            folder: 'https://prompt.example.com/raw/shadcn-ui-docs/components/',
+            folder: 'https://prompt.example.com/ai-index/shadcn-ui-docs/components/',
           },
         },
         scoringDetails: { vector_score: 0.9 },
@@ -192,7 +206,7 @@ assert.deepEqual(
 const sourceScopedResults = formatAiSearchResults(
   [zustandChunk, sourceOnlyButtonChunk],
   { grouping: 'files', limit: 5, project: 'shadcn-ui-docs' },
-  'https://prompt.example.com/raw',
+  'https://prompt.example.com/ai-index',
 );
 assert.equal(sourceScopedResults.results.length, 1);
 assert.equal(sourceScopedResults.results[0]?.source.project, 'shadcn-ui-docs');

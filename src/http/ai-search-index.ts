@@ -1,5 +1,11 @@
 export const MAX_SITEMAP_URLS = 50_000;
 
+const AI_INDEX_ESCAPE_PATTERN = /[<>]/gu;
+const AI_INDEX_ESCAPE_BY_CHARACTER: Record<string, string> = {
+  '<': '\\u003c',
+  '>': '\\u003e',
+};
+
 export interface AiSearchProjectEntry {
   slug: string;
   updatedAt: string;
@@ -52,10 +58,23 @@ function normalizeLastmod(value: string): string | undefined {
   return Number.isFinite(timestamp) ? new Date(timestamp).toISOString() : undefined;
 }
 
+export function escapeAiIndexContent(content: string): string {
+  return content.replace(
+    AI_INDEX_ESCAPE_PATTERN,
+    (character) => AI_INDEX_ESCAPE_BY_CHARACTER[character] ?? character,
+  );
+}
+
 export function buildRawFilePath(projectSlug: string, path: string): string {
   const project = encodeURIComponent(projectSlug.normalize('NFKC').trim());
   const encodedPath = encodePath(path);
   return `/raw/${project}/${encodedPath}`;
+}
+
+export function buildAiIndexFilePath(projectSlug: string, path: string): string {
+  const project = encodeURIComponent(projectSlug.normalize('NFKC').trim());
+  const encodedPath = encodePath(path);
+  return `/ai-index/${project}/${encodedPath}`;
 }
 
 export function buildAiSearchSitemap(
@@ -92,7 +111,7 @@ export function buildAiSearchSitemap(
   for (const file of files) {
     const projectSlug = file.projectSlug.normalize('NFKC').trim();
     if (!publicProjects.has(projectSlug.toLowerCase())) continue;
-    addEntry(buildRawFilePath(projectSlug, file.path), file.updatedAt, 0.7);
+    addEntry(buildAiIndexFilePath(projectSlug, file.path), file.updatedAt, 0.7);
   }
 
   return [
@@ -108,7 +127,8 @@ export function buildAiSearchRobotsTxt(origin: string): string {
   const sitemapUrl = new URL('/sitemap.xml', normalizeOrigin(origin)).toString();
   return [
     'User-agent: Cloudflare-AI-Search',
-    'Allow: /raw/',
+    'Allow: /ai-index/',
+    'Disallow: /raw/',
     'Disallow: /api/',
     'Disallow: /p/',
     '',

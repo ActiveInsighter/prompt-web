@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
 
 import {
+  buildAiIndexFilePath,
   buildAiSearchRobotsTxt,
   buildAiSearchSitemap,
   buildRawFilePath,
+  escapeAiIndexContent,
 } from '../src/http/ai-search-index.ts';
 import {
   normalizeTrailingSlashRequest,
@@ -37,6 +39,26 @@ assert.equal(
   buildRawFilePath('中文 文档', '/组件/按钮 & 标签.md'),
   '/raw/%E4%B8%AD%E6%96%87%20%E6%96%87%E6%A1%A3/%E7%BB%84%E4%BB%B6/%E6%8C%89%E9%92%AE%20%26%20%E6%A0%87%E7%AD%BE.md',
 );
+assert.equal(
+  buildAiIndexFilePath('shadcn-ui-docs', '/components/progress.md'),
+  '/ai-index/shadcn-ui-docs/components/progress.md',
+);
+assert.equal(
+  buildAiIndexFilePath('中文 文档', '/组件/按钮 & 标签.md'),
+  '/ai-index/%E4%B8%AD%E6%96%87%20%E6%96%87%E6%A1%A3/%E7%BB%84%E4%BB%B6/%E6%8C%89%E9%92%AE%20%26%20%E6%A0%87%E7%AD%BE.md',
+);
+
+const escapedIndexContent = escapeAiIndexContent(
+  '<CodeTabs>\n<TabsTrigger value="manual">Manual & advanced</TabsTrigger>',
+);
+assert.equal(
+  escapedIndexContent,
+  '\\u003cCodeTabs\\u003e\n\\u003cTabsTrigger value="manual"\\u003eManual & advanced\\u003c/TabsTrigger\\u003e',
+);
+assert.equal(escapedIndexContent.includes('<'), false);
+assert.equal(escapedIndexContent.includes('>'), false);
+assert.equal(escapedIndexContent.includes('&'), true);
+assert.equal(escapedIndexContent.includes('{'), false);
 
 const sitemap = buildAiSearchSitemap(
   'https://prompt.example.com/base/path?ignored=true',
@@ -57,17 +79,19 @@ const sitemap = buildAiSearchSitemap(
 assert.match(sitemap, /^<\?xml version="1\.0" encoding="UTF-8"\?>/u);
 assert.ok(
   sitemap.includes(
-    '<loc>https://prompt.example.com/raw/shadcn-ui-docs/components/progress.md</loc>',
+    '<loc>https://prompt.example.com/ai-index/shadcn-ui-docs/components/progress.md</loc>',
   ),
 );
 assert.equal(sitemap.includes('/api/files'), false);
-assert.equal(sitemap.includes('/raw/private-docs/secret.md'), false);
+assert.equal(sitemap.includes('/raw/shadcn-ui-docs/components/progress.md'), false);
+assert.equal(sitemap.includes('/ai-index/private-docs/secret.md'), false);
 assert.ok(sitemap.includes('<lastmod>2026-07-20T12:30:00.000Z</lastmod>'));
 assert.equal(sitemap.includes('/base/path'), false);
 
 const robots = buildAiSearchRobotsTxt('https://prompt.example.com/anything');
 assert.ok(robots.includes('User-agent: Cloudflare-AI-Search'));
-assert.ok(robots.includes('Allow: /raw/'));
+assert.ok(robots.includes('Allow: /ai-index/'));
+assert.ok(robots.includes('Disallow: /raw/'));
 assert.ok(robots.includes('Disallow: /api/'));
 assert.ok(robots.includes('Sitemap: https://prompt.example.com/sitemap.xml'));
 
