@@ -5,6 +5,7 @@ import { logger } from 'hono/logger';
 import { hasValidBearerToken, resolveAccessContext } from './auth';
 import { contentSyncRequestSchema } from './content-sync/schema';
 import { ContentSyncService } from './content-sync/service';
+import { registerAiIndexRoutes } from './http/ai-index';
 import {
   buildAiSearchRobotsTxt,
   buildAiSearchSitemap,
@@ -53,6 +54,7 @@ app.use(
 );
 
 registerCloudflareAiSearchRoutes(app);
+registerAiIndexRoutes(app);
 
 function parseTags(values: string[] | undefined): string[] {
   return (values ?? [])
