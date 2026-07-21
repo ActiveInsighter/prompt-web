@@ -79,6 +79,7 @@ const aiSearchPayload = {
     },
   ],
   diagnostics: { retrievedChunks: 50 },
+  meta: { mode: 'vector', group: 'files', duration_ms: 386 },
 };
 
 const serializedAiSearch = serializeAiSafeJson(aiSearchPayload);
@@ -105,6 +106,7 @@ assert.deepEqual(parsedAiSearch, {
   results: [
     {
       score: 0.91,
+      title: 'Padding',
       text: '# padding\n\n| `p-<number>` | `padding: calc(var(--spacing) * <number>);` |\n\n## [Examples](#examples)\n\n```\n<div class="p-8">p-8</div>\n```\n\n<span>already partially restored</span>',
       project: 'tailwindcss-docs',
       path: '/spacing/padding.md',
@@ -113,6 +115,7 @@ assert.deepEqual(parsedAiSearch, {
     },
     {
       score: 0.72,
+      title: 'Escaping',
       text: 'Literal documentation of \\u003c, \\# and \\` must stay literal outside /ai-index.',
       project: 'tailwindcss-docs',
       path: '/escaping.md',
@@ -120,6 +123,7 @@ assert.deepEqual(parsedAiSearch, {
       url: 'https://prompt.example.com/raw/tailwindcss-docs/escaping.md',
     },
   ],
+  meta: { mode: 'vector', group: 'files', duration_ms: 386 },
 });
 assert.equal(parsedAiSearch.results[0].text.includes('\\<'), false);
 assert.equal(parsedAiSearch.results[0].text.includes('\\>'), false);
