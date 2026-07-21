@@ -1,17 +1,18 @@
 export const DEFAULT_AI_SEARCH_LIMIT = 10;
 export const MAX_AI_SEARCH_LIMIT = 20;
 export const DEFAULT_AI_SEARCH_THRESHOLD = 0.4;
-export const DEFAULT_CONTEXT_EXPANSION = 1;
-export const DEFAULT_FOLDER_ROOT = 'api/files';
+export const DEFAULT_CONTEXT_EXPANSION = 0;
+export const DEFAULT_FOLDER_ROOT = '/api/files';
 export const MAX_AI_SEARCH_QUERY_LENGTH = 1_000;
 
 export type AiSearchRetrievalType = 'hybrid' | 'keyword' | 'vector';
+export type AiSearchRequestedRetrievalType = AiSearchRetrievalType | 'auto';
 export type AiSearchGrouping = 'files' | 'chunks';
 
 export interface AiSearchRequestOptions {
   query: string;
   project?: string;
-  retrievalType: AiSearchRetrievalType;
+  requestedRetrievalType: AiSearchRequestedRetrievalType;
   grouping: AiSearchGrouping;
   limit: number;
   retrievalLimit: number;
@@ -117,13 +118,18 @@ function parseBoolean(value: string | null, name: string, fallback: boolean): bo
   throw new AiSearchRequestError(`${name} must be true or false.`, `invalid_${name}`);
 }
 
-function parseRetrievalType(value: string | null): AiSearchRetrievalType {
-  const normalized = value?.trim().toLowerCase() || 'hybrid';
-  if (normalized === 'hybrid' || normalized === 'keyword' || normalized === 'vector') {
+function parseRetrievalType(value: string | null): AiSearchRequestedRetrievalType {
+  const normalized = value?.trim().toLowerCase() || 'auto';
+  if (
+    normalized === 'auto' ||
+    normalized === 'hybrid' ||
+    normalized === 'keyword' ||
+    normalized === 'vector'
+  ) {
     return normalized;
   }
   throw new AiSearchRequestError(
-    'mode must be one of hybrid, keyword, or vector.',
+    'mode must be one of auto, hybrid, keyword, or vector.',
     'invalid_mode',
   );
 }
@@ -186,7 +192,7 @@ export function parseAiSearchRequest(
   return {
     query,
     project: routeProjectValue ?? queryProjectValue,
-    retrievalType: parseRetrievalType(url.searchParams.get('mode')),
+    requestedRetrievalType: parseRetrievalType(url.searchParams.get('mode')),
     grouping,
     limit,
     retrievalLimit: grouping === 'files' ? Math.min(50, limit * 3) : limit,
@@ -204,15 +210,32 @@ export function parseAiSearchRequest(
       0,
       3,
     ),
-    reranking: parseBoolean(url.searchParams.get('rerank'), 'rerank', true),
+    reranking: parseBoolean(url.searchParams.get('rerank'), 'rerank', false),
   };
+}
+
+function normalizePathRoot(value: string): string {
+  const withLeadingSlash = value.startsWith('/') ? value : `/${value}`;
+  const collapsed = withLeadingSlash.replace(/\/{2,}/gu, '/').replace(/\/+$/gu, '');
+  return collapsed || DEFAULT_FOLDER_ROOT;
 }
 
 export function normalizeAiSearchFolderRoot(value?: string): string {
   const normalized = normalizeOptionalText(value) ?? DEFAULT_FOLDER_ROOT;
-  const collapsed = normalized.replace(/\/{2,}/gu, '/').replace(/\/+$/gu, '');
-  if (!collapsed || collapsed === '/') return DEFAULT_FOLDER_ROOT;
-  return collapsed;
+  try {
+    const url = new URL(normalized);
+    const pathname = normalizePathRoot(url.pathname);
+    return `${url.origin}${pathname}`;
+  } catch {
+    return normalizePathRoot(normalized);
+  }
+}
+
+export function resolveAiSearchFolderRoot(configuredRoot: string | undefined, requestUrl: string): string {
+  if (normalizeOptionalText(configuredRoot)) {
+    return normalizeAiSearchFolderRoot(configuredRoot);
+  }
+  return normalizeAiSearchFolderRoot(new URL('/api/files', requestUrl).toString());
 }
 
 export function buildProjectFolderPrefix(project: string, folderRoot?: string): string {
