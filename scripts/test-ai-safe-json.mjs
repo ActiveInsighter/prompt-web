@@ -108,6 +108,7 @@ assert.deepEqual(parsedAiSearch, {
       text: '# padding\n\n| `p-<number>` | `padding: calc(var(--spacing) * <number>);` |\n\n## [Examples](#examples)\n\n```\n<div class="p-8">p-8</div>\n```\n\n<span>already partially restored</span>',
       project: 'tailwindcss-docs',
       path: '/spacing/padding.md',
+      uri: 'prompt://tailwindcss-docs/spacing/padding.md',
       url: 'https://prompt.example.com/raw/tailwindcss-docs/spacing/padding.md',
     },
     {
@@ -115,6 +116,7 @@ assert.deepEqual(parsedAiSearch, {
       text: 'Literal documentation of \\u003c, \\# and \\` must stay literal outside /ai-index.',
       project: 'tailwindcss-docs',
       path: '/escaping.md',
+      uri: 'prompt://tailwindcss-docs/escaping.md',
       url: 'https://prompt.example.com/raw/tailwindcss-docs/escaping.md',
     },
   ],
