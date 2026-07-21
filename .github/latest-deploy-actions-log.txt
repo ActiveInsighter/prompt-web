@@ -1,731 +1,779 @@
 ===== JOB: deploy (success) =====
-2026-07-21T09:00:03.6701322Z Current runner version: '2.335.1'
-2026-07-21T09:00:03.6739340Z ##[group]Runner Image Provisioner
-2026-07-21T09:00:03.6740703Z Hosted Compute Agent
-2026-07-21T09:00:03.6741740Z Version: 20260707.563
-2026-07-21T09:00:03.6743308Z Commit: 02667638d2b423fbc733a8e32a88b44996a3ba6e
-2026-07-21T09:00:03.6744607Z Build Date: 2026-07-07T19:33:50Z
-2026-07-21T09:00:03.6745915Z Worker ID: {71847855-5558-490b-b67b-a1f4bb50b2c1}
-2026-07-21T09:00:03.6747159Z Azure Region: eastus
-2026-07-21T09:00:03.6748135Z ##[endgroup]
-2026-07-21T09:00:03.6750572Z ##[group]Operating System
-2026-07-21T09:00:03.6751685Z Ubuntu
-2026-07-21T09:00:03.6753057Z 24.04.4
-2026-07-21T09:00:03.6753945Z LTS
-2026-07-21T09:00:03.6754986Z ##[endgroup]
-2026-07-21T09:00:03.6756057Z ##[group]Runner Image
-2026-07-21T09:00:03.6757131Z Image: ubuntu-24.04
-2026-07-21T09:00:03.6758184Z Version: 20260714.240.1
-2026-07-21T09:00:03.6760387Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260714.240/images/ubuntu/Ubuntu2404-Readme.md
-2026-07-21T09:00:03.6763623Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260714.240
-2026-07-21T09:00:03.6765412Z ##[endgroup]
-2026-07-21T09:00:03.6767467Z ##[group]GITHUB_TOKEN Permissions
-2026-07-21T09:00:03.6770334Z Contents: read
-2026-07-21T09:00:03.6771355Z Metadata: read
-2026-07-21T09:00:03.6772699Z ##[endgroup]
-2026-07-21T09:00:03.6775919Z Secret source: Actions
-2026-07-21T09:00:03.6777197Z Prepare workflow directory
-2026-07-21T09:00:03.7535214Z Prepare all required actions
-2026-07-21T09:00:03.7590816Z Getting action download info
-2026-07-21T09:00:03.9508873Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
-2026-07-21T09:00:04.1637044Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
-2026-07-21T09:00:04.2608126Z Download action repository 'actions/setup-python@v5' (SHA:a26af69be951a213d495a4c3e4e4022e16d87065)
-2026-07-21T09:00:04.3549528Z Download action repository 'cloudflare/wrangler-action@v3' (SHA:9acf94ace14e7dc412b076f2c5c20b8ce93c79cd)
-2026-07-21T09:00:04.5514216Z Complete job name: deploy
-2026-07-21T09:00:04.6246984Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
-2026-07-21T09:00:04.6262772Z ##[group]Run actions/checkout@v4
-2026-07-21T09:00:04.6264146Z with:
-2026-07-21T09:00:04.6264997Z   repository: ActiveInsighter/prompt-web
-2026-07-21T09:00:04.6273029Z   token: ***
-2026-07-21T09:00:04.6273900Z   ssh-strict: true
-2026-07-21T09:00:04.6274733Z   ssh-user: git
-2026-07-21T09:00:04.6275619Z   persist-credentials: true
-2026-07-21T09:00:04.6276581Z   clean: true
-2026-07-21T09:00:04.6277370Z   sparse-checkout-cone-mode: true
-2026-07-21T09:00:04.6278404Z   fetch-depth: 1
-2026-07-21T09:00:04.6279274Z   fetch-tags: false
-2026-07-21T09:00:04.6280212Z   show-progress: true
-2026-07-21T09:00:04.6281091Z   lfs: false
-2026-07-21T09:00:04.6282260Z   submodules: false
-2026-07-21T09:00:04.6283195Z   set-safe-directory: true
-2026-07-21T09:00:04.6284151Z   allow-unsafe-pr-checkout: false
-2026-07-21T09:00:04.6292557Z env:
-2026-07-21T09:00:04.6293856Z   CLOUDFLARE_API_TOKEN: ***
-2026-07-21T09:00:04.6295005Z   CLOUDFLARE_ACCOUNT_ID: ***
-2026-07-21T09:00:04.6295949Z   MCP_BEARER_TOKEN: 
-2026-07-21T09:00:04.6296800Z ##[endgroup]
-2026-07-21T09:00:04.8242450Z Syncing repository: ActiveInsighter/prompt-web
-2026-07-21T09:00:04.8246046Z ##[group]Getting Git version info
-2026-07-21T09:00:04.8248660Z Working directory is '/home/runner/work/prompt-web/prompt-web'
-2026-07-21T09:00:04.8251462Z [command]/usr/bin/git version
-2026-07-21T09:00:04.8253391Z git version 2.54.0
-2026-07-21T09:00:04.8260037Z ##[endgroup]
-2026-07-21T09:00:04.8267582Z Temporarily overriding HOME='/home/runner/work/_temp/948d7df4-cd9d-49a1-ac89-d5a2b34f5e41' before making global git config changes
-2026-07-21T09:00:04.8427534Z Adding repository directory to the temporary git global config as a safe directory
-2026-07-21T09:00:04.8431374Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/prompt-web/prompt-web
-2026-07-21T09:00:04.8439079Z Deleting the contents of '/home/runner/work/prompt-web/prompt-web'
-2026-07-21T09:00:04.8443091Z ##[group]Initializing the repository
-2026-07-21T09:00:04.8445097Z [command]/usr/bin/git init /home/runner/work/prompt-web/prompt-web
-2026-07-21T09:00:04.8483339Z hint: Using 'master' as the name for the initial branch. This default branch name
-2026-07-21T09:00:04.8512837Z hint: will change to "main" in Git 3.0. To configure the initial branch name
-2026-07-21T09:00:04.8515266Z hint: to use in all of your new repositories, which will suppress this warning,
-2026-07-21T09:00:04.8516924Z hint: call:
-2026-07-21T09:00:04.8518269Z hint:
-2026-07-21T09:00:04.8519654Z hint: 	git config --global init.defaultBranch <name>
-2026-07-21T09:00:04.8524877Z hint:
-2026-07-21T09:00:04.8526624Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
-2026-07-21T09:00:04.8528809Z hint: 'development'. The just-created branch can be renamed via this command:
-2026-07-21T09:00:04.8532500Z hint:
-2026-07-21T09:00:04.8533284Z hint: 	git branch -m <name>
-2026-07-21T09:00:04.8534078Z hint:
-2026-07-21T09:00:04.8535145Z hint: Disable this message with "git config set advice.defaultBranchName false"
-2026-07-21T09:00:04.8536932Z Initialized empty Git repository in /home/runner/work/prompt-web/prompt-web/.git/
-2026-07-21T09:00:04.8539693Z [command]/usr/bin/git remote add origin https://github.com/ActiveInsighter/prompt-web
-2026-07-21T09:00:04.8611277Z ##[endgroup]
-2026-07-21T09:00:04.8667581Z ##[group]Disabling automatic garbage collection
-2026-07-21T09:00:04.8672990Z [command]/usr/bin/git config --local gc.auto 0
-2026-07-21T09:00:04.8685416Z ##[endgroup]
-2026-07-21T09:00:04.8688298Z ##[group]Setting up auth
-2026-07-21T09:00:04.8690304Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-2026-07-21T09:00:04.8748625Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-2026-07-21T09:00:04.9249326Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-2026-07-21T09:00:04.9396473Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-2026-07-21T09:00:04.9607698Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-2026-07-21T09:00:04.9675651Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-2026-07-21T09:00:04.9903666Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
-2026-07-21T09:00:04.9943170Z ##[endgroup]
-2026-07-21T09:00:04.9945384Z ##[group]Fetching the repository
-2026-07-21T09:00:04.9955422Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +47fe0085a81b50355e052b2f36e229500781f028:refs/remotes/origin/main
-2026-07-21T09:00:05.3774936Z From https://github.com/ActiveInsighter/prompt-web
-2026-07-21T09:00:05.3777068Z  * [new ref]         47fe0085a81b50355e052b2f36e229500781f028 -> origin/main
-2026-07-21T09:00:05.3796771Z ##[endgroup]
-2026-07-21T09:00:05.3799256Z ##[group]Determining the checkout info
-2026-07-21T09:00:05.3802260Z ##[endgroup]
-2026-07-21T09:00:05.3808522Z [command]/usr/bin/git sparse-checkout disable
-2026-07-21T09:00:05.3862880Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
-2026-07-21T09:00:05.3899602Z ##[group]Checking out the ref
-2026-07-21T09:00:05.3904137Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
-2026-07-21T09:00:05.4266847Z Switched to a new branch 'main'
-2026-07-21T09:00:05.4272293Z branch 'main' set up to track 'origin/main'.
-2026-07-21T09:00:05.4286949Z ##[endgroup]
-2026-07-21T09:00:05.4339880Z [command]/usr/bin/git log -1 --format=%H
-2026-07-21T09:00:05.4371011Z 47fe0085a81b50355e052b2f36e229500781f028
-2026-07-21T09:00:05.4689586Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
-2026-07-21T09:00:05.4693458Z ##[group]Run actions/setup-node@v4
-2026-07-21T09:00:05.4694362Z with:
-2026-07-21T09:00:05.4695111Z   node-version: 24
-2026-07-21T09:00:05.4695894Z   always-auth: false
-2026-07-21T09:00:05.4696720Z   check-latest: false
-2026-07-21T09:00:05.4700943Z   token: ***
-2026-07-21T09:00:05.4701704Z env:
-2026-07-21T09:00:05.4703131Z   CLOUDFLARE_API_TOKEN: ***
-2026-07-21T09:00:05.4704138Z   CLOUDFLARE_ACCOUNT_ID: ***
-2026-07-21T09:00:05.4704997Z   MCP_BEARER_TOKEN: 
-2026-07-21T09:00:05.4705782Z ##[endgroup]
-2026-07-21T09:00:05.6564376Z (node:1998) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-2026-07-21T09:00:05.6568730Z (Use `node --trace-deprecation ...` to show where the warning was created)
-2026-07-21T09:00:05.6683675Z Found in cache @ /opt/hostedtoolcache/node/24.18.0/x64
-2026-07-21T09:00:05.6704369Z ##[group]Environment details
-2026-07-21T09:00:06.2314105Z node: v24.18.0
-2026-07-21T09:00:06.2316350Z npm: 11.16.0
-2026-07-21T09:00:06.2318501Z yarn: 1.22.22
-2026-07-21T09:00:06.2344207Z ##[endgroup]
-2026-07-21T09:00:06.2553849Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
-2026-07-21T09:00:06.2556596Z ##[group]Run actions/setup-python@v5
-2026-07-21T09:00:06.2557478Z with:
-2026-07-21T09:00:06.2558203Z   python-version: 3.13
-2026-07-21T09:00:06.2559004Z   check-latest: false
-2026-07-21T09:00:06.2563419Z   token: ***
-2026-07-21T09:00:06.2564187Z   update-environment: true
-2026-07-21T09:00:06.2565028Z   allow-prereleases: false
-2026-07-21T09:00:06.2565861Z   freethreaded: false
-2026-07-21T09:00:06.2566637Z env:
-2026-07-21T09:00:06.2567619Z   CLOUDFLARE_API_TOKEN: ***
-2026-07-21T09:00:06.2568566Z   CLOUDFLARE_ACCOUNT_ID: ***
-2026-07-21T09:00:06.2569395Z   MCP_BEARER_TOKEN: 
-2026-07-21T09:00:06.2570144Z ##[endgroup]
-2026-07-21T09:00:06.3981584Z ##[group]Installed versions
-2026-07-21T09:00:06.4096983Z (node:2030) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-2026-07-21T09:00:06.4098838Z (Use `node --trace-deprecation ...` to show where the warning was created)
-2026-07-21T09:00:06.4100140Z Successfully set up CPython (3.13.14)
-2026-07-21T09:00:06.4101515Z ##[endgroup]
-2026-07-21T09:00:06.4366083Z ##[group]Run test -n "$CLOUDFLARE_API_TOKEN" || { echo "Missing CLOUDFLARE_API_TOKEN"; exit 1; }
-2026-07-21T09:00:06.4368654Z [36;1mtest -n "$CLOUDFLARE_API_TOKEN" || { echo "Missing CLOUDFLARE_API_TOKEN"; exit 1; }[0m
-2026-07-21T09:00:06.4371120Z [36;1mtest -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "Missing CLOUDFLARE_ACCOUNT_ID"; exit 1; }[0m
-2026-07-21T09:00:06.4518116Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
-2026-07-21T09:00:06.4519751Z env:
-2026-07-21T09:00:06.4521448Z   CLOUDFLARE_API_TOKEN: ***
-2026-07-21T09:00:06.4526801Z   CLOUDFLARE_ACCOUNT_ID: ***
-2026-07-21T09:00:06.4527811Z   MCP_BEARER_TOKEN: 
-2026-07-21T09:00:06.4529210Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:06.4531202Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
-2026-07-21T09:00:06.4533432Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:06.4535656Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:06.4537647Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:06.4539490Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
-2026-07-21T09:00:06.4541131Z ##[endgroup]
-2026-07-21T09:00:06.4797032Z ##[group]Run npm install --no-package-lock --no-audit --no-fund
-2026-07-21T09:00:06.4798310Z [36;1mnpm install --no-package-lock --no-audit --no-fund[0m
-2026-07-21T09:00:06.4799621Z [36;1mpython -m pip install --disable-pip-version-check -r scripts/requirements.txt[0m
-2026-07-21T09:00:06.4863033Z shell: /usr/bin/bash -e {0}
-2026-07-21T09:00:06.4863876Z env:
-2026-07-21T09:00:06.4864939Z   CLOUDFLARE_API_TOKEN: ***
-2026-07-21T09:00:06.4865875Z   CLOUDFLARE_ACCOUNT_ID: ***
-2026-07-21T09:00:06.4866685Z   MCP_BEARER_TOKEN: 
-2026-07-21T09:00:06.4867577Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:06.4868749Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
-2026-07-21T09:00:06.4869926Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:06.4871067Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:06.4872328Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:06.4873470Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
-2026-07-21T09:00:06.4874442Z ##[endgroup]
-2026-07-21T09:00:26.5924394Z 
-2026-07-21T09:00:26.5933873Z npm warn allow-scripts 4 packages have install scripts not yet covered by allowScripts:
-2026-07-21T09:00:26.5936601Z npm warn allow-scripts   esbuild@0.28.1 (postinstall: node install.js)
-2026-07-21T09:00:26.5937518Z added 212 packages in 20s
-2026-07-21T09:00:26.5939288Z npm warn allow-scripts   core-js-pure@3.49.0 (postinstall: node -e "try{require('./postinstall')}catch(e){}")
-2026-07-21T09:00:26.5941820Z npm warn allow-scripts   workerd@1.20260708.1 (postinstall: node install.js)
-2026-07-21T09:00:26.5943437Z npm warn allow-scripts   sharp@0.34.5 (install: node install/check.js || npm run build)
-2026-07-21T09:00:26.5944321Z npm warn allow-scripts
-2026-07-21T09:00:26.5946212Z npm warn allow-scripts Run `npm approve-scripts --allow-scripts-pending` to review, or `npm approve-scripts <pkg>` to allow.
-2026-07-21T09:00:27.5266263Z Collecting PyYAML<7,>=6.0.2 (from -r scripts/requirements.txt (line 1))
-2026-07-21T09:00:27.5820285Z   Downloading pyyaml-6.0.3-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.4 kB)
-2026-07-21T09:00:27.5981655Z Collecting beautifulsoup4<5,>=4.15.0 (from -r scripts/requirements.txt (line 2))
-2026-07-21T09:00:27.6021115Z   Downloading beautifulsoup4-4.15.0-py3-none-any.whl.metadata (3.8 kB)
-2026-07-21T09:00:27.6151206Z Collecting markdownify<2,>=1.2.3 (from -r scripts/requirements.txt (line 3))
-2026-07-21T09:00:27.6180748Z   Downloading markdownify-1.2.3-py3-none-any.whl.metadata (9.9 kB)
-2026-07-21T09:00:27.6365818Z Collecting soupsieve>=1.6.1 (from beautifulsoup4<5,>=4.15.0->-r scripts/requirements.txt (line 2))
-2026-07-21T09:00:27.6403163Z   Downloading soupsieve-2.9-py3-none-any.whl.metadata (4.6 kB)
-2026-07-21T09:00:27.6560976Z Collecting typing-extensions>=4.0.0 (from beautifulsoup4<5,>=4.15.0->-r scripts/requirements.txt (line 2))
-2026-07-21T09:00:27.6590316Z   Downloading typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
-2026-07-21T09:00:27.6727229Z Collecting six<2,>=1.15 (from markdownify<2,>=1.2.3->-r scripts/requirements.txt (line 3))
-2026-07-21T09:00:27.6768377Z   Downloading six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
-2026-07-21T09:00:27.6859200Z Downloading pyyaml-6.0.3-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (801 kB)
-2026-07-21T09:00:27.7065641Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 801.6/801.6 kB 85.7 MB/s  0:00:00
-2026-07-21T09:00:27.7101121Z Downloading beautifulsoup4-4.15.0-py3-none-any.whl (109 kB)
-2026-07-21T09:00:27.7167459Z Downloading markdownify-1.2.3-py3-none-any.whl (15 kB)
-2026-07-21T09:00:27.7223093Z Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
-2026-07-21T09:00:27.7279878Z Downloading soupsieve-2.9-py3-none-any.whl (37 kB)
-2026-07-21T09:00:27.7324207Z Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
-2026-07-21T09:00:27.7596102Z Installing collected packages: typing-extensions, soupsieve, six, PyYAML, beautifulsoup4, markdownify
-2026-07-21T09:00:27.9730010Z 
-2026-07-21T09:00:27.9763105Z Successfully installed PyYAML-6.0.3 beautifulsoup4-4.15.0 markdownify-1.2.3 six-1.17.0 soupsieve-2.9 typing-extensions-4.16.0
-2026-07-21T09:00:28.0606104Z ##[group]Run python -m scripts.cli validate
-2026-07-21T09:00:28.0606621Z [36;1mpython -m scripts.cli validate[0m
-2026-07-21T09:00:28.0606942Z [36;1mpython -m scripts.cli build[0m
-2026-07-21T09:00:28.0664388Z shell: /usr/bin/bash -e {0}
-2026-07-21T09:00:28.0664646Z env:
-2026-07-21T09:00:28.0665107Z   CLOUDFLARE_API_TOKEN: ***
-2026-07-21T09:00:28.0665432Z   CLOUDFLARE_ACCOUNT_ID: ***
-2026-07-21T09:00:28.0665692Z   MCP_BEARER_TOKEN: 
-2026-07-21T09:00:28.0665983Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:28.0666445Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
-2026-07-21T09:00:28.0666890Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:28.0667278Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:28.0667667Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:28.0668059Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
-2026-07-21T09:00:28.0668413Z ##[endgroup]
-2026-07-21T09:00:28.5978596Z Content validation succeeded: projects=4 folders=39 files=348 manifest=sha256:78a7f1039495407a5253176edfb390e7954cf58689e861202789108a3718802e
-2026-07-21T09:00:29.1334478Z Wrote /home/runner/work/prompt-web/prompt-web/.prompt-sync/manifest.json: projects=4 folders=39 files=348 manifest=sha256:78a7f1039495407a5253176edfb390e7954cf58689e861202789108a3718802e
-2026-07-21T09:00:29.1514887Z ##[group]Run node scripts/render-wrangler-config.mjs
-2026-07-21T09:00:29.1515320Z [36;1mnode scripts/render-wrangler-config.mjs[0m
-2026-07-21T09:00:29.1572432Z shell: /usr/bin/bash -e {0}
-2026-07-21T09:00:29.1572695Z env:
-2026-07-21T09:00:29.1573108Z   CLOUDFLARE_API_TOKEN: ***
-2026-07-21T09:00:29.1573429Z   CLOUDFLARE_ACCOUNT_ID: ***
-2026-07-21T09:00:29.1573672Z   MCP_BEARER_TOKEN: 
-2026-07-21T09:00:29.1573979Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:29.1574428Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
-2026-07-21T09:00:29.1574879Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:29.1575268Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:29.1575658Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:29.1576052Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
-2026-07-21T09:00:29.1576460Z   D1_DATABASE_ID: c7faca02-d8eb-481d-9c3c-bb7094154031
-2026-07-21T09:00:29.1576789Z   D1_DATABASE_NAME: prompt
-2026-07-21T09:00:29.1577057Z   KV_NAMESPACE_ID: c5b087006ab04b2da422e4adcbef89b4
-2026-07-21T09:00:29.1577374Z   CLOUDFLARE_WORKER_NAME: prompt
-2026-07-21T09:00:29.1577626Z ##[endgroup]
-2026-07-21T09:00:29.1943012Z Rendered wrangler.deploy.jsonc for deployment.
-2026-07-21T09:00:29.2009957Z ##[group]Run npm run typecheck
-2026-07-21T09:00:29.2010273Z [36;1mnpm run typecheck[0m
-2026-07-21T09:00:29.2067280Z shell: /usr/bin/bash -e {0}
-2026-07-21T09:00:29.2067546Z env:
-2026-07-21T09:00:29.2067986Z   CLOUDFLARE_API_TOKEN: ***
-2026-07-21T09:00:29.2068308Z   CLOUDFLARE_ACCOUNT_ID: ***
-2026-07-21T09:00:29.2068571Z   MCP_BEARER_TOKEN: 
-2026-07-21T09:00:29.2068857Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:29.2069306Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
-2026-07-21T09:00:29.2069759Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:29.2070169Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:29.2070740Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:29.2071134Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
-2026-07-21T09:00:29.2071463Z ##[endgroup]
-2026-07-21T09:00:29.3123098Z 
-2026-07-21T09:00:29.3124034Z > prompt-web@0.5.0 typecheck
-2026-07-21T09:00:29.3124857Z > tsc --noEmit
-2026-07-21T09:00:29.3125473Z 
-2026-07-21T09:00:32.0031586Z ##[group]Run npx wrangler d1 migrations apply DB --local --config wrangler.deploy.jsonc
-2026-07-21T09:00:32.0033062Z [36;1mnpx wrangler d1 migrations apply DB --local --config wrangler.deploy.jsonc[0m
-2026-07-21T09:00:32.0110701Z shell: /usr/bin/bash -e {0}
-2026-07-21T09:00:32.0111108Z env:
-2026-07-21T09:00:32.0111760Z   CLOUDFLARE_API_TOKEN: ***
-2026-07-21T09:00:32.0112548Z   CLOUDFLARE_ACCOUNT_ID: ***
-2026-07-21T09:00:32.0112964Z   MCP_BEARER_TOKEN: 
-2026-07-21T09:00:32.0113436Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:32.0114249Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
-2026-07-21T09:00:32.0114998Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:32.0115667Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:32.0116338Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:32.0117059Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
-2026-07-21T09:00:32.0117629Z ##[endgroup]
-2026-07-21T09:00:33.9642513Z 
-2026-07-21T09:00:33.9663294Z  ⛅️ wrangler 4.109.0
-2026-07-21T09:00:33.9682820Z ────────────────────
-2026-07-21T09:00:33.9702910Z Resource location: local 
-2026-07-21T09:00:33.9703276Z 
-2026-07-21T09:00:33.9723006Z Use --remote if you want to access the remote instance.
-2026-07-21T09:00:33.9742478Z 
-2026-07-21T09:00:34.9784090Z Migrations to be applied:
-2026-07-21T09:00:34.9841608Z ┌───────────────────────────────────┐
-2026-07-21T09:00:34.9869363Z │ name                              │
-2026-07-21T09:00:34.9903112Z ├───────────────────────────────────┤
-2026-07-21T09:00:34.9913339Z │ 0001_create_prompts.sql           │
-2026-07-21T09:00:34.9914215Z ├───────────────────────────────────┤
-2026-07-21T09:00:34.9915168Z │ 0002_create_project_file_tree.sql │
-2026-07-21T09:00:34.9939002Z ├───────────────────────────────────┤
-2026-07-21T09:00:34.9955648Z │ 0003_create_content_sync.sql      │
-2026-07-21T09:00:34.9976081Z ├───────────────────────────────────┤
-2026-07-21T09:00:34.9984226Z │ 0004_optimize_content_sync.sql    │
-2026-07-21T09:00:34.9985092Z └───────────────────────────────────┘
-2026-07-21T09:00:34.9985960Z ? About to apply 4 migration(s)
-2026-07-21T09:00:34.9987066Z Your database may not be available to serve requests during the migration, continue?
-2026-07-21T09:00:35.0003495Z 🤖 Using fallback value in non-interactive context: yes
-2026-07-21T09:00:35.0010320Z 🌀 Executing on local database DB (c7faca02-d8eb-481d-9c3c-bb7094154031) from .wrangler/state/v3/d1:
-2026-07-21T09:00:35.0015943Z 🌀 To execute on your remote database, add a --remote flag to your wrangler command.
-2026-07-21T09:00:35.3691964Z 🚣 12 commands executed successfully.
-2026-07-21T09:00:35.3713608Z ┌───────────────────────────────────┬────────┐
-2026-07-21T09:00:35.3724270Z │ name                              │ status │
-2026-07-21T09:00:35.3751407Z ├───────────────────────────────────┼────────┤
-2026-07-21T09:00:35.3772807Z │ 0001_create_prompts.sql           │ ✅     │
-2026-07-21T09:00:35.3794515Z ├───────────────────────────────────┼────────┤
-2026-07-21T09:00:35.3943494Z │ 0002_create_project_file_tree.sql │ 🕒️    │
-2026-07-21T09:00:35.3944727Z ├───────────────────────────────────┼────────┤
-2026-07-21T09:00:35.3960765Z │ 0003_create_content_sync.sql      │ 🕒️    │
-2026-07-21T09:00:35.3961905Z ├───────────────────────────────────┼────────┤
-2026-07-21T09:00:35.3963539Z │ 0004_optimize_content_sync.sql    │ 🕒️    │
-2026-07-21T09:00:35.3964679Z └───────────────────────────────────┴────────┘
-2026-07-21T09:00:35.4030601Z 🌀 Executing on local database DB (c7faca02-d8eb-481d-9c3c-bb7094154031) from .wrangler/state/v3/d1:
-2026-07-21T09:00:35.4033393Z 🌀 To execute on your remote database, add a --remote flag to your wrangler command.
-2026-07-21T09:00:35.8222561Z 🚣 29 commands executed successfully.
-2026-07-21T09:00:35.8484125Z ┌───────────────────────────────────┬────────┐
-2026-07-21T09:00:35.8485346Z │ name                              │ status │
-2026-07-21T09:00:35.8684101Z ├───────────────────────────────────┼────────┤
-2026-07-21T09:00:35.8685345Z │ 0001_create_prompts.sql           │ ✅     │
-2026-07-21T09:00:35.8801321Z ├───────────────────────────────────┼────────┤
-2026-07-21T09:00:35.8804758Z │ 0002_create_project_file_tree.sql │ ✅     │
-2026-07-21T09:00:35.8805607Z ├───────────────────────────────────┼────────┤
-2026-07-21T09:00:35.8806495Z │ 0003_create_content_sync.sql      │ 🕒️    │
-2026-07-21T09:00:35.8807295Z ├───────────────────────────────────┼────────┤
-2026-07-21T09:00:35.8808046Z │ 0004_optimize_content_sync.sql    │ 🕒️    │
-2026-07-21T09:00:35.8808896Z └───────────────────────────────────┴────────┘
-2026-07-21T09:00:35.8810212Z 🌀 Executing on local database DB (c7faca02-d8eb-481d-9c3c-bb7094154031) from .wrangler/state/v3/d1:
-2026-07-21T09:00:35.8811694Z 🌀 To execute on your remote database, add a --remote flag to your wrangler command.
-2026-07-21T09:00:36.2045707Z 🚣 7 commands executed successfully.
-2026-07-21T09:00:36.2053373Z ┌───────────────────────────────────┬────────┐
-2026-07-21T09:00:36.2283480Z │ name                              │ status │
-2026-07-21T09:00:36.2302710Z ├───────────────────────────────────┼────────┤
-2026-07-21T09:00:36.2361378Z │ 0001_create_prompts.sql           │ ✅     │
-2026-07-21T09:00:36.2382931Z ├───────────────────────────────────┼────────┤
-2026-07-21T09:00:36.2525895Z │ 0002_create_project_file_tree.sql │ ✅     │
-2026-07-21T09:00:36.2527381Z ├───────────────────────────────────┼────────┤
-2026-07-21T09:00:36.2529255Z │ 0003_create_content_sync.sql      │ ✅     │
-2026-07-21T09:00:36.2530805Z ├───────────────────────────────────┼────────┤
-2026-07-21T09:00:36.2533282Z │ 0004_optimize_content_sync.sql    │ 🕒️    │
-2026-07-21T09:00:36.2534761Z └───────────────────────────────────┴────────┘
-2026-07-21T09:00:36.2537036Z 🌀 Executing on local database DB (c7faca02-d8eb-481d-9c3c-bb7094154031) from .wrangler/state/v3/d1:
-2026-07-21T09:00:36.2539232Z 🌀 To execute on your remote database, add a --remote flag to your wrangler command.
-2026-07-21T09:00:36.6416429Z 🚣 10 commands executed successfully.
-2026-07-21T09:00:36.6684623Z ┌───────────────────────────────────┬────────┐
-2026-07-21T09:00:36.6705345Z │ name                              │ status │
-2026-07-21T09:00:36.6865774Z ├───────────────────────────────────┼────────┤
-2026-07-21T09:00:36.6883411Z │ 0001_create_prompts.sql           │ ✅     │
-2026-07-21T09:00:36.6982596Z ├───────────────────────────────────┼────────┤
-2026-07-21T09:00:36.7166969Z │ 0002_create_project_file_tree.sql │ ✅     │
-2026-07-21T09:00:36.7167778Z ├───────────────────────────────────┼────────┤
-2026-07-21T09:00:36.7168569Z │ 0003_create_content_sync.sql      │ ✅     │
-2026-07-21T09:00:36.7169350Z ├───────────────────────────────────┼────────┤
-2026-07-21T09:00:36.7170077Z │ 0004_optimize_content_sync.sql    │ ✅     │
-2026-07-21T09:00:36.7170810Z └───────────────────────────────────┴────────┘
-2026-07-21T09:00:36.7240089Z ##[group]Run npx wrangler d1 migrations apply DB --remote --config wrangler.deploy.jsonc
-2026-07-21T09:00:36.7241193Z [36;1mnpx wrangler d1 migrations apply DB --remote --config wrangler.deploy.jsonc[0m
-2026-07-21T09:00:36.7352811Z shell: /usr/bin/bash -e {0}
-2026-07-21T09:00:36.7353231Z env:
-2026-07-21T09:00:36.7353895Z   CLOUDFLARE_API_TOKEN: ***
-2026-07-21T09:00:36.7354421Z   CLOUDFLARE_ACCOUNT_ID: ***
-2026-07-21T09:00:36.7354830Z   MCP_BEARER_TOKEN: 
-2026-07-21T09:00:36.7355312Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:36.7356066Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
-2026-07-21T09:00:36.7356803Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:36.7357501Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:36.7358163Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:36.7358955Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
-2026-07-21T09:00:36.7359532Z ##[endgroup]
-2026-07-21T09:00:38.1852841Z 
-2026-07-21T09:00:38.1913522Z  ⛅️ wrangler 4.109.0 (update available 4.112.0)
-2026-07-21T09:00:38.1973034Z ───────────────────────────────────────────────
-2026-07-21T09:00:38.1992727Z Resource location: remote 
-2026-07-21T09:00:38.2032497Z 
-2026-07-21T09:00:38.9157597Z ✅ No migrations to apply!
-2026-07-21T09:00:38.9618174Z ##[group]Run npx wrangler kv bulk put seed/kv-prompts.json --binding PROMPT_KV --remote --config wrangler.deploy.jsonc
-2026-07-21T09:00:38.9619643Z [36;1mnpx wrangler kv bulk put seed/kv-prompts.json --binding PROMPT_KV --remote --config wrangler.deploy.jsonc[0m
-2026-07-21T09:00:38.9696069Z shell: /usr/bin/bash -e {0}
-2026-07-21T09:00:38.9696797Z env:
-2026-07-21T09:00:38.9697521Z   CLOUDFLARE_API_TOKEN: ***
-2026-07-21T09:00:38.9698099Z   CLOUDFLARE_ACCOUNT_ID: ***
-2026-07-21T09:00:38.9698526Z   MCP_BEARER_TOKEN: 
-2026-07-21T09:00:38.9698843Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:38.9699312Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
-2026-07-21T09:00:38.9699794Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:38.9700204Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:38.9700627Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:38.9701070Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
-2026-07-21T09:00:38.9701408Z ##[endgroup]
-2026-07-21T09:00:40.1472608Z 
-2026-07-21T09:00:40.1473542Z  ⛅️ wrangler 4.109.0 (update available 4.112.0)
-2026-07-21T09:00:40.1474404Z ───────────────────────────────────────────────
-2026-07-21T09:00:40.1496009Z Resource location: remote 
-2026-07-21T09:00:40.1572246Z 
-2026-07-21T09:00:41.9586327Z Success!
-2026-07-21T09:00:42.0369945Z ##[group]Run set -euo pipefail
-2026-07-21T09:00:42.0370679Z [36;1mset -euo pipefail[0m
-2026-07-21T09:00:42.0371300Z [36;1mtoken="$(openssl rand -hex 32)"[0m
-2026-07-21T09:00:42.0374353Z [36;1mecho "::add-mask::$token"[0m
-2026-07-21T09:00:42.0375113Z [36;1mecho "CONTENT_SYNC_TOKEN=$token" >> "$GITHUB_ENV"[0m
-2026-07-21T09:00:42.0376176Z [36;1m[0m
-2026-07-21T09:00:42.0376757Z [36;1mCONTENT_SYNC_TOKEN="$token" python - <<'PY'[0m
-2026-07-21T09:00:42.0377468Z [36;1mimport json[0m
-2026-07-21T09:00:42.0378063Z [36;1mimport os[0m
-2026-07-21T09:00:42.0378649Z [36;1mfrom pathlib import Path[0m
-2026-07-21T09:00:42.0454657Z [36;1m[0m
-2026-07-21T09:00:42.0455240Z [36;1msecrets = {"CONTENT_SYNC_TOKEN": os.environ["CONTENT_SYNC_TOKEN"]}[0m
-2026-07-21T09:00:42.0456054Z [36;1mmcp_token = os.environ.get("MCP_BEARER_TOKEN", "").strip()[0m
-2026-07-21T09:00:42.0456676Z [36;1mif mcp_token:[0m
-2026-07-21T09:00:42.0457170Z [36;1m    secrets["MCP_BEARER_TOKEN"] = mcp_token[0m
-2026-07-21T09:00:42.0457769Z [36;1m[0m
-2026-07-21T09:00:42.0458208Z [36;1mPath(".wrangler.secrets.json").write_text([0m
-2026-07-21T09:00:42.0458929Z [36;1m    json.dumps(secrets, separators=(",", ":")),[0m
-2026-07-21T09:00:42.0459479Z [36;1m    encoding="utf-8",[0m
-2026-07-21T09:00:42.0459921Z [36;1m)[0m
-2026-07-21T09:00:42.0460256Z [36;1mPY[0m
-2026-07-21T09:00:42.0460650Z [36;1mchmod 600 .wrangler.secrets.json[0m
-2026-07-21T09:00:42.0528268Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
-2026-07-21T09:00:42.0528621Z env:
-2026-07-21T09:00:42.0529127Z   CLOUDFLARE_API_TOKEN: ***
-2026-07-21T09:00:42.0529455Z   CLOUDFLARE_ACCOUNT_ID: ***
-2026-07-21T09:00:42.0529711Z   MCP_BEARER_TOKEN: 
-2026-07-21T09:00:42.0530009Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:42.0530481Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
-2026-07-21T09:00:42.0530924Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:42.0531331Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:42.0531739Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:42.0532502Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
-2026-07-21T09:00:42.0532848Z ##[endgroup]
-2026-07-21T09:00:42.1388627Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
-2026-07-21T09:00:42.1390934Z ##[group]Run cloudflare/wrangler-action@v3
-2026-07-21T09:00:42.1391422Z with:
-2026-07-21T09:00:42.1392331Z   apiToken: ***
-2026-07-21T09:00:42.1392795Z   accountId: ***
-2026-07-21T09:00:42.1393457Z   command: deploy --config wrangler.deploy.jsonc --secrets-file .wrangler.secrets.json
-2026-07-21T09:00:42.1394448Z   quiet: false
-2026-07-21T09:00:42.1394791Z env:
-2026-07-21T09:00:42.1395396Z   CLOUDFLARE_API_TOKEN: ***
-2026-07-21T09:00:42.1395936Z   CLOUDFLARE_ACCOUNT_ID: ***
-2026-07-21T09:00:42.1396362Z   MCP_BEARER_TOKEN: 
-2026-07-21T09:00:42.1396847Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:42.1397648Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
-2026-07-21T09:00:42.1398398Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:42.1399079Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:42.1399774Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:42.1400477Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
-2026-07-21T09:00:42.1401365Z   CONTENT_SYNC_TOKEN: ***
-2026-07-21T09:00:42.1401765Z ##[endgroup]
-2026-07-21T09:00:42.2630574Z ##[group]🔍 Checking for existing Wrangler installation
-2026-07-21T09:00:42.2825529Z [command]/opt/hostedtoolcache/node/24.18.0/x64/bin/npx --no-install wrangler --version
-2026-07-21T09:00:43.6061146Z 4.109.0
-2026-07-21T09:00:43.6940097Z ✅ No wrangler version specified, using pre-installed wrangler version 4.109.0
-2026-07-21T09:00:43.6941769Z ##[endgroup]
-2026-07-21T09:00:43.6943275Z ##[endgroup]
-2026-07-21T09:00:43.6947715Z ##[group]🚀 Running Wrangler Commands
-2026-07-21T09:00:43.6966056Z [command]/opt/hostedtoolcache/node/24.18.0/x64/bin/npx wrangler deploy --config wrangler.deploy.jsonc --secrets-file .wrangler.secrets.json
-2026-07-21T09:00:44.8505036Z 
-2026-07-21T09:00:44.8523426Z  ⛅️ wrangler 4.109.0 (update available 4.112.0)
-2026-07-21T09:00:44.8543186Z ───────────────────────────────────────────────
-2026-07-21T09:00:44.8799070Z 
-2026-07-21T09:00:44.8800923Z Cloudflare collects anonymous telemetry about your usage of Wrangler. Learn more at https://github.com/cloudflare/workers-sdk/tree/main/packages/wrangler/telemetry.md
-2026-07-21T09:00:46.5676996Z 🌀 Building list of assets...
-2026-07-21T09:00:46.5684387Z ✨ Read 4 files from the assets directory /home/runner/work/prompt-web/prompt-web/public
-2026-07-21T09:00:46.5722737Z 🌀 Starting asset upload...
-2026-07-21T09:00:48.2559901Z No updated asset files to upload. Proceeding with deployment...
-2026-07-21T09:00:48.3119981Z Total Upload: 2249.74 KiB / gzip: 409.78 KiB
-2026-07-21T09:00:52.2382265Z Worker Startup Time: 51 ms
-2026-07-21T09:00:52.2400674Z Your Worker has access to the following bindings:
-2026-07-21T09:00:52.2403893Z Binding                                                                            Resource                  
-2026-07-21T09:00:52.2406050Z env.PROMPT_KV (c5b087006ab04b2da422e4adcbef89b4)                                   KV Namespace              
-2026-07-21T09:00:52.2407843Z env.DB (prompt)                                                                    D1 Database               
-2026-07-21T09:00:52.2409702Z env.PROMPT_AI_SEARCH (little-hall-7cd2)                                            AI Search Instance        
-2026-07-21T09:00:52.2411452Z env.ASSETS                                                                         Assets                    
-2026-07-21T09:00:52.2413474Z env.ENVIRONMENT ("production")                                                     Environment Variable      
-2026-07-21T09:00:52.2424483Z env.AI_SEARCH_FOLDER_ROOT ("https://prompt.2212148739lbw.workers....")             Environment Variable      
-2026-07-21T09:00:52.2433361Z env.AI_SEARCH_PROJECT_SCOPE_MODE ("source")                                        Environment Variable      
-2026-07-21T09:00:52.2435001Z env.CONTENT_SYNC_TOKEN ("(hidden)")                                                Environment Variable      
-2026-07-21T09:00:52.2435864Z 
-2026-07-21T09:00:52.2436294Z Uploaded prompt (5.85 sec)
-2026-07-21T09:00:52.8332494Z Deployed prompt triggers (0.59 sec)
-2026-07-21T09:00:52.8335458Z   https://prompt.2212148739lbw.workers.dev
-2026-07-21T09:00:52.8336769Z Current Version ID: a2de713d-9240-46bd-aa4e-1427ea7c800a
-2026-07-21T09:00:52.9086710Z ##[endgroup]
-2026-07-21T09:00:52.9088277Z 🏁 Wrangler Action completed
-2026-07-21T09:00:52.9211949Z ##[group]Run python -m scripts.cli sync --base-url "$PROMPT_API_BASE_URL" --prune
-2026-07-21T09:00:52.9212956Z [36;1mpython -m scripts.cli sync --base-url "$PROMPT_API_BASE_URL" --prune[0m
-2026-07-21T09:00:52.9271197Z shell: /usr/bin/bash -e {0}
-2026-07-21T09:00:52.9271649Z env:
-2026-07-21T09:00:52.9272512Z   CLOUDFLARE_API_TOKEN: ***
-2026-07-21T09:00:52.9273083Z   CLOUDFLARE_ACCOUNT_ID: ***
-2026-07-21T09:00:52.9273487Z   MCP_BEARER_TOKEN: 
-2026-07-21T09:00:52.9273937Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:52.9274645Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
-2026-07-21T09:00:52.9275403Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:52.9276078Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:52.9276763Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:52.9277471Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
-2026-07-21T09:00:52.9278375Z   CONTENT_SYNC_TOKEN: ***
-2026-07-21T09:00:52.9278843Z   PROMPT_API_BASE_URL: https://prompt.2212148739lbw.workers.dev
-2026-07-21T09:00:52.9279217Z ##[endgroup]
-2026-07-21T09:00:56.7753968Z {
-2026-07-21T09:00:56.7754623Z   "dryRun": false,
-2026-07-21T09:00:56.7755388Z   "runId": null,
-2026-07-21T09:00:56.7759519Z   "skipped": true,
-2026-07-21T09:00:56.7760091Z   "plan": {
-2026-07-21T09:00:56.7761064Z     "manifestHash": "sha256:78a7f1039495407a5253176edfb390e7954cf58689e861202789108a3718802e",
-2026-07-21T09:00:56.7762327Z     "prune": true,
-2026-07-21T09:00:56.7762965Z     "projects": {
-2026-07-21T09:00:56.7763576Z       "created": 0,
-2026-07-21T09:00:56.7764115Z       "updated": 0,
-2026-07-21T09:00:56.7764646Z       "moved": 0,
-2026-07-21T09:00:56.7765161Z       "unchanged": 4,
-2026-07-21T09:00:56.7765700Z       "deleted": 0
-2026-07-21T09:00:56.7766207Z     },
-2026-07-21T09:00:56.7766691Z     "folders": {
-2026-07-21T09:00:56.7767245Z       "created": 0,
-2026-07-21T09:00:56.7767794Z       "updated": 0,
-2026-07-21T09:00:56.7768325Z       "moved": 0,
-2026-07-21T09:00:56.7768880Z       "unchanged": 39,
-2026-07-21T09:00:56.7769425Z       "deleted": 0
-2026-07-21T09:00:56.7769934Z     },
-2026-07-21T09:00:56.7770404Z     "files": {
-2026-07-21T09:00:56.7770903Z       "created": 0,
-2026-07-21T09:00:56.7771431Z       "updated": 0,
-2026-07-21T09:00:56.7771930Z       "moved": 0,
-2026-07-21T09:00:56.7782908Z       "unchanged": 348,
-2026-07-21T09:00:56.7783383Z       "deleted": 0
-2026-07-21T09:00:56.7785359Z     },
-2026-07-21T09:00:56.7786064Z     "deletions": []
-2026-07-21T09:00:56.7787030Z   }
-2026-07-21T09:00:56.7787645Z }
-2026-07-21T09:00:56.7939663Z ##[group]Run set -euo pipefail
-2026-07-21T09:00:56.7940069Z [36;1mset -euo pipefail[0m
-2026-07-21T09:00:56.7940516Z [36;1mtest -n "$DEPLOYMENT_URL" || { echo 'Wrangler did not return a deployment URL.'; exit 1; }[0m
-2026-07-21T09:00:56.7941011Z [36;1mbase_url="${DEPLOYMENT_URL%/}"[0m
-2026-07-21T09:00:56.7941324Z [36;1mecho "Testing $base_url"[0m
-2026-07-21T09:00:56.7941580Z [36;1m[0m
-2026-07-21T09:00:56.7941783Z [36;1mrequest_body() {[0m
-2026-07-21T09:00:56.7942433Z [36;1m  curl \[0m
-2026-07-21T09:00:56.7942662Z [36;1m    --fail \[0m
-2026-07-21T09:00:56.7942895Z [36;1m    --silent \[0m
-2026-07-21T09:00:56.7943137Z [36;1m    --show-error \[0m
-2026-07-21T09:00:56.7943380Z [36;1m    --retry 6 \[0m
-2026-07-21T09:00:56.7943627Z [36;1m    --retry-delay 2 \[0m
-2026-07-21T09:00:56.7943884Z [36;1m    --retry-all-errors \[0m
-2026-07-21T09:00:56.7944149Z [36;1m    --max-time 20 \[0m
-2026-07-21T09:00:56.7944379Z [36;1m    "$1"[0m
-2026-07-21T09:00:56.7944603Z [36;1m}[0m
-2026-07-21T09:00:56.7944796Z [36;1m[0m
-2026-07-21T09:00:56.7945036Z [36;1mfrontend_html="$(request_body "$base_url/")"[0m
-2026-07-21T09:00:56.7945517Z [36;1mviewer_html="$(request_body "$base_url/p/prompt-library/guides/content-sync.md")"[0m
-2026-07-21T09:00:56.7946130Z [36;1mraw_markdown="$(request_body "$base_url/raw/prompt-library/guides/content-sync.md")"[0m
-2026-07-21T09:00:56.7946799Z [36;1minfo_json="$(request_body "$base_url/api/info")"[0m
-2026-07-21T09:00:56.7947186Z [36;1mhealth_json="$(request_body "$base_url/health")"[0m
-2026-07-21T09:00:56.7947591Z [36;1mprojects_json="$(request_body "$base_url/api/projects")"[0m
-2026-07-21T09:00:56.7948081Z [36;1mbootstrap_json="$(request_body "$base_url/api/bootstrap/chatgpt/default")"[0m
-2026-07-21T09:00:56.7948706Z [36;1msearch_json="$(request_body "$base_url/api/files/search?q=sync&project=prompt-library&limit=5")"[0m
-2026-07-21T09:00:56.7949427Z [36;1mfile_json="$(request_body "$base_url/api/files/fetch?identifier=prompt-library-content-sync-guide")"[0m
-2026-07-21T09:00:56.7949930Z [36;1m[0m
-2026-07-21T09:00:56.7950136Z [36;1mecho "info=$info_json"[0m
-2026-07-21T09:00:56.7950416Z [36;1mecho "health=$health_json"[0m
-2026-07-21T09:00:56.7950704Z [36;1mecho "projects=$projects_json"[0m
-2026-07-21T09:00:56.7951000Z [36;1mecho "bootstrap=$bootstrap_json"[0m
-2026-07-21T09:00:56.7951294Z [36;1mecho "search=$search_json"[0m
-2026-07-21T09:00:56.7951561Z [36;1mecho "file=$file_json"[0m
-2026-07-21T09:00:56.7951942Z [36;1mecho "raw_markdown_prefix=${raw_markdown:0:120}"[0m
-2026-07-21T09:00:56.7952813Z [36;1m[0m
-2026-07-21T09:00:56.7953029Z [36;1mFRONTEND_HTML="$frontend_html" \[0m
-2026-07-21T09:00:56.7953326Z [36;1mVIEWER_HTML="$viewer_html" \[0m
-2026-07-21T09:00:56.7953607Z [36;1mRAW_MARKDOWN="$raw_markdown" \[0m
-2026-07-21T09:00:56.7953889Z [36;1mINFO_JSON="$info_json" \[0m
-2026-07-21T09:00:56.7954154Z [36;1mHEALTH_JSON="$health_json" \[0m
-2026-07-21T09:00:56.7954434Z [36;1mPROJECTS_JSON="$projects_json" \[0m
-2026-07-21T09:00:56.7954751Z [36;1mBOOTSTRAP_JSON="$bootstrap_json" \[0m
-2026-07-21T09:00:56.7955048Z [36;1mSEARCH_JSON="$search_json" \[0m
-2026-07-21T09:00:56.7955314Z [36;1mFILE_JSON="$file_json" \[0m
-2026-07-21T09:00:56.7955592Z [36;1mnode --input-type=module <<'NODE'[0m
-2026-07-21T09:00:56.7955913Z [36;1mimport { readFileSync } from 'node:fs';[0m
-2026-07-21T09:00:56.7956221Z [36;1m[0m
-2026-07-21T09:00:56.7956574Z [36;1mconst manifest = JSON.parse(readFileSync('.prompt-sync/manifest.json', 'utf8'));[0m
-2026-07-21T09:00:56.7957096Z [36;1mconst frontend = process.env.FRONTEND_HTML ?? '';[0m
-2026-07-21T09:00:56.7957482Z [36;1mconst viewer = process.env.VIEWER_HTML ?? '';[0m
-2026-07-21T09:00:56.7957864Z [36;1mconst rawMarkdown = process.env.RAW_MARKDOWN ?? '';[0m
-2026-07-21T09:00:56.7958263Z [36;1mconst info = JSON.parse(process.env.INFO_JSON);[0m
-2026-07-21T09:00:56.7958646Z [36;1mconst health = JSON.parse(process.env.HEALTH_JSON);[0m
-2026-07-21T09:00:56.7959273Z [36;1mconst projects = JSON.parse(process.env.PROJECTS_JSON);[0m
-2026-07-21T09:00:56.7959738Z [36;1mconst bootstrap = JSON.parse(process.env.BOOTSTRAP_JSON);[0m
-2026-07-21T09:00:56.7960172Z [36;1mconst search = JSON.parse(process.env.SEARCH_JSON);[0m
-2026-07-21T09:00:56.7960559Z [36;1mconst file = JSON.parse(process.env.FILE_JSON);[0m
-2026-07-21T09:00:56.7960874Z [36;1m[0m
-2026-07-21T09:00:56.7961235Z [36;1mif (!frontend.includes('id="open-source-form"') || !frontend.includes('/app.js')) {[0m
-2026-07-21T09:00:56.7961828Z [36;1m  throw new Error('The production Markdown viewer homepage was not served.');[0m
-2026-07-21T09:00:56.7962522Z [36;1m}[0m
-2026-07-21T09:00:56.7962873Z [36;1mif (!viewer.includes('id="open-source-form"') || !viewer.includes('/app.js')) {[0m
-2026-07-21T09:00:56.7963424Z [36;1m  throw new Error('The Markdown viewer SPA fallback route was not served.');[0m
-2026-07-21T09:00:56.7963823Z [36;1m}[0m
-2026-07-21T09:00:56.7964198Z [36;1mif (!rawMarkdown.includes('content/') || rawMarkdown.trimStart().startsWith('{')) {[0m
-2026-07-21T09:00:56.7964762Z [36;1m  throw new Error('The raw Markdown route did not return source text.');[0m
-2026-07-21T09:00:56.7965149Z [36;1m}[0m
-2026-07-21T09:00:56.7965549Z [36;1mif (info.version !== '0.5.0' || info.endpoints?.viewer !== '/p/<project>/<path-to-file.md>') {[0m
-2026-07-21T09:00:56.7966285Z [36;1m  throw new Error(`Invalid service info response: ${JSON.stringify(info)}`);[0m
-2026-07-21T09:00:56.7966697Z [36;1m}[0m
-2026-07-21T09:00:56.7966986Z [36;1mif (health.status !== 'ok' || health.database !== true) {[0m
-2026-07-21T09:00:56.7967464Z [36;1m  throw new Error(`Unhealthy Worker response: ${JSON.stringify(health)}`);[0m
-2026-07-21T09:00:56.7967861Z [36;1m}[0m
-2026-07-21T09:00:56.7968079Z [36;1mif (health.kvSeeded !== true) {[0m
-2026-07-21T09:00:56.7968554Z [36;1m  throw new Error(`Production KV bootstrap manifest is missing: ${JSON.stringify(health)}`);[0m
-2026-07-21T09:00:56.7969026Z [36;1m}[0m
-2026-07-21T09:00:56.7969216Z [36;1mif ([0m
-2026-07-21T09:00:56.7969482Z [36;1m  health.contentSync?.status !== 'succeeded' ||[0m
-2026-07-21T09:00:56.7969911Z [36;1m  health.contentSync?.manifestHash !== manifest.manifestHash[0m
-2026-07-21T09:00:56.7970273Z [36;1m) {[0m
-2026-07-21T09:00:56.7970664Z [36;1m  throw new Error(`Content sync status is invalid: ${JSON.stringify(health.contentSync)}`);[0m
-2026-07-21T09:00:56.7971122Z [36;1m}[0m
-2026-07-21T09:00:56.7971577Z [36;1mif (!Array.isArray(projects.projects) || !projects.projects.some((item) => item.slug === 'prompt-library')) {[0m
-2026-07-21T09:00:56.7972507Z [36;1m  throw new Error(`Invalid projects response: ${JSON.stringify(projects)}`);[0m
-2026-07-21T09:00:56.7972923Z [36;1m}[0m
-2026-07-21T09:00:56.7973317Z [36;1mif (!Number.isInteger(bootstrap.version) || bootstrap.version < 1 || !bootstrap.content) {[0m
-2026-07-21T09:00:56.7973931Z [36;1m  throw new Error(`Invalid bootstrap response: ${JSON.stringify(bootstrap)}`);[0m
-2026-07-21T09:00:56.7974342Z [36;1m}[0m
-2026-07-21T09:00:56.7974534Z [36;1mif ([0m
-2026-07-21T09:00:56.7974768Z [36;1m  !Array.isArray(search.results) ||[0m
-2026-07-21T09:00:56.7975214Z [36;1m  !search.results.some((item) => item.id === 'prompt-library-content-sync-guide')[0m
-2026-07-21T09:00:56.7975638Z [36;1m) {[0m
-2026-07-21T09:00:56.7975979Z [36;1m  throw new Error(`Synced file was not searchable: ${JSON.stringify(search)}`);[0m
-2026-07-21T09:00:56.7976394Z [36;1m}[0m
-2026-07-21T09:00:56.7976587Z [36;1mif ([0m
-2026-07-21T09:00:56.7976858Z [36;1m  file.id !== 'prompt-library-content-sync-guide' ||[0m
-2026-07-21T09:00:56.7977314Z [36;1m  file.uri !== 'prompt://prompt-library/guides/content-sync.md' ||[0m
-2026-07-21T09:00:56.7977728Z [36;1m  !file.content.includes('content/')[0m
-2026-07-21T09:00:56.7978014Z [36;1m) {[0m
-2026-07-21T09:00:56.7978353Z [36;1m  throw new Error(`Synced file could not be fetched: ${JSON.stringify(file)}`);[0m
-2026-07-21T09:00:56.7978758Z [36;1m}[0m
-2026-07-21T09:00:56.7978948Z [36;1mNODE[0m
-2026-07-21T09:00:56.8036359Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
-2026-07-21T09:00:56.8036725Z env:
-2026-07-21T09:00:56.8037126Z   CLOUDFLARE_API_TOKEN: ***
-2026-07-21T09:00:56.8037442Z   CLOUDFLARE_ACCOUNT_ID: ***
-2026-07-21T09:00:56.8037692Z   MCP_BEARER_TOKEN: 
-2026-07-21T09:00:56.8037998Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:56.8038452Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
-2026-07-21T09:00:56.8038888Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:56.8039275Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:56.8039667Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:56.8040061Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
-2026-07-21T09:00:56.8040549Z   CONTENT_SYNC_TOKEN: ***
-2026-07-21T09:00:56.8040854Z   DEPLOYMENT_URL: https://prompt.2212148739lbw.workers.dev
-2026-07-21T09:00:56.8041189Z ##[endgroup]
-2026-07-21T09:00:56.8117098Z Testing https://prompt.2212148739lbw.workers.dev
-2026-07-21T09:00:59.4086752Z info={"service":"prompt-library-mcp","version":"0.5.0","status":"ok","endpoints":{"frontend":"/","viewer":"/p/<project>/<path-to-file.md>","raw":"/raw/<project>/<path-to-file.md>","aiRoot":"/api/files","aiFile":"/api/files/<project>/<path-to-file.md>","aiResource":"/api/files/<project>/<optional-path>","aiSearchSitemap":"/sitemap.xml","robots":"/robots.txt","v1Contents":"/api/v1/projects/<project>/contents/<optional-path>","info":"/api/info","health":"/health","projects":"/api/projects","v1Projects":"/api/v1/projects","tree":"/api/tree?project=<slug>&path=/","search":"/api/files/search?q=<keywords>","v1Search":"/api/v1/search?q=<keywords>","aiSearch":"/api/ai-search?q=<keywords>","aiSearchProject":"/api/ai-search/<project>?q=<keywords>","aiSearchInfo":"/api/ai-search/info","fetch":"/api/files/fetch?identifier=<id-or-uri>","bootstrap":"/api/bootstrap/:client/:profile","contentSyncSnapshot":"/api/admin/library/snapshot","contentSync":"/api/admin/library/sync","mcp":"/mcp"}}
-2026-07-21T09:00:59.4098809Z health={"status":"ok","database":true,"projectCount":4,"kvSeeded":true,"contentSync":{"runId":"content-sync-1784619973932-1ae99e76-1b07-4ec0-9dcd-56fac71261c1","status":"succeeded","manifestHash":"sha256:78a7f1039495407a5253176edfb390e7954cf58689e861202789108a3718802e","startedAt":"2026-07-21T07:46:14.051Z","finishedAt":"2026-07-21T07:46:32.465Z"},"environment":"production"}
-2026-07-21T09:00:59.4115707Z projects={"schemaVersion":"1.0","projects":[{"id":"project-prompt-library","slug":"prompt-library","name":"Prompt Library","description":"由仓库 content/ 自动发布的公共提示词与文档。","visibility":"public","defaultLanguage":"zh-CN","metadata":{"source":"repository-content","repository":"ActiveInsighter/prompt-web"},"createdAt":"2026-07-19T07:14:48.570Z","updatedAt":"2026-07-21T07:46:14.206Z"},{"id":"project-shadcn-ui-docs","slug":"shadcn-ui-docs","name":"shadcn/ui Docs","description":"从 shadcn/ui 文档侧边栏自动采集的 Markdown 文档。","visibility":"public","defaultLanguage":"en-US","metadata":{"source":"https://ui.shadcn.com/docs","collector":"scripts.collectors.shadcn_docs"},"createdAt":"2026-07-19T13:27:10.698Z","updatedAt":"2026-07-21T07:46:14.206Z"},{"id":"project-tailwindcss-docs","slug":"tailwindcss-docs","name":"Tailwind CSS Docs","description":"从 Tailwind CSS 官方文档侧边栏自动发现并清洗网页正文生成的 AI 可读 Markdown 文档。","visibility":"public","defaultLanguage":"en-US","metadata":{"source":"https://tailwindcss.com/docs","collector":"scripts.collectors.tailwindcss_docs"},"createdAt":"2026-07-21T03:08:12.900Z","updatedAt":"2026-07-21T07:46:14.206Z"},{"id":"project-zustand-docs","slug":"zustand-docs","name":"Zustand Docs","description":"从 pmndrs/zustand 仓库 docs/ 目录自动采集的 Markdown 文档。","visibility":"public","defaultLanguage":"en-US","metadata":{"source":"https://github.com/pmndrs/zustand/tree/main/docs","collector":"scripts.collectors.zustand_docs"},"createdAt":"2026-07-19T13:27:10.698Z","updatedAt":"2026-07-21T07:46:14.206Z"}],"authenticated":false}
-2026-07-21T09:00:59.4129093Z bootstrap={"version":1,"title":"ChatGPT 默认提示词库上下文","content":"这是一个按项目、目录和文件组织的提示词库。查询内容时先使用 list_projects 或 search_files 定位文件，再用 fetch_file 读取完整内容。不要把 KV 当作模糊搜索数据库；KV 只用于本基础上下文和明确 key 的公共提示词。同一会话中如 bundle 版本未变化，不要重复读取。","items":["common:structured-output:v1"],"updatedAt":"2026-07-19T00:00:00Z","client":"chatgpt","profile":"default","sourceKey":"bundle:chatgpt:default:v1"}
-2026-07-21T09:00:59.4139606Z search={"schemaVersion":"1.0","query":{"text":"sync","project":"prompt-library","path":null,"recursive":true,"language":null,"tags":[],"visibility":null,"role":null,"limit":5},"results":[{"id":"prompt-library-content-sync-guide","projectId":"project-prompt-library","projectSlug":"prompt-library","projectName":"Prompt Library","path":"/guides/content-sync.md","parentPath":"/guides","fileName":"content-sync.md","uri":"prompt://prompt-library/guides/content-sync.md","title":"内容库同步使用说明","description":"说明如何把 content 目录中的项目、目录和文件自动同步到 D1，供 MCP 查询和读取。","language":"zh-CN","format":"markdown","promptRole":"reference","visibility":"public","tags":["内容同步","D1","MCP"],"variables":[],"metadata":{"maintained_by":"repository"},"currentVersion":1,"createdAt":"2026-07-19T09:47:24.946Z","updatedAt":"2026-07-19T09:47:24.946Z","score":-5.532088278591901}],"authenticated":false}
-2026-07-21T09:00:59.4155509Z file={"schemaVersion":"1.0","type":"file","id":"prompt-library-content-sync-guide","projectId":"project-prompt-library","projectSlug":"prompt-library","projectName":"Prompt Library","path":"/guides/content-sync.md","parentPath":"/guides","fileName":"content-sync.md","uri":"prompt://prompt-library/guides/content-sync.md","title":"内容库同步使用说明","description":"说明如何把 content 目录中的项目、目录和文件自动同步到 D1，供 MCP 查询和读取。","content":"\n# 内容库同步使用说明\n\n`content/` 是提示词和文档的内容真源。它下面的每个一级目录对应一个数据库项目，后续目录对应文件夹，Markdown、文本和 JSON 文件对应提示词文件。\n\n修改内容后，先运行：\n\n```bash\npython -m scripts.cli validate\npython -m scripts.cli build\n```\n\n合并到 `main` 后，部署工作流会应用 D1 迁移、部署 Worker、生成临时同步令牌并调用受保护的内容同步接口。同步完成后，可以通过 `search_files` 搜索，也可以通过 `fetch_file` 按文件 ID 或 `prompt://` URI 读取。\n\n本文件的 URI 为：\n\n```text\nprompt://prompt-library/guides/content-sync.md\n```\n","language":"zh-CN","format":"markdown","promptRole":"reference","visibility":"public","tags":["内容同步","D1","MCP"],"variables":[],"metadata":{"maintained_by":"repository"},"currentVersion":1,"createdAt":"2026-07-19T09:47:24.946Z","updatedAt":"2026-07-19T09:47:24.946Z"}
-2026-07-21T09:00:59.4163309Z raw_markdown_prefix=
-2026-07-21T09:00:59.4174798Z # 内容库同步使用说明
-2026-07-21T09:00:59.4175362Z 
-2026-07-21T09:00:59.4176294Z `content/` 是提示词和文档的内容真源。它下面的每个一级目录对应一个数据库项目，后续目录对应文件夹，Markdown、文本和 JSON 文件对应提示词文件。
-2026-07-21T09:00:59.4176948Z 
-2026-07-21T09:00:59.4177261Z 修改内容后，先运行：
-2026-07-21T09:00:59.4177556Z 
-2026-07-21T09:00:59.4177792Z ```bash
-2026-07-21T09:00:59.4178208Z py
-2026-07-21T09:00:59.4667845Z ##[group]Run rm -f .wrangler.secrets.json
-2026-07-21T09:00:59.4668221Z [36;1mrm -f .wrangler.secrets.json[0m
-2026-07-21T09:00:59.4725181Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
-2026-07-21T09:00:59.4725540Z env:
-2026-07-21T09:00:59.4725931Z   CLOUDFLARE_API_TOKEN: ***
-2026-07-21T09:00:59.4726256Z   CLOUDFLARE_ACCOUNT_ID: ***
-2026-07-21T09:00:59.4726509Z   MCP_BEARER_TOKEN: 
-2026-07-21T09:00:59.4726807Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:59.4727266Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
-2026-07-21T09:00:59.4727734Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:59.4728131Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:59.4728526Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:59.4728928Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
-2026-07-21T09:00:59.4743536Z   CONTENT_SYNC_TOKEN: ***
-2026-07-21T09:00:59.4744000Z ##[endgroup]
-2026-07-21T09:00:59.4860537Z ##[group]Run {
-2026-07-21T09:00:59.4860809Z [36;1m{[0m
-2026-07-21T09:00:59.4861046Z [36;1m  echo "## Prompt MCP deployment"[0m
-2026-07-21T09:00:59.4861350Z [36;1m  echo[0m
-2026-07-21T09:00:59.4861591Z [36;1m  echo "- Run ID: \`$GITHUB_RUN_ID\`"[0m
-2026-07-21T09:00:59.4861911Z [36;1m  echo "- Commit: \`$GITHUB_SHA\`"[0m
-2026-07-21T09:00:59.4862543Z [36;1m  echo "- URL: $DEPLOYMENT_URL"[0m
-2026-07-21T09:00:59.4863213Z [36;1m  echo "- D1 migrations, remote KV, atomic secret deployment, content sync, Markdown frontend and production smoke tests are enforced by this job."[0m
-2026-07-21T09:00:59.4864051Z [36;1m} >> "$GITHUB_STEP_SUMMARY"[0m
-2026-07-21T09:00:59.4917498Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
-2026-07-21T09:00:59.4917854Z env:
-2026-07-21T09:00:59.4918256Z   CLOUDFLARE_API_TOKEN: ***
-2026-07-21T09:00:59.4918578Z   CLOUDFLARE_ACCOUNT_ID: ***
-2026-07-21T09:00:59.4918831Z   MCP_BEARER_TOKEN: 
-2026-07-21T09:00:59.4919155Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:59.4919603Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
-2026-07-21T09:00:59.4920053Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:59.4920456Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:59.4920856Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-21T09:00:59.4921256Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
-2026-07-21T09:00:59.4921757Z   CONTENT_SYNC_TOKEN: ***
-2026-07-21T09:00:59.4922451Z   DEPLOYMENT_URL: https://prompt.2212148739lbw.workers.dev
-2026-07-21T09:00:59.4922859Z ##[endgroup]
-2026-07-21T09:00:59.5083717Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
-2026-07-21T09:00:59.5084984Z Post job cleanup.
-2026-07-21T09:00:59.6450116Z (node:2439) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-2026-07-21T09:00:59.6473345Z (Use `node --trace-deprecation ...` to show where the warning was created)
-2026-07-21T09:00:59.6763282Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
-2026-07-21T09:00:59.6765648Z Post job cleanup.
-2026-07-21T09:00:59.8325155Z (node:2447) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-2026-07-21T09:00:59.8343315Z (Use `node --trace-deprecation ...` to show where the warning was created)
-2026-07-21T09:00:59.8579972Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
-2026-07-21T09:00:59.8582397Z Post job cleanup.
-2026-07-21T09:00:59.9670100Z [command]/usr/bin/git version
-2026-07-21T09:00:59.9766599Z git version 2.54.0
-2026-07-21T09:00:59.9873908Z Temporarily overriding HOME='/home/runner/work/_temp/46a44295-d565-40ea-b5b0-9e64502b650a' before making global git config changes
-2026-07-21T09:00:59.9875832Z Adding repository directory to the temporary git global config as a safe directory
-2026-07-21T09:00:59.9877503Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/prompt-web/prompt-web
-2026-07-21T09:00:59.9956735Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-2026-07-21T09:01:00.0023587Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-2026-07-21T09:01:00.0305126Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-2026-07-21T09:01:00.0363351Z http.https://github.com/.extraheader
-2026-07-21T09:01:00.0365965Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-2026-07-21T09:01:00.0414853Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-2026-07-21T09:01:00.0783362Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-2026-07-21T09:01:00.0816114Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-2026-07-21T09:01:00.1437455Z Cleaning up orphan processes
-2026-07-21T09:01:00.1806186Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/setup-python@v5, cloudflare/wrangler-action@v3. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-21T09:06:04.5424696Z Current runner version: '2.335.1'
+2026-07-21T09:06:04.5459983Z ##[group]Runner Image Provisioner
+2026-07-21T09:06:04.5461395Z Hosted Compute Agent
+2026-07-21T09:06:04.5462634Z Version: 20260707.563
+2026-07-21T09:06:04.5463932Z Commit: 02667638d2b423fbc733a8e32a88b44996a3ba6e
+2026-07-21T09:06:04.5465469Z Build Date: 2026-07-07T19:33:50Z
+2026-07-21T09:06:04.5466677Z Worker ID: {b2645b4f-2599-477d-86f5-4f9a8a8c9673}
+2026-07-21T09:06:04.5467857Z Azure Region: westus
+2026-07-21T09:06:04.5469263Z ##[endgroup]
+2026-07-21T09:06:04.5471628Z ##[group]Operating System
+2026-07-21T09:06:04.5472773Z Ubuntu
+2026-07-21T09:06:04.5473688Z 24.04.4
+2026-07-21T09:06:04.5474583Z LTS
+2026-07-21T09:06:04.5475696Z ##[endgroup]
+2026-07-21T09:06:04.5476720Z ##[group]Runner Image
+2026-07-21T09:06:04.5477913Z Image: ubuntu-24.04
+2026-07-21T09:06:04.5479461Z Version: 20260714.240.1
+2026-07-21T09:06:04.5481859Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260714.240/images/ubuntu/Ubuntu2404-Readme.md
+2026-07-21T09:06:04.5484785Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260714.240
+2026-07-21T09:06:04.5486626Z ##[endgroup]
+2026-07-21T09:06:04.5488943Z ##[group]GITHUB_TOKEN Permissions
+2026-07-21T09:06:04.5491764Z Contents: read
+2026-07-21T09:06:04.5492834Z Metadata: read
+2026-07-21T09:06:04.5493910Z ##[endgroup]
+2026-07-21T09:06:04.5497092Z Secret source: Actions
+2026-07-21T09:06:04.5498701Z Prepare workflow directory
+2026-07-21T09:06:04.6466106Z Prepare all required actions
+2026-07-21T09:06:04.6524021Z Getting action download info
+2026-07-21T09:06:05.0742855Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-07-21T09:06:05.5313618Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+2026-07-21T09:06:05.6265826Z Download action repository 'actions/setup-python@v5' (SHA:a26af69be951a213d495a4c3e4e4022e16d87065)
+2026-07-21T09:06:05.7112461Z Download action repository 'cloudflare/wrangler-action@v3' (SHA:9acf94ace14e7dc412b076f2c5c20b8ce93c79cd)
+2026-07-21T09:06:06.1219369Z Complete job name: deploy
+2026-07-21T09:06:06.1983793Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-21T09:06:06.1993710Z ##[group]Run actions/checkout@v4
+2026-07-21T09:06:06.1994515Z with:
+2026-07-21T09:06:06.1995018Z   repository: ActiveInsighter/prompt-web
+2026-07-21T09:06:06.2000169Z   token: ***
+2026-07-21T09:06:06.2000636Z   ssh-strict: true
+2026-07-21T09:06:06.2001143Z   ssh-user: git
+2026-07-21T09:06:06.2001694Z   persist-credentials: true
+2026-07-21T09:06:06.2002301Z   clean: true
+2026-07-21T09:06:06.2002843Z   sparse-checkout-cone-mode: true
+2026-07-21T09:06:06.2003483Z   fetch-depth: 1
+2026-07-21T09:06:06.2004001Z   fetch-tags: false
+2026-07-21T09:06:06.2004557Z   show-progress: true
+2026-07-21T09:06:06.2005042Z   lfs: false
+2026-07-21T09:06:06.2005510Z   submodules: false
+2026-07-21T09:06:06.2005993Z   set-safe-directory: true
+2026-07-21T09:06:06.2006548Z   allow-unsafe-pr-checkout: false
+2026-07-21T09:06:06.2007380Z env:
+2026-07-21T09:06:06.2008334Z   CLOUDFLARE_API_TOKEN: ***
+2026-07-21T09:06:06.2009025Z   CLOUDFLARE_ACCOUNT_ID: ***
+2026-07-21T09:06:06.2009566Z   MCP_BEARER_TOKEN: 
+2026-07-21T09:06:06.2010036Z ##[endgroup]
+2026-07-21T09:06:06.3353536Z Syncing repository: ActiveInsighter/prompt-web
+2026-07-21T09:06:06.3378369Z ##[group]Getting Git version info
+2026-07-21T09:06:06.3431574Z Working directory is '/home/runner/work/prompt-web/prompt-web'
+2026-07-21T09:06:06.3436214Z [command]/usr/bin/git version
+2026-07-21T09:06:06.3438803Z git version 2.54.0
+2026-07-21T09:06:06.3444928Z ##[endgroup]
+2026-07-21T09:06:06.3478650Z Temporarily overriding HOME='/home/runner/work/_temp/d4d529e3-9bcb-415b-9083-7225031b0895' before making global git config changes
+2026-07-21T09:06:06.3490688Z Adding repository directory to the temporary git global config as a safe directory
+2026-07-21T09:06:06.3494757Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/prompt-web/prompt-web
+2026-07-21T09:06:06.3535544Z Deleting the contents of '/home/runner/work/prompt-web/prompt-web'
+2026-07-21T09:06:06.3541469Z ##[group]Initializing the repository
+2026-07-21T09:06:06.3545057Z [command]/usr/bin/git init /home/runner/work/prompt-web/prompt-web
+2026-07-21T09:06:06.3660272Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-07-21T09:06:06.3663192Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-07-21T09:06:06.3666546Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-07-21T09:06:06.3669126Z hint: call:
+2026-07-21T09:06:06.3674896Z hint:
+2026-07-21T09:06:06.3676816Z hint: 	git config --global init.defaultBranch <name>
+2026-07-21T09:06:06.3678713Z hint:
+2026-07-21T09:06:06.3681244Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-07-21T09:06:06.3695632Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-07-21T09:06:06.3699641Z hint:
+2026-07-21T09:06:06.3700770Z hint: 	git branch -m <name>
+2026-07-21T09:06:06.3702948Z hint:
+2026-07-21T09:06:06.3704710Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-07-21T09:06:06.3855714Z Initialized empty Git repository in /home/runner/work/prompt-web/prompt-web/.git/
+2026-07-21T09:06:06.3863420Z [command]/usr/bin/git remote add origin https://github.com/ActiveInsighter/prompt-web
+2026-07-21T09:06:06.3871637Z ##[endgroup]
+2026-07-21T09:06:06.3873690Z ##[group]Disabling automatic garbage collection
+2026-07-21T09:06:06.3875302Z [command]/usr/bin/git config --local gc.auto 0
+2026-07-21T09:06:06.3879890Z ##[endgroup]
+2026-07-21T09:06:06.3881479Z ##[group]Setting up auth
+2026-07-21T09:06:06.3883409Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-07-21T09:06:06.3923133Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-07-21T09:06:06.4457403Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-07-21T09:06:06.4511102Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-07-21T09:06:06.4852160Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-07-21T09:06:06.4890382Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-07-21T09:06:06.5175867Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-07-21T09:06:06.5220711Z ##[endgroup]
+2026-07-21T09:06:06.5222206Z ##[group]Fetching the repository
+2026-07-21T09:06:06.5234453Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +d9a8bac2c67879f069c861256007763996ca20e3:refs/remotes/origin/main
+2026-07-21T09:06:07.1316676Z From https://github.com/ActiveInsighter/prompt-web
+2026-07-21T09:06:07.1319609Z  * [new ref]         d9a8bac2c67879f069c861256007763996ca20e3 -> origin/main
+2026-07-21T09:06:07.1383551Z ##[endgroup]
+2026-07-21T09:06:07.1385303Z ##[group]Determining the checkout info
+2026-07-21T09:06:07.1387075Z ##[endgroup]
+2026-07-21T09:06:07.1388841Z [command]/usr/bin/git sparse-checkout disable
+2026-07-21T09:06:07.1475128Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-07-21T09:06:07.1521766Z ##[group]Checking out the ref
+2026-07-21T09:06:07.1528305Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-07-21T09:06:07.1885188Z Switched to a new branch 'main'
+2026-07-21T09:06:07.1888782Z branch 'main' set up to track 'origin/main'.
+2026-07-21T09:06:07.1902229Z ##[endgroup]
+2026-07-21T09:06:07.1963660Z [command]/usr/bin/git log -1 --format=%H
+2026-07-21T09:06:07.1992622Z d9a8bac2c67879f069c861256007763996ca20e3
+2026-07-21T09:06:07.2320441Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-21T09:06:07.2325678Z ##[group]Run actions/setup-node@v4
+2026-07-21T09:06:07.2326423Z with:
+2026-07-21T09:06:07.2326889Z   node-version: 24
+2026-07-21T09:06:07.2327437Z   always-auth: false
+2026-07-21T09:06:07.2328213Z   check-latest: false
+2026-07-21T09:06:07.2337544Z   token: ***
+2026-07-21T09:06:07.2338270Z env:
+2026-07-21T09:06:07.2339583Z   CLOUDFLARE_API_TOKEN: ***
+2026-07-21T09:06:07.2340488Z   CLOUDFLARE_ACCOUNT_ID: ***
+2026-07-21T09:06:07.2341148Z   MCP_BEARER_TOKEN: 
+2026-07-21T09:06:07.2341689Z ##[endgroup]
+2026-07-21T09:06:07.4074004Z (node:2044) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-07-21T09:06:07.4096739Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-07-21T09:06:07.4112894Z Found in cache @ /opt/hostedtoolcache/node/24.18.0/x64
+2026-07-21T09:06:07.4116220Z ##[group]Environment details
+2026-07-21T09:06:08.1209312Z node: v24.18.0
+2026-07-21T09:06:08.1210597Z npm: 11.16.0
+2026-07-21T09:06:08.1211758Z yarn: 1.22.22
+2026-07-21T09:06:08.1214361Z ##[endgroup]
+2026-07-21T09:06:08.1429503Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-21T09:06:08.1434310Z ##[group]Run actions/setup-python@v5
+2026-07-21T09:06:08.1435350Z with:
+2026-07-21T09:06:08.1436111Z   python-version: 3.13
+2026-07-21T09:06:08.1436993Z   check-latest: false
+2026-07-21T09:06:08.1446697Z   token: ***
+2026-07-21T09:06:08.1447528Z   update-environment: true
+2026-07-21T09:06:08.1448613Z   allow-prereleases: false
+2026-07-21T09:06:08.1449549Z   freethreaded: false
+2026-07-21T09:06:08.1450393Z env:
+2026-07-21T09:06:08.1451660Z   CLOUDFLARE_API_TOKEN: ***
+2026-07-21T09:06:08.1452805Z   CLOUDFLARE_ACCOUNT_ID: ***
+2026-07-21T09:06:08.1453735Z   MCP_BEARER_TOKEN: 
+2026-07-21T09:06:08.1454539Z ##[endgroup]
+2026-07-21T09:06:08.2871532Z ##[group]Installed versions
+2026-07-21T09:06:08.2964313Z (node:2075) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-07-21T09:06:08.2969821Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-07-21T09:06:08.2972652Z Successfully set up CPython (3.13.14)
+2026-07-21T09:06:08.2976229Z ##[endgroup]
+2026-07-21T09:06:08.3229628Z ##[group]Run test -n "$CLOUDFLARE_API_TOKEN" || { echo "Missing CLOUDFLARE_API_TOKEN"; exit 1; }
+2026-07-21T09:06:08.3233752Z [36;1mtest -n "$CLOUDFLARE_API_TOKEN" || { echo "Missing CLOUDFLARE_API_TOKEN"; exit 1; }[0m
+2026-07-21T09:06:08.3237416Z [36;1mtest -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "Missing CLOUDFLARE_ACCOUNT_ID"; exit 1; }[0m
+2026-07-21T09:06:08.3380240Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-07-21T09:06:08.3382258Z env:
+2026-07-21T09:06:08.3384420Z   CLOUDFLARE_API_TOKEN: ***
+2026-07-21T09:06:08.3386251Z   CLOUDFLARE_ACCOUNT_ID: ***
+2026-07-21T09:06:08.3387737Z   MCP_BEARER_TOKEN: 
+2026-07-21T09:06:08.3389609Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:08.3392283Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
+2026-07-21T09:06:08.3394986Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:08.3397823Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:08.3400411Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:08.3402600Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
+2026-07-21T09:06:08.3404664Z ##[endgroup]
+2026-07-21T09:06:08.3672074Z ##[group]Run npm install --no-package-lock --no-audit --no-fund
+2026-07-21T09:06:08.3673733Z [36;1mnpm install --no-package-lock --no-audit --no-fund[0m
+2026-07-21T09:06:08.3675685Z [36;1mpython -m pip install --disable-pip-version-check -r scripts/requirements.txt[0m
+2026-07-21T09:06:08.3746714Z shell: /usr/bin/bash -e {0}
+2026-07-21T09:06:08.3747631Z env:
+2026-07-21T09:06:08.3749124Z   CLOUDFLARE_API_TOKEN: ***
+2026-07-21T09:06:08.3750304Z   CLOUDFLARE_ACCOUNT_ID: ***
+2026-07-21T09:06:08.3751242Z   MCP_BEARER_TOKEN: 
+2026-07-21T09:06:08.3752291Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:08.3753909Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
+2026-07-21T09:06:08.3755544Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:08.3756994Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:08.3758585Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:08.3760113Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
+2026-07-21T09:06:08.3761371Z ##[endgroup]
+2026-07-21T09:06:28.9164012Z 
+2026-07-21T09:06:28.9165145Z added 212 packages in 20s
+2026-07-21T09:06:28.9179812Z npm warn allow-scripts 4 packages have install scripts not yet covered by allowScripts:
+2026-07-21T09:06:28.9181370Z npm warn allow-scripts   esbuild@0.28.1 (postinstall: node install.js)
+2026-07-21T09:06:28.9183167Z npm warn allow-scripts   core-js-pure@3.49.0 (postinstall: node -e "try{require('./postinstall')}catch(e){}")
+2026-07-21T09:06:28.9203992Z npm warn allow-scripts   workerd@1.20260708.1 (postinstall: node install.js)
+2026-07-21T09:06:28.9207629Z npm warn allow-scripts   sharp@0.34.5 (install: node install/check.js || npm run build)
+2026-07-21T09:06:28.9225287Z npm warn allow-scripts
+2026-07-21T09:06:28.9226817Z npm warn allow-scripts Run `npm approve-scripts --allow-scripts-pending` to review, or `npm approve-scripts <pkg>` to allow.
+2026-07-21T09:06:29.7723311Z Collecting PyYAML<7,>=6.0.2 (from -r scripts/requirements.txt (line 1))
+2026-07-21T09:06:29.8222408Z   Downloading pyyaml-6.0.3-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.4 kB)
+2026-07-21T09:06:29.8374935Z Collecting beautifulsoup4<5,>=4.15.0 (from -r scripts/requirements.txt (line 2))
+2026-07-21T09:06:29.8405292Z   Downloading beautifulsoup4-4.15.0-py3-none-any.whl.metadata (3.8 kB)
+2026-07-21T09:06:29.8551980Z Collecting markdownify<2,>=1.2.3 (from -r scripts/requirements.txt (line 3))
+2026-07-21T09:06:29.8584935Z   Downloading markdownify-1.2.3-py3-none-any.whl.metadata (9.9 kB)
+2026-07-21T09:06:29.8759511Z Collecting soupsieve>=1.6.1 (from beautifulsoup4<5,>=4.15.0->-r scripts/requirements.txt (line 2))
+2026-07-21T09:06:29.8783246Z   Downloading soupsieve-2.9-py3-none-any.whl.metadata (4.6 kB)
+2026-07-21T09:06:29.8940100Z Collecting typing-extensions>=4.0.0 (from beautifulsoup4<5,>=4.15.0->-r scripts/requirements.txt (line 2))
+2026-07-21T09:06:29.8972891Z   Downloading typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
+2026-07-21T09:06:29.9113686Z Collecting six<2,>=1.15 (from markdownify<2,>=1.2.3->-r scripts/requirements.txt (line 3))
+2026-07-21T09:06:29.9134580Z   Downloading six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
+2026-07-21T09:06:29.9205244Z Downloading pyyaml-6.0.3-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (801 kB)
+2026-07-21T09:06:29.9469621Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 801.6/801.6 kB 68.7 MB/s  0:00:00
+2026-07-21T09:06:29.9491460Z Downloading beautifulsoup4-4.15.0-py3-none-any.whl (109 kB)
+2026-07-21T09:06:29.9557595Z Downloading markdownify-1.2.3-py3-none-any.whl (15 kB)
+2026-07-21T09:06:29.9614989Z Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
+2026-07-21T09:06:29.9665768Z Downloading soupsieve-2.9-py3-none-any.whl (37 kB)
+2026-07-21T09:06:29.9716568Z Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+2026-07-21T09:06:30.0029796Z Installing collected packages: typing-extensions, soupsieve, six, PyYAML, beautifulsoup4, markdownify
+2026-07-21T09:06:30.2230395Z 
+2026-07-21T09:06:30.2232022Z Successfully installed PyYAML-6.0.3 beautifulsoup4-4.15.0 markdownify-1.2.3 six-1.17.0 soupsieve-2.9 typing-extensions-4.16.0
+2026-07-21T09:06:30.2783385Z ##[group]Run python -m scripts.cli validate
+2026-07-21T09:06:30.2783821Z [36;1mpython -m scripts.cli validate[0m
+2026-07-21T09:06:30.2784118Z [36;1mpython -m scripts.cli build[0m
+2026-07-21T09:06:30.2843433Z shell: /usr/bin/bash -e {0}
+2026-07-21T09:06:30.2843719Z env:
+2026-07-21T09:06:30.2844375Z   CLOUDFLARE_API_TOKEN: ***
+2026-07-21T09:06:30.2844724Z   CLOUDFLARE_ACCOUNT_ID: ***
+2026-07-21T09:06:30.2867063Z   MCP_BEARER_TOKEN: 
+2026-07-21T09:06:30.2867559Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:30.2868558Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
+2026-07-21T09:06:30.2869272Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:30.2869890Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:30.2870515Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:30.2871130Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
+2026-07-21T09:06:30.2871692Z ##[endgroup]
+2026-07-21T09:06:30.8280068Z Content validation succeeded: projects=4 folders=39 files=348 manifest=sha256:78a7f1039495407a5253176edfb390e7954cf58689e861202789108a3718802e
+2026-07-21T09:06:31.3721960Z Wrote /home/runner/work/prompt-web/prompt-web/.prompt-sync/manifest.json: projects=4 folders=39 files=348 manifest=sha256:78a7f1039495407a5253176edfb390e7954cf58689e861202789108a3718802e
+2026-07-21T09:06:31.3874750Z ##[group]Run node scripts/render-wrangler-config.mjs
+2026-07-21T09:06:31.3875173Z [36;1mnode scripts/render-wrangler-config.mjs[0m
+2026-07-21T09:06:31.3933970Z shell: /usr/bin/bash -e {0}
+2026-07-21T09:06:31.3934239Z env:
+2026-07-21T09:06:31.3934649Z   CLOUDFLARE_API_TOKEN: ***
+2026-07-21T09:06:31.3934974Z   CLOUDFLARE_ACCOUNT_ID: ***
+2026-07-21T09:06:31.3935221Z   MCP_BEARER_TOKEN: 
+2026-07-21T09:06:31.3935516Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:31.3935979Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
+2026-07-21T09:06:31.3936430Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:31.3936854Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:31.3937263Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:31.3937671Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
+2026-07-21T09:06:31.3938651Z   D1_DATABASE_ID: c7faca02-d8eb-481d-9c3c-bb7094154031
+2026-07-21T09:06:31.3939021Z   D1_DATABASE_NAME: prompt
+2026-07-21T09:06:31.3939307Z   KV_NAMESPACE_ID: c5b087006ab04b2da422e4adcbef89b4
+2026-07-21T09:06:31.3939631Z   CLOUDFLARE_WORKER_NAME: prompt
+2026-07-21T09:06:31.3939888Z ##[endgroup]
+2026-07-21T09:06:31.4299581Z Rendered wrangler.deploy.jsonc for deployment.
+2026-07-21T09:06:31.4360166Z ##[group]Run npm run typecheck
+2026-07-21T09:06:31.4360480Z [36;1mnpm run typecheck[0m
+2026-07-21T09:06:31.4423931Z shell: /usr/bin/bash -e {0}
+2026-07-21T09:06:31.4424326Z env:
+2026-07-21T09:06:31.4424921Z   CLOUDFLARE_API_TOKEN: ***
+2026-07-21T09:06:31.4425443Z   CLOUDFLARE_ACCOUNT_ID: ***
+2026-07-21T09:06:31.4425845Z   MCP_BEARER_TOKEN: 
+2026-07-21T09:06:31.4426308Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:31.4427102Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
+2026-07-21T09:06:31.4427812Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:31.4428707Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:31.4429603Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:31.4430244Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
+2026-07-21T09:06:31.4430800Z ##[endgroup]
+2026-07-21T09:06:31.5695820Z 
+2026-07-21T09:06:31.5696450Z > prompt-web@0.5.0 typecheck
+2026-07-21T09:06:31.5697349Z > tsc --noEmit
+2026-07-21T09:06:31.5697831Z 
+2026-07-21T09:06:33.9925618Z ##[group]Run npx wrangler d1 migrations apply DB --local --config wrangler.deploy.jsonc
+2026-07-21T09:06:33.9926738Z [36;1mnpx wrangler d1 migrations apply DB --local --config wrangler.deploy.jsonc[0m
+2026-07-21T09:06:34.0001299Z shell: /usr/bin/bash -e {0}
+2026-07-21T09:06:34.0001564Z env:
+2026-07-21T09:06:34.0001996Z   CLOUDFLARE_API_TOKEN: ***
+2026-07-21T09:06:34.0002322Z   CLOUDFLARE_ACCOUNT_ID: ***
+2026-07-21T09:06:34.0002565Z   MCP_BEARER_TOKEN: 
+2026-07-21T09:06:34.0002839Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:34.0003316Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
+2026-07-21T09:06:34.0003754Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:34.0004150Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:34.0004533Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:34.0004949Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
+2026-07-21T09:06:34.0005274Z ##[endgroup]
+2026-07-21T09:06:35.3586670Z 
+2026-07-21T09:06:35.3593721Z  ⛅️ wrangler 4.109.0
+2026-07-21T09:06:35.3596482Z ────────────────────
+2026-07-21T09:06:35.3596975Z Resource location: local 
+2026-07-21T09:06:35.3597256Z 
+2026-07-21T09:06:35.3597647Z Use --remote if you want to access the remote instance.
+2026-07-21T09:06:35.3598319Z 
+2026-07-21T09:06:36.1137800Z Migrations to be applied:
+2026-07-21T09:06:36.1192773Z ┌───────────────────────────────────┐
+2026-07-21T09:06:36.1222714Z │ name                              │
+2026-07-21T09:06:36.1269793Z ├───────────────────────────────────┤
+2026-07-21T09:06:36.1270728Z │ 0001_create_prompts.sql           │
+2026-07-21T09:06:36.1271549Z ├───────────────────────────────────┤
+2026-07-21T09:06:36.1301744Z │ 0002_create_project_file_tree.sql │
+2026-07-21T09:06:36.1313798Z ├───────────────────────────────────┤
+2026-07-21T09:06:36.1330017Z │ 0003_create_content_sync.sql      │
+2026-07-21T09:06:36.1352394Z ├───────────────────────────────────┤
+2026-07-21T09:06:36.1362820Z │ 0004_optimize_content_sync.sql    │
+2026-07-21T09:06:36.1363829Z └───────────────────────────────────┘
+2026-07-21T09:06:36.1365190Z ? About to apply 4 migration(s)
+2026-07-21T09:06:36.1368987Z Your database may not be available to serve requests during the migration, continue?
+2026-07-21T09:06:36.1393988Z 🤖 Using fallback value in non-interactive context: yes
+2026-07-21T09:06:36.1395663Z 🌀 Executing on local database DB (c7faca02-d8eb-481d-9c3c-bb7094154031) from .wrangler/state/v3/d1:
+2026-07-21T09:06:36.1397351Z 🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+2026-07-21T09:06:36.4223321Z 🚣 12 commands executed successfully.
+2026-07-21T09:06:36.4231919Z ┌───────────────────────────────────┬────────┐
+2026-07-21T09:06:36.4233257Z │ name                              │ status │
+2026-07-21T09:06:36.4234910Z ├───────────────────────────────────┼────────┤
+2026-07-21T09:06:36.4237678Z │ 0001_create_prompts.sql           │ ✅     │
+2026-07-21T09:06:36.4239994Z ├───────────────────────────────────┼────────┤
+2026-07-21T09:06:36.4241024Z │ 0002_create_project_file_tree.sql │ 🕒️    │
+2026-07-21T09:06:36.4242479Z ├───────────────────────────────────┼────────┤
+2026-07-21T09:06:36.4243683Z │ 0003_create_content_sync.sql      │ 🕒️    │
+2026-07-21T09:06:36.4245171Z ├───────────────────────────────────┼────────┤
+2026-07-21T09:06:36.4246451Z │ 0004_optimize_content_sync.sql    │ 🕒️    │
+2026-07-21T09:06:36.4248412Z └───────────────────────────────────┴────────┘
+2026-07-21T09:06:36.4250257Z 🌀 Executing on local database DB (c7faca02-d8eb-481d-9c3c-bb7094154031) from .wrangler/state/v3/d1:
+2026-07-21T09:06:36.4252788Z 🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+2026-07-21T09:06:36.7696646Z 🚣 29 commands executed successfully.
+2026-07-21T09:06:36.7707550Z ┌───────────────────────────────────┬────────┐
+2026-07-21T09:06:36.7709115Z │ name                              │ status │
+2026-07-21T09:06:36.7719472Z ├───────────────────────────────────┼────────┤
+2026-07-21T09:06:36.7720771Z │ 0001_create_prompts.sql           │ ✅     │
+2026-07-21T09:06:36.7722226Z ├───────────────────────────────────┼────────┤
+2026-07-21T09:06:36.7724377Z │ 0002_create_project_file_tree.sql │ ✅     │
+2026-07-21T09:06:36.7725608Z ├───────────────────────────────────┼────────┤
+2026-07-21T09:06:36.7726976Z │ 0003_create_content_sync.sql      │ 🕒️    │
+2026-07-21T09:06:36.7731555Z ├───────────────────────────────────┼────────┤
+2026-07-21T09:06:36.7732341Z │ 0004_optimize_content_sync.sql    │ 🕒️    │
+2026-07-21T09:06:36.7733182Z └───────────────────────────────────┴────────┘
+2026-07-21T09:06:36.7734705Z 🌀 Executing on local database DB (c7faca02-d8eb-481d-9c3c-bb7094154031) from .wrangler/state/v3/d1:
+2026-07-21T09:06:36.7736580Z 🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+2026-07-21T09:06:37.0334716Z 🚣 7 commands executed successfully.
+2026-07-21T09:06:37.0343068Z ┌───────────────────────────────────┬────────┐
+2026-07-21T09:06:37.0344254Z │ name                              │ status │
+2026-07-21T09:06:37.0345458Z ├───────────────────────────────────┼────────┤
+2026-07-21T09:06:37.0346479Z │ 0001_create_prompts.sql           │ ✅     │
+2026-07-21T09:06:37.0349323Z ├───────────────────────────────────┼────────┤
+2026-07-21T09:06:37.0350284Z │ 0002_create_project_file_tree.sql │ ✅     │
+2026-07-21T09:06:37.0351257Z ├───────────────────────────────────┼────────┤
+2026-07-21T09:06:37.0352175Z │ 0003_create_content_sync.sql      │ ✅     │
+2026-07-21T09:06:37.0353148Z ├───────────────────────────────────┼────────┤
+2026-07-21T09:06:37.0354432Z │ 0004_optimize_content_sync.sql    │ 🕒️    │
+2026-07-21T09:06:37.0355464Z └───────────────────────────────────┴────────┘
+2026-07-21T09:06:37.0357017Z 🌀 Executing on local database DB (c7faca02-d8eb-481d-9c3c-bb7094154031) from .wrangler/state/v3/d1:
+2026-07-21T09:06:37.0359664Z 🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+2026-07-21T09:06:37.3207290Z 🚣 10 commands executed successfully.
+2026-07-21T09:06:37.3210870Z ┌───────────────────────────────────┬────────┐
+2026-07-21T09:06:37.3211964Z │ name                              │ status │
+2026-07-21T09:06:37.3213036Z ├───────────────────────────────────┼────────┤
+2026-07-21T09:06:37.3214131Z │ 0001_create_prompts.sql           │ ✅     │
+2026-07-21T09:06:37.3215236Z ├───────────────────────────────────┼────────┤
+2026-07-21T09:06:37.3216278Z │ 0002_create_project_file_tree.sql │ ✅     │
+2026-07-21T09:06:37.3217319Z ├───────────────────────────────────┼────────┤
+2026-07-21T09:06:37.3218754Z │ 0003_create_content_sync.sql      │ ✅     │
+2026-07-21T09:06:37.3219889Z ├───────────────────────────────────┼────────┤
+2026-07-21T09:06:37.3220914Z │ 0004_optimize_content_sync.sql    │ ✅     │
+2026-07-21T09:06:37.3222010Z └───────────────────────────────────┴────────┘
+2026-07-21T09:06:37.3814814Z ##[group]Run npx wrangler d1 migrations apply DB --remote --config wrangler.deploy.jsonc
+2026-07-21T09:06:37.3815960Z [36;1mnpx wrangler d1 migrations apply DB --remote --config wrangler.deploy.jsonc[0m
+2026-07-21T09:06:37.3894466Z shell: /usr/bin/bash -e {0}
+2026-07-21T09:06:37.3894731Z env:
+2026-07-21T09:06:37.3895163Z   CLOUDFLARE_API_TOKEN: ***
+2026-07-21T09:06:37.3895496Z   CLOUDFLARE_ACCOUNT_ID: ***
+2026-07-21T09:06:37.3895738Z   MCP_BEARER_TOKEN: 
+2026-07-21T09:06:37.3896021Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:37.3896470Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
+2026-07-21T09:06:37.3896899Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:37.3897303Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:37.3897684Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:37.3898371Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
+2026-07-21T09:06:37.3898997Z ##[endgroup]
+2026-07-21T09:06:38.5828912Z 
+2026-07-21T09:06:38.5869578Z  ⛅️ wrangler 4.109.0 (update available 4.112.0)
+2026-07-21T09:06:38.5919260Z ───────────────────────────────────────────────
+2026-07-21T09:06:38.5920305Z Resource location: remote 
+2026-07-21T09:06:38.5958539Z 
+2026-07-21T09:06:39.1659603Z ✅ No migrations to apply!
+2026-07-21T09:06:39.2105242Z ##[group]Run npx wrangler kv bulk put seed/kv-prompts.json --binding PROMPT_KV --remote --config wrangler.deploy.jsonc
+2026-07-21T09:06:39.2106121Z [36;1mnpx wrangler kv bulk put seed/kv-prompts.json --binding PROMPT_KV --remote --config wrangler.deploy.jsonc[0m
+2026-07-21T09:06:39.2165402Z shell: /usr/bin/bash -e {0}
+2026-07-21T09:06:39.2165814Z env:
+2026-07-21T09:06:39.2166260Z   CLOUDFLARE_API_TOKEN: ***
+2026-07-21T09:06:39.2166587Z   CLOUDFLARE_ACCOUNT_ID: ***
+2026-07-21T09:06:39.2166843Z   MCP_BEARER_TOKEN: 
+2026-07-21T09:06:39.2167139Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:39.2167601Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
+2026-07-21T09:06:39.2168339Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:39.2168835Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:39.2169256Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:39.2169698Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
+2026-07-21T09:06:39.2170066Z ##[endgroup]
+2026-07-21T09:06:40.4861692Z 
+2026-07-21T09:06:40.4862812Z  ⛅️ wrangler 4.109.0 (update available 4.112.0)
+2026-07-21T09:06:40.5031626Z ───────────────────────────────────────────────
+2026-07-21T09:06:40.5032413Z Resource location: remote 
+2026-07-21T09:06:40.5033090Z 
+2026-07-21T09:06:41.1281896Z Success!
+2026-07-21T09:06:41.1917187Z ##[group]Run set -euo pipefail
+2026-07-21T09:06:41.1917752Z [36;1mset -euo pipefail[0m
+2026-07-21T09:06:41.1920317Z [36;1mtoken="$(openssl rand -hex 32)"[0m
+2026-07-21T09:06:41.1920841Z [36;1mecho "::add-mask::$token"[0m
+2026-07-21T09:06:41.1921395Z [36;1mecho "CONTENT_SYNC_TOKEN=$token" >> "$GITHUB_ENV"[0m
+2026-07-21T09:06:41.1921945Z [36;1m[0m
+2026-07-21T09:06:41.1922465Z [36;1mCONTENT_SYNC_TOKEN="$token" python - <<'PY'[0m
+2026-07-21T09:06:41.1923170Z [36;1mimport json[0m
+2026-07-21T09:06:41.1923711Z [36;1mimport os[0m
+2026-07-21T09:06:41.1924354Z [36;1mfrom pathlib import Path[0m
+2026-07-21T09:06:41.1925046Z [36;1m[0m
+2026-07-21T09:06:41.1925749Z [36;1msecrets = {"CONTENT_SYNC_TOKEN": os.environ["CONTENT_SYNC_TOKEN"]}[0m
+2026-07-21T09:06:41.1926861Z [36;1mmcp_token = os.environ.get("MCP_BEARER_TOKEN", "").strip()[0m
+2026-07-21T09:06:41.1927624Z [36;1mif mcp_token:[0m
+2026-07-21T09:06:41.1928704Z [36;1m    secrets["MCP_BEARER_TOKEN"] = mcp_token[0m
+2026-07-21T09:06:41.1929600Z [36;1m[0m
+2026-07-21T09:06:41.1930153Z [36;1mPath(".wrangler.secrets.json").write_text([0m
+2026-07-21T09:06:41.1930657Z [36;1m    json.dumps(secrets, separators=(",", ":")),[0m
+2026-07-21T09:06:41.1931095Z [36;1m    encoding="utf-8",[0m
+2026-07-21T09:06:41.1944068Z [36;1m)[0m
+2026-07-21T09:06:41.1944402Z [36;1mPY[0m
+2026-07-21T09:06:41.1944805Z [36;1mchmod 600 .wrangler.secrets.json[0m
+2026-07-21T09:06:41.2019837Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-07-21T09:06:41.2020449Z env:
+2026-07-21T09:06:41.2021252Z   CLOUDFLARE_API_TOKEN: ***
+2026-07-21T09:06:41.2021810Z   CLOUDFLARE_ACCOUNT_ID: ***
+2026-07-21T09:06:41.2022233Z   MCP_BEARER_TOKEN: 
+2026-07-21T09:06:41.2022724Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:41.2023506Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
+2026-07-21T09:06:41.2024275Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:41.2025011Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:41.2025718Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:41.2026424Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
+2026-07-21T09:06:41.2026979Z ##[endgroup]
+2026-07-21T09:06:41.2508640Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-21T09:06:41.2509949Z ##[group]Run cloudflare/wrangler-action@v3
+2026-07-21T09:06:41.2510239Z with:
+2026-07-21T09:06:41.2510618Z   apiToken: ***
+2026-07-21T09:06:41.2510873Z   accountId: ***
+2026-07-21T09:06:41.2511261Z   command: deploy --config wrangler.deploy.jsonc --secrets-file .wrangler.secrets.json
+2026-07-21T09:06:41.2511908Z   quiet: false
+2026-07-21T09:06:41.2512103Z env:
+2026-07-21T09:06:41.2512450Z   CLOUDFLARE_API_TOKEN: ***
+2026-07-21T09:06:41.2512757Z   CLOUDFLARE_ACCOUNT_ID: ***
+2026-07-21T09:06:41.2512999Z   MCP_BEARER_TOKEN: 
+2026-07-21T09:06:41.2513275Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:41.2513743Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
+2026-07-21T09:06:41.2514177Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:41.2514565Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:41.2514958Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:41.2515338Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
+2026-07-21T09:06:41.2515841Z   CONTENT_SYNC_TOKEN: ***
+2026-07-21T09:06:41.2516062Z ##[endgroup]
+2026-07-21T09:06:41.3411142Z ##[group]🔍 Checking for existing Wrangler installation
+2026-07-21T09:06:41.3770251Z [command]/opt/hostedtoolcache/node/24.18.0/x64/bin/npx --no-install wrangler --version
+2026-07-21T09:06:42.6167494Z 4.109.0
+2026-07-21T09:06:42.7059982Z ✅ No wrangler version specified, using pre-installed wrangler version 4.109.0
+2026-07-21T09:06:42.7061338Z ##[endgroup]
+2026-07-21T09:06:42.7061985Z ##[endgroup]
+2026-07-21T09:06:42.7062792Z ##[group]🚀 Running Wrangler Commands
+2026-07-21T09:06:42.7065035Z [command]/opt/hostedtoolcache/node/24.18.0/x64/bin/npx wrangler deploy --config wrangler.deploy.jsonc --secrets-file .wrangler.secrets.json
+2026-07-21T09:06:43.9158673Z 
+2026-07-21T09:06:43.9199122Z  ⛅️ wrangler 4.109.0 (update available 4.112.0)
+2026-07-21T09:06:43.9258824Z ───────────────────────────────────────────────
+2026-07-21T09:06:43.9437398Z 
+2026-07-21T09:06:43.9450434Z Cloudflare collects anonymous telemetry about your usage of Wrangler. Learn more at https://github.com/cloudflare/workers-sdk/tree/main/packages/wrangler/telemetry.md
+2026-07-21T09:06:44.9656109Z 🌀 Building list of assets...
+2026-07-21T09:06:44.9666011Z ✨ Read 4 files from the assets directory /home/runner/work/prompt-web/prompt-web/public
+2026-07-21T09:06:44.9705128Z 🌀 Starting asset upload...
+2026-07-21T09:06:47.3625305Z No updated asset files to upload. Proceeding with deployment...
+2026-07-21T09:06:47.4201812Z Total Upload: 2249.74 KiB / gzip: 409.78 KiB
+2026-07-21T09:06:49.9221683Z Worker Startup Time: 49 ms
+2026-07-21T09:06:49.9236901Z Your Worker has access to the following bindings:
+2026-07-21T09:06:49.9242214Z Binding                                                                            Resource                  
+2026-07-21T09:06:49.9247537Z env.PROMPT_KV (c5b087006ab04b2da422e4adcbef89b4)                                   KV Namespace              
+2026-07-21T09:06:49.9250340Z env.DB (prompt)                                                                    D1 Database               
+2026-07-21T09:06:49.9251773Z env.PROMPT_AI_SEARCH (little-hall-7cd2)                                            AI Search Instance        
+2026-07-21T09:06:49.9253333Z env.ASSETS                                                                         Assets                    
+2026-07-21T09:06:49.9254763Z env.ENVIRONMENT ("production")                                                     Environment Variable      
+2026-07-21T09:06:49.9257120Z env.AI_SEARCH_FOLDER_ROOT ("https://prompt.2212148739lbw.workers....")             Environment Variable      
+2026-07-21T09:06:49.9259941Z env.AI_SEARCH_PROJECT_SCOPE_MODE ("source")                                        Environment Variable      
+2026-07-21T09:06:49.9261485Z env.CONTENT_SYNC_TOKEN ("(hidden)")                                                Environment Variable      
+2026-07-21T09:06:49.9262312Z 
+2026-07-21T09:06:49.9262735Z Uploaded prompt (5.12 sec)
+2026-07-21T09:06:50.3485852Z Deployed prompt triggers (0.42 sec)
+2026-07-21T09:06:50.3488322Z   https://prompt.2212148739lbw.workers.dev
+2026-07-21T09:06:50.3489418Z Current Version ID: 6581f903-4722-4a7c-b330-e3cbb6fe0e24
+2026-07-21T09:06:50.4186155Z ##[endgroup]
+2026-07-21T09:06:50.4187234Z 🏁 Wrangler Action completed
+2026-07-21T09:06:50.4307768Z ##[group]Run python -m scripts.cli sync --base-url "$PROMPT_API_BASE_URL" --prune
+2026-07-21T09:06:50.4308867Z [36;1mpython -m scripts.cli sync --base-url "$PROMPT_API_BASE_URL" --prune[0m
+2026-07-21T09:06:50.4366588Z shell: /usr/bin/bash -e {0}
+2026-07-21T09:06:50.4366846Z env:
+2026-07-21T09:06:50.4367250Z   CLOUDFLARE_API_TOKEN: ***
+2026-07-21T09:06:50.4367567Z   CLOUDFLARE_ACCOUNT_ID: ***
+2026-07-21T09:06:50.4367807Z   MCP_BEARER_TOKEN: 
+2026-07-21T09:06:50.4368242Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:50.4368705Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
+2026-07-21T09:06:50.4369167Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:50.4369569Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:50.4369970Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:50.4370382Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
+2026-07-21T09:06:50.4370943Z   CONTENT_SYNC_TOKEN: ***
+2026-07-21T09:06:50.4371274Z   PROMPT_API_BASE_URL: https://prompt.2212148739lbw.workers.dev
+2026-07-21T09:06:50.4371634Z ##[endgroup]
+2026-07-21T09:06:51.5474804Z {
+2026-07-21T09:06:51.5482816Z   "dryRun": false,
+2026-07-21T09:06:51.5496217Z   "runId": null,
+2026-07-21T09:06:51.5496601Z   "skipped": true,
+2026-07-21T09:06:51.5496972Z   "plan": {
+2026-07-21T09:06:51.5497639Z     "manifestHash": "sha256:78a7f1039495407a5253176edfb390e7954cf58689e861202789108a3718802e",
+2026-07-21T09:06:51.5498656Z     "prune": true,
+2026-07-21T09:06:51.5498975Z     "projects": {
+2026-07-21T09:06:51.5499359Z       "created": 0,
+2026-07-21T09:06:51.5499772Z       "updated": 0,
+2026-07-21T09:06:51.5500165Z       "moved": 0,
+2026-07-21T09:06:51.5500535Z       "unchanged": 4,
+2026-07-21T09:06:51.5500931Z       "deleted": 0
+2026-07-21T09:06:51.5501286Z     },
+2026-07-21T09:06:51.5501640Z     "folders": {
+2026-07-21T09:06:51.5502016Z       "created": 0,
+2026-07-21T09:06:51.5502368Z       "updated": 0,
+2026-07-21T09:06:51.5502779Z       "moved": 0,
+2026-07-21T09:06:51.5503201Z       "unchanged": 39,
+2026-07-21T09:06:51.5503584Z       "deleted": 0
+2026-07-21T09:06:51.5503923Z     },
+2026-07-21T09:06:51.5504236Z     "files": {
+2026-07-21T09:06:51.5504571Z       "created": 0,
+2026-07-21T09:06:51.5504940Z       "updated": 0,
+2026-07-21T09:06:51.5505298Z       "moved": 0,
+2026-07-21T09:06:51.5505658Z       "unchanged": 348,
+2026-07-21T09:06:51.5506044Z       "deleted": 0
+2026-07-21T09:06:51.5506390Z     },
+2026-07-21T09:06:51.5506714Z     "deletions": []
+2026-07-21T09:06:51.5507054Z   }
+2026-07-21T09:06:51.5507359Z }
+2026-07-21T09:06:51.5661169Z ##[group]Run set -euo pipefail
+2026-07-21T09:06:51.5661840Z [36;1mset -euo pipefail[0m
+2026-07-21T09:06:51.5662276Z [36;1mtest -n "$DEPLOYMENT_URL" || { echo 'Wrangler did not return a deployment URL.'; exit 1; }[0m
+2026-07-21T09:06:51.5662760Z [36;1mbase_url="${DEPLOYMENT_URL%/}"[0m
+2026-07-21T09:06:51.5663066Z [36;1mecho "Testing $base_url"[0m
+2026-07-21T09:06:51.5663304Z [36;1m[0m
+2026-07-21T09:06:51.5663491Z [36;1mrequest_body() {[0m
+2026-07-21T09:06:51.5663709Z [36;1m  curl \[0m
+2026-07-21T09:06:51.5663904Z [36;1m    --fail \[0m
+2026-07-21T09:06:51.5664124Z [36;1m    --silent \[0m
+2026-07-21T09:06:51.5664342Z [36;1m    --show-error \[0m
+2026-07-21T09:06:51.5664571Z [36;1m    --retry 6 \[0m
+2026-07-21T09:06:51.5664791Z [36;1m    --retry-delay 2 \[0m
+2026-07-21T09:06:51.5665034Z [36;1m    --retry-all-errors \[0m
+2026-07-21T09:06:51.5665288Z [36;1m    --max-time 20 \[0m
+2026-07-21T09:06:51.5665505Z [36;1m    "$1"[0m
+2026-07-21T09:06:51.5665717Z [36;1m}[0m
+2026-07-21T09:06:51.5665897Z [36;1m[0m
+2026-07-21T09:06:51.5666122Z [36;1mfrontend_html="$(request_body "$base_url/")"[0m
+2026-07-21T09:06:51.5666604Z [36;1mviewer_html="$(request_body "$base_url/p/prompt-library/guides/content-sync.md")"[0m
+2026-07-21T09:06:51.5667204Z [36;1mraw_markdown="$(request_body "$base_url/raw/prompt-library/guides/content-sync.md")"[0m
+2026-07-21T09:06:51.5667879Z [36;1mai_index_root_html="$(request_body "$base_url/ai-index")"[0m
+2026-07-21T09:06:51.5668751Z [36;1mai_index_project_html="$(request_body "$base_url/ai-index/shadcn-ui-docs")"[0m
+2026-07-21T09:06:51.5669362Z [36;1mai_index_file_text="$(request_body "$base_url/ai-index/shadcn-ui-docs/components/progress.md")"[0m
+2026-07-21T09:06:51.5669886Z [36;1minfo_json="$(request_body "$base_url/api/info")"[0m
+2026-07-21T09:06:51.5670289Z [36;1mhealth_json="$(request_body "$base_url/health")"[0m
+2026-07-21T09:06:51.5670674Z [36;1mprojects_json="$(request_body "$base_url/api/projects")"[0m
+2026-07-21T09:06:51.5671161Z [36;1mbootstrap_json="$(request_body "$base_url/api/bootstrap/chatgpt/default")"[0m
+2026-07-21T09:06:51.5671766Z [36;1msearch_json="$(request_body "$base_url/api/files/search?q=sync&project=prompt-library&limit=5")"[0m
+2026-07-21T09:06:51.5672466Z [36;1mfile_json="$(request_body "$base_url/api/files/fetch?identifier=prompt-library-content-sync-guide")"[0m
+2026-07-21T09:06:51.5672950Z [36;1m[0m
+2026-07-21T09:06:51.5673143Z [36;1mecho "info=$info_json"[0m
+2026-07-21T09:06:51.5673397Z [36;1mecho "health=$health_json"[0m
+2026-07-21T09:06:51.5673682Z [36;1mecho "projects=$projects_json"[0m
+2026-07-21T09:06:51.5674049Z [36;1mecho "bootstrap=$bootstrap_json"[0m
+2026-07-21T09:06:51.5674353Z [36;1mecho "search=$search_json"[0m
+2026-07-21T09:06:51.5674603Z [36;1mecho "file=$file_json"[0m
+2026-07-21T09:06:51.5674901Z [36;1mecho "raw_markdown_prefix=${raw_markdown:0:120}"[0m
+2026-07-21T09:06:51.5675293Z [36;1mecho "ai_index_root_prefix=${ai_index_root_html:0:120}"[0m
+2026-07-21T09:06:51.5675688Z [36;1mecho "ai_index_file_prefix=${ai_index_file_text:0:120}"[0m
+2026-07-21T09:06:51.5675997Z [36;1m[0m
+2026-07-21T09:06:51.5676197Z [36;1mDEPLOYMENT_BASE_URL="$base_url" \[0m
+2026-07-21T09:06:51.5676495Z [36;1mFRONTEND_HTML="$frontend_html" \[0m
+2026-07-21T09:06:51.5676769Z [36;1mVIEWER_HTML="$viewer_html" \[0m
+2026-07-21T09:06:51.5677041Z [36;1mRAW_MARKDOWN="$raw_markdown" \[0m
+2026-07-21T09:06:51.5677343Z [36;1mAI_INDEX_ROOT_HTML="$ai_index_root_html" \[0m
+2026-07-21T09:06:51.5677692Z [36;1mAI_INDEX_PROJECT_HTML="$ai_index_project_html" \[0m
+2026-07-21T09:06:51.5678399Z [36;1mAI_INDEX_FILE_TEXT="$ai_index_file_text" \[0m
+2026-07-21T09:06:51.5678715Z [36;1mINFO_JSON="$info_json" \[0m
+2026-07-21T09:06:51.5678994Z [36;1mHEALTH_JSON="$health_json" \[0m
+2026-07-21T09:06:51.5679268Z [36;1mPROJECTS_JSON="$projects_json" \[0m
+2026-07-21T09:06:51.5679572Z [36;1mBOOTSTRAP_JSON="$bootstrap_json" \[0m
+2026-07-21T09:06:51.5679855Z [36;1mSEARCH_JSON="$search_json" \[0m
+2026-07-21T09:06:51.5680300Z [36;1mFILE_JSON="$file_json" \[0m
+2026-07-21T09:06:51.5680579Z [36;1mnode --input-type=module <<'NODE'[0m
+2026-07-21T09:06:51.5680892Z [36;1mimport { readFileSync } from 'node:fs';[0m
+2026-07-21T09:06:51.5681186Z [36;1m[0m
+2026-07-21T09:06:51.5681529Z [36;1mconst manifest = JSON.parse(readFileSync('.prompt-sync/manifest.json', 'utf8'));[0m
+2026-07-21T09:06:51.5682054Z [36;1mconst baseUrl = process.env.DEPLOYMENT_BASE_URL ?? '';[0m
+2026-07-21T09:06:51.5682458Z [36;1mconst frontend = process.env.FRONTEND_HTML ?? '';[0m
+2026-07-21T09:06:51.5682822Z [36;1mconst viewer = process.env.VIEWER_HTML ?? '';[0m
+2026-07-21T09:06:51.5683192Z [36;1mconst rawMarkdown = process.env.RAW_MARKDOWN ?? '';[0m
+2026-07-21T09:06:51.5683591Z [36;1mconst aiIndexRoot = process.env.AI_INDEX_ROOT_HTML ?? '';[0m
+2026-07-21T09:06:51.5684033Z [36;1mconst aiIndexProject = process.env.AI_INDEX_PROJECT_HTML ?? '';[0m
+2026-07-21T09:06:51.5684483Z [36;1mconst aiIndexFile = process.env.AI_INDEX_FILE_TEXT ?? '';[0m
+2026-07-21T09:06:51.5684884Z [36;1mconst info = JSON.parse(process.env.INFO_JSON);[0m
+2026-07-21T09:06:51.5685259Z [36;1mconst health = JSON.parse(process.env.HEALTH_JSON);[0m
+2026-07-21T09:06:51.5685661Z [36;1mconst projects = JSON.parse(process.env.PROJECTS_JSON);[0m
+2026-07-21T09:06:51.5686086Z [36;1mconst bootstrap = JSON.parse(process.env.BOOTSTRAP_JSON);[0m
+2026-07-21T09:06:51.5686616Z [36;1mconst search = JSON.parse(process.env.SEARCH_JSON);[0m
+2026-07-21T09:06:51.5686991Z [36;1mconst file = JSON.parse(process.env.FILE_JSON);[0m
+2026-07-21T09:06:51.5687284Z [36;1m[0m
+2026-07-21T09:06:51.5687628Z [36;1mif (!frontend.includes('id="open-source-form"') || !frontend.includes('/app.js')) {[0m
+2026-07-21T09:06:51.5688529Z [36;1m  throw new Error('The production Markdown viewer homepage was not served.');[0m
+2026-07-21T09:06:51.5688955Z [36;1m}[0m
+2026-07-21T09:06:51.5689287Z [36;1mif (!viewer.includes('id="open-source-form"') || !viewer.includes('/app.js')) {[0m
+2026-07-21T09:06:51.5689838Z [36;1m  throw new Error('The Markdown viewer SPA fallback route was not served.');[0m
+2026-07-21T09:06:51.5690226Z [36;1m}[0m
+2026-07-21T09:06:51.5690571Z [36;1mif (!rawMarkdown.includes('content/') || rawMarkdown.trimStart().startsWith('{')) {[0m
+2026-07-21T09:06:51.5691120Z [36;1m  throw new Error('The raw Markdown route did not return source text.');[0m
+2026-07-21T09:06:51.5691499Z [36;1m}[0m
+2026-07-21T09:06:51.5691676Z [36;1mif ([0m
+2026-07-21T09:06:51.5691924Z [36;1m  !aiIndexRoot.startsWith('<!doctype html>') ||[0m
+2026-07-21T09:06:51.5692344Z [36;1m  !aiIndexRoot.includes(`href="${baseUrl}/ai-index/shadcn-ui-docs"`)[0m
+2026-07-21T09:06:51.5692709Z [36;1m) {[0m
+2026-07-21T09:06:51.5693064Z [36;1m  throw new Error(`The AI index root was not crawlable: ${aiIndexRoot.slice(0, 500)}`);[0m
+2026-07-21T09:06:51.5693473Z [36;1m}[0m
+2026-07-21T09:06:51.5693647Z [36;1mif ([0m
+2026-07-21T09:06:51.5693894Z [36;1m  !aiIndexProject.startsWith('<!doctype html>') ||[0m
+2026-07-21T09:06:51.5694228Z [36;1m  !aiIndexProject.includes([0m
+2026-07-21T09:06:51.5694564Z [36;1m    `href="${baseUrl}/ai-index/shadcn-ui-docs/components"`,[0m
+2026-07-21T09:06:51.5694883Z [36;1m  )[0m
+2026-07-21T09:06:51.5695062Z [36;1m) {[0m
+2026-07-21T09:06:51.5695459Z [36;1m  throw new Error(`The AI index project directory was not crawlable: ${aiIndexProject.slice(0, 500)}`);[0m
+2026-07-21T09:06:51.5695943Z [36;1m}[0m
+2026-07-21T09:06:51.5696116Z [36;1mif ([0m
+2026-07-21T09:06:51.5696351Z [36;1m  !aiIndexFile.includes('\\u003cProgress') ||[0m
+2026-07-21T09:06:51.5696698Z [36;1m  !aiIndexFile.includes('\\u003cTabsTrigger') ||[0m
+2026-07-21T09:06:51.5697030Z [36;1m  aiIndexFile.includes('<Progress')[0m
+2026-07-21T09:06:51.5697307Z [36;1m) {[0m
+2026-07-21T09:06:51.5697680Z [36;1m  throw new Error(`The AI index document was not safely escaped: ${aiIndexFile.slice(0, 500)}`);[0m
+2026-07-21T09:06:51.5698352Z [36;1m}[0m
+2026-07-21T09:06:51.5698881Z [36;1mif (info.version !== '0.5.0' || info.endpoints?.viewer !== '/p/<project>/<path-to-file.md>') {[0m
+2026-07-21T09:06:51.5699462Z [36;1m  throw new Error(`Invalid service info response: ${JSON.stringify(info)}`);[0m
+2026-07-21T09:06:51.5699848Z [36;1m}[0m
+2026-07-21T09:06:51.5700101Z [36;1mif (health.status !== 'ok' || health.database !== true) {[0m
+2026-07-21T09:06:51.5700558Z [36;1m  throw new Error(`Unhealthy Worker response: ${JSON.stringify(health)}`);[0m
+2026-07-21T09:06:51.5700938Z [36;1m}[0m
+2026-07-21T09:06:51.5701136Z [36;1mif (health.kvSeeded !== true) {[0m
+2026-07-21T09:06:51.5701610Z [36;1m  throw new Error(`Production KV bootstrap manifest is missing: ${JSON.stringify(health)}`);[0m
+2026-07-21T09:06:51.5702051Z [36;1m}[0m
+2026-07-21T09:06:51.5702225Z [36;1mif ([0m
+2026-07-21T09:06:51.5702463Z [36;1m  health.contentSync?.status !== 'succeeded' ||[0m
+2026-07-21T09:06:51.5702870Z [36;1m  health.contentSync?.manifestHash !== manifest.manifestHash[0m
+2026-07-21T09:06:51.5703213Z [36;1m) {[0m
+2026-07-21T09:06:51.5703581Z [36;1m  throw new Error(`Content sync status is invalid: ${JSON.stringify(health.contentSync)}`);[0m
+2026-07-21T09:06:51.5704016Z [36;1m}[0m
+2026-07-21T09:06:51.5704452Z [36;1mif (!Array.isArray(projects.projects) || !projects.projects.some((item) => item.slug === 'prompt-library')) {[0m
+2026-07-21T09:06:51.5705229Z [36;1m  throw new Error(`Invalid projects response: ${JSON.stringify(projects)}`);[0m
+2026-07-21T09:06:51.5705617Z [36;1m}[0m
+2026-07-21T09:06:51.5705987Z [36;1mif (!Number.isInteger(bootstrap.version) || bootstrap.version < 1 || !bootstrap.content) {[0m
+2026-07-21T09:06:51.5706578Z [36;1m  throw new Error(`Invalid bootstrap response: ${JSON.stringify(bootstrap)}`);[0m
+2026-07-21T09:06:51.5706978Z [36;1m}[0m
+2026-07-21T09:06:51.5707150Z [36;1mif ([0m
+2026-07-21T09:06:51.5707358Z [36;1m  !Array.isArray(search.results) ||[0m
+2026-07-21T09:06:51.5707786Z [36;1m  !search.results.some((item) => item.id === 'prompt-library-content-sync-guide')[0m
+2026-07-21T09:06:51.5708520Z [36;1m) {[0m
+2026-07-21T09:06:51.5708879Z [36;1m  throw new Error(`Synced file was not searchable: ${JSON.stringify(search)}`);[0m
+2026-07-21T09:06:51.5709278Z [36;1m}[0m
+2026-07-21T09:06:51.5709463Z [36;1mif ([0m
+2026-07-21T09:06:51.5709726Z [36;1m  file.id !== 'prompt-library-content-sync-guide' ||[0m
+2026-07-21T09:06:51.5710183Z [36;1m  file.uri !== 'prompt://prompt-library/guides/content-sync.md' ||[0m
+2026-07-21T09:06:51.5710610Z [36;1m  !file.content.includes('content/')[0m
+2026-07-21T09:06:51.5710890Z [36;1m) {[0m
+2026-07-21T09:06:51.5711215Z [36;1m  throw new Error(`Synced file could not be fetched: ${JSON.stringify(file)}`);[0m
+2026-07-21T09:06:51.5711605Z [36;1m}[0m
+2026-07-21T09:06:51.5711780Z [36;1mNODE[0m
+2026-07-21T09:06:51.5770081Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-07-21T09:06:51.5770466Z env:
+2026-07-21T09:06:51.5770865Z   CLOUDFLARE_API_TOKEN: ***
+2026-07-21T09:06:51.5771194Z   CLOUDFLARE_ACCOUNT_ID: ***
+2026-07-21T09:06:51.5771445Z   MCP_BEARER_TOKEN: 
+2026-07-21T09:06:51.5771732Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:51.5772171Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
+2026-07-21T09:06:51.5772589Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:51.5772997Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:51.5773384Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:51.5773768Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
+2026-07-21T09:06:51.5774264Z   CONTENT_SYNC_TOKEN: ***
+2026-07-21T09:06:51.5774563Z   DEPLOYMENT_URL: https://prompt.2212148739lbw.workers.dev
+2026-07-21T09:06:51.5774896Z ##[endgroup]
+2026-07-21T09:06:51.5851755Z Testing https://prompt.2212148739lbw.workers.dev
+2026-07-21T09:06:54.1817958Z info={"service":"prompt-library-mcp","version":"0.5.0","status":"ok","endpoints":{"frontend":"/","viewer":"/p/<project>/<path-to-file.md>","raw":"/raw/<project>/<path-to-file.md>","aiRoot":"/api/files","aiFile":"/api/files/<project>/<path-to-file.md>","aiResource":"/api/files/<project>/<optional-path>","aiSearchSitemap":"/sitemap.xml","robots":"/robots.txt","v1Contents":"/api/v1/projects/<project>/contents/<optional-path>","info":"/api/info","health":"/health","projects":"/api/projects","v1Projects":"/api/v1/projects","tree":"/api/tree?project=<slug>&path=/","search":"/api/files/search?q=<keywords>","v1Search":"/api/v1/search?q=<keywords>","aiSearch":"/api/ai-search?q=<keywords>","aiSearchProject":"/api/ai-search/<project>?q=<keywords>","aiSearchInfo":"/api/ai-search/info","fetch":"/api/files/fetch?identifier=<id-or-uri>","bootstrap":"/api/bootstrap/:client/:profile","contentSyncSnapshot":"/api/admin/library/snapshot","contentSync":"/api/admin/library/sync","mcp":"/mcp"}}
+2026-07-21T09:06:54.1829146Z health={"status":"ok","database":true,"projectCount":4,"kvSeeded":true,"contentSync":{"runId":"content-sync-1784619973932-1ae99e76-1b07-4ec0-9dcd-56fac71261c1","status":"succeeded","manifestHash":"sha256:78a7f1039495407a5253176edfb390e7954cf58689e861202789108a3718802e","startedAt":"2026-07-21T07:46:14.051Z","finishedAt":"2026-07-21T07:46:32.465Z"},"environment":"production"}
+2026-07-21T09:06:54.1845102Z projects={"schemaVersion":"1.0","projects":[{"id":"project-prompt-library","slug":"prompt-library","name":"Prompt Library","description":"由仓库 content/ 自动发布的公共提示词与文档。","visibility":"public","defaultLanguage":"zh-CN","metadata":{"source":"repository-content","repository":"ActiveInsighter/prompt-web"},"createdAt":"2026-07-19T07:14:48.570Z","updatedAt":"2026-07-21T07:46:14.206Z"},{"id":"project-shadcn-ui-docs","slug":"shadcn-ui-docs","name":"shadcn/ui Docs","description":"从 shadcn/ui 文档侧边栏自动采集的 Markdown 文档。","visibility":"public","defaultLanguage":"en-US","metadata":{"source":"https://ui.shadcn.com/docs","collector":"scripts.collectors.shadcn_docs"},"createdAt":"2026-07-19T13:27:10.698Z","updatedAt":"2026-07-21T07:46:14.206Z"},{"id":"project-tailwindcss-docs","slug":"tailwindcss-docs","name":"Tailwind CSS Docs","description":"从 Tailwind CSS 官方文档侧边栏自动发现并清洗网页正文生成的 AI 可读 Markdown 文档。","visibility":"public","defaultLanguage":"en-US","metadata":{"source":"https://tailwindcss.com/docs","collector":"scripts.collectors.tailwindcss_docs"},"createdAt":"2026-07-21T03:08:12.900Z","updatedAt":"2026-07-21T07:46:14.206Z"},{"id":"project-zustand-docs","slug":"zustand-docs","name":"Zustand Docs","description":"从 pmndrs/zustand 仓库 docs/ 目录自动采集的 Markdown 文档。","visibility":"public","defaultLanguage":"en-US","metadata":{"source":"https://github.com/pmndrs/zustand/tree/main/docs","collector":"scripts.collectors.zustand_docs"},"createdAt":"2026-07-19T13:27:10.698Z","updatedAt":"2026-07-21T07:46:14.206Z"}],"authenticated":false}
+2026-07-21T09:06:54.1857679Z bootstrap={"version":1,"title":"ChatGPT 默认提示词库上下文","content":"这是一个按项目、目录和文件组织的提示词库。查询内容时先使用 list_projects 或 search_files 定位文件，再用 fetch_file 读取完整内容。不要把 KV 当作模糊搜索数据库；KV 只用于本基础上下文和明确 key 的公共提示词。同一会话中如 bundle 版本未变化，不要重复读取。","items":["common:structured-output:v1"],"updatedAt":"2026-07-19T00:00:00Z","client":"chatgpt","profile":"default","sourceKey":"bundle:chatgpt:default:v1"}
+2026-07-21T09:06:54.1867648Z search={"schemaVersion":"1.0","query":{"text":"sync","project":"prompt-library","path":null,"recursive":true,"language":null,"tags":[],"visibility":null,"role":null,"limit":5},"results":[{"id":"prompt-library-content-sync-guide","projectId":"project-prompt-library","projectSlug":"prompt-library","projectName":"Prompt Library","path":"/guides/content-sync.md","parentPath":"/guides","fileName":"content-sync.md","uri":"prompt://prompt-library/guides/content-sync.md","title":"内容库同步使用说明","description":"说明如何把 content 目录中的项目、目录和文件自动同步到 D1，供 MCP 查询和读取。","language":"zh-CN","format":"markdown","promptRole":"reference","visibility":"public","tags":["内容同步","D1","MCP"],"variables":[],"metadata":{"maintained_by":"repository"},"currentVersion":1,"createdAt":"2026-07-19T09:47:24.946Z","updatedAt":"2026-07-19T09:47:24.946Z","score":-5.532088278591901}],"authenticated":false}
+2026-07-21T09:06:54.1883075Z file={"schemaVersion":"1.0","type":"file","id":"prompt-library-content-sync-guide","projectId":"project-prompt-library","projectSlug":"prompt-library","projectName":"Prompt Library","path":"/guides/content-sync.md","parentPath":"/guides","fileName":"content-sync.md","uri":"prompt://prompt-library/guides/content-sync.md","title":"内容库同步使用说明","description":"说明如何把 content 目录中的项目、目录和文件自动同步到 D1，供 MCP 查询和读取。","content":"\n# 内容库同步使用说明\n\n`content/` 是提示词和文档的内容真源。它下面的每个一级目录对应一个数据库项目，后续目录对应文件夹，Markdown、文本和 JSON 文件对应提示词文件。\n\n修改内容后，先运行：\n\n```bash\npython -m scripts.cli validate\npython -m scripts.cli build\n```\n\n合并到 `main` 后，部署工作流会应用 D1 迁移、部署 Worker、生成临时同步令牌并调用受保护的内容同步接口。同步完成后，可以通过 `search_files` 搜索，也可以通过 `fetch_file` 按文件 ID 或 `prompt://` URI 读取。\n\n本文件的 URI 为：\n\n```text\nprompt://prompt-library/guides/content-sync.md\n```\n","language":"zh-CN","format":"markdown","promptRole":"reference","visibility":"public","tags":["内容同步","D1","MCP"],"variables":[],"metadata":{"maintained_by":"repository"},"currentVersion":1,"createdAt":"2026-07-19T09:47:24.946Z","updatedAt":"2026-07-19T09:47:24.946Z"}
+2026-07-21T09:06:54.1889947Z raw_markdown_prefix=
+2026-07-21T09:06:54.1890674Z # 内容库同步使用说明
+2026-07-21T09:06:54.1891081Z 
+2026-07-21T09:06:54.1891962Z `content/` 是提示词和文档的内容真源。它下面的每个一级目录对应一个数据库项目，后续目录对应文件夹，Markdown、文本和 JSON 文件对应提示词文件。
+2026-07-21T09:06:54.1892912Z 
+2026-07-21T09:06:54.1893322Z 修改内容后，先运行：
+2026-07-21T09:06:54.1893724Z 
+2026-07-21T09:06:54.1894050Z ```bash
+2026-07-21T09:06:54.1894563Z py
+2026-07-21T09:06:54.1895206Z ai_index_root_prefix=<!doctype html>
+2026-07-21T09:06:54.1895878Z <html lang="en">
+2026-07-21T09:06:54.1896457Z <head>
+2026-07-21T09:06:54.1897075Z   <meta charset="utf-8">
+2026-07-21T09:06:54.1897889Z   <meta name="viewport" content="width=device-width, in
+2026-07-21T09:06:54.1899010Z ai_index_file_prefix=
+2026-07-21T09:06:54.1899967Z ```tsx
+2026-07-21T09:06:54.1900637Z "use client"
+2026-07-21T09:06:54.1901136Z 
+2026-07-21T09:06:54.1901694Z import * as React from "react"
+2026-07-21T09:06:54.1902223Z 
+2026-07-21T09:06:54.1902821Z import { Progress } from "@/components/ui/progress"
+2026-07-21T09:06:54.1904830Z 
+2026-07-21T09:06:54.1905216Z export functi
+2026-07-21T09:06:54.2397003Z ##[group]Run rm -f .wrangler.secrets.json
+2026-07-21T09:06:54.2397377Z [36;1mrm -f .wrangler.secrets.json[0m
+2026-07-21T09:06:54.2456215Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-07-21T09:06:54.2456584Z env:
+2026-07-21T09:06:54.2457001Z   CLOUDFLARE_API_TOKEN: ***
+2026-07-21T09:06:54.2457323Z   CLOUDFLARE_ACCOUNT_ID: ***
+2026-07-21T09:06:54.2457579Z   MCP_BEARER_TOKEN: 
+2026-07-21T09:06:54.2457867Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:54.2458665Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
+2026-07-21T09:06:54.2459119Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:54.2459516Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:54.2459921Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:54.2460323Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
+2026-07-21T09:06:54.2460945Z   CONTENT_SYNC_TOKEN: ***
+2026-07-21T09:06:54.2461184Z ##[endgroup]
+2026-07-21T09:06:54.2573220Z ##[group]Run {
+2026-07-21T09:06:54.2573466Z [36;1m{[0m
+2026-07-21T09:06:54.2573694Z [36;1m  echo "## Prompt MCP deployment"[0m
+2026-07-21T09:06:54.2573980Z [36;1m  echo[0m
+2026-07-21T09:06:54.2574210Z [36;1m  echo "- Run ID: \`$GITHUB_RUN_ID\`"[0m
+2026-07-21T09:06:54.2574518Z [36;1m  echo "- Commit: \`$GITHUB_SHA\`"[0m
+2026-07-21T09:06:54.2574805Z [36;1m  echo "- URL: $DEPLOYMENT_URL"[0m
+2026-07-21T09:06:54.2575523Z [36;1m  echo "- D1 migrations, remote KV, atomic secret deployment, content sync, Markdown frontend, AI index crawlability, and production smoke tests are enforced by this job."[0m
+2026-07-21T09:06:54.2576240Z [36;1m} >> "$GITHUB_STEP_SUMMARY"[0m
+2026-07-21T09:06:54.2629025Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-07-21T09:06:54.2629375Z env:
+2026-07-21T09:06:54.2629751Z   CLOUDFLARE_API_TOKEN: ***
+2026-07-21T09:06:54.2630057Z   CLOUDFLARE_ACCOUNT_ID: ***
+2026-07-21T09:06:54.2630303Z   MCP_BEARER_TOKEN: 
+2026-07-21T09:06:54.2630612Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:54.2631060Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
+2026-07-21T09:06:54.2631661Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:54.2632039Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:54.2632416Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-21T09:06:54.2632796Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
+2026-07-21T09:06:54.2633290Z   CONTENT_SYNC_TOKEN: ***
+2026-07-21T09:06:54.2633588Z   DEPLOYMENT_URL: https://prompt.2212148739lbw.workers.dev
+2026-07-21T09:06:54.2633925Z ##[endgroup]
+2026-07-21T09:06:54.2790533Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-21T09:06:54.2791762Z Post job cleanup.
+2026-07-21T09:06:54.4218583Z (node:2489) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-07-21T09:06:54.4233878Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-07-21T09:06:54.4589116Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-21T09:06:54.4591328Z Post job cleanup.
+2026-07-21T09:06:54.6203240Z (node:2497) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-07-21T09:06:54.6205070Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-07-21T09:06:54.6397677Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-21T09:06:54.6400801Z Post job cleanup.
+2026-07-21T09:06:54.7568947Z [command]/usr/bin/git version
+2026-07-21T09:06:54.7630438Z git version 2.54.0
+2026-07-21T09:06:54.7684139Z Temporarily overriding HOME='/home/runner/work/_temp/8cc70450-3e44-4bf3-9d5c-48263188ec25' before making global git config changes
+2026-07-21T09:06:54.7687819Z Adding repository directory to the temporary git global config as a safe directory
+2026-07-21T09:06:54.7701909Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/prompt-web/prompt-web
+2026-07-21T09:06:54.7783959Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-07-21T09:06:54.7835044Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-07-21T09:06:54.8173597Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-07-21T09:06:54.8208383Z http.https://github.com/.extraheader
+2026-07-21T09:06:54.8269534Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-07-21T09:06:54.8277976Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-07-21T09:06:54.8634491Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-07-21T09:06:54.8729566Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-07-21T09:06:54.9278751Z Cleaning up orphan processes
+2026-07-21T09:06:54.9709426Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/setup-python@v5, cloudflare/wrangler-action@v3. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
 
