@@ -44,7 +44,7 @@ Static sites
 
 After saving the settings, trigger a manual sync. The crawler user agent is `Cloudflare-AI-Search`; `/robots.txt` permits `/ai-index/`, blocks the raw/API routes for that crawler, and advertises the sitemap.
 
-The Worker binds directly to the `little-hall-7cd2` instance through `PROMPT_AI_SEARCH`. Local `wrangler dev` uses the remote instance because the binding has `remote: true`.
+The Worker binds directly to the latest `ai-search-prompt` instance through `PROMPT_AI_SEARCH`. Local `wrangler dev` uses the remote instance because the binding has `remote: true`.
 
 ## Search API
 
@@ -87,7 +87,7 @@ Supported query parameters:
 | `context` | `0` | Surrounding chunks from 0 to 3. |
 | `rerank` | `false` | Enable or disable reranking. |
 
-The current instance has vector indexing enabled and keyword indexing disabled, so the default `auto` mode resolves to `vector`. Explicitly requesting an unavailable mode returns a structured `retrieval_mode_unavailable` response. Instance capabilities are cached in each Worker isolate for five minutes.
+The Worker reads the instance capabilities dynamically. The default `auto` mode selects the best retrieval mode enabled by `ai-search-prompt`; explicitly requesting an unavailable mode returns a structured `retrieval_mode_unavailable` response. Instance capabilities are cached in each Worker isolate for five minutes.
 
 ## Project scoping
 
@@ -109,14 +109,28 @@ The scoping strategy is controlled by `AI_SEARCH_PROJECT_SCOPE_MODE`:
 
 For hard pre-retrieval tenant isolation, upload items with an explicit `project` metadata field through the Items API, or use a separate AI Search instance per isolated project.
 
-The default response groups chunks by file and includes:
+## Compact response
 
-- the best matching text chunk and score;
-- the original indexed source key;
-- project and file path parsed from the source URL;
-- direct `/api/files`, `/p`, and `/raw` paths;
-- Cloudflare scoring details and source metadata;
-- retrieval and project-scope diagnostics.
+The public response intentionally omits internal IDs, retrieval diagnostics, capabilities, metadata, duplicate counts, and detailed scoring data. It keeps only the information needed to use a result and open the complete Markdown source:
+
+```json
+{
+  "query": "padding",
+  "project": "tailwindcss-docs",
+  "count": 1,
+  "results": [
+    {
+      "score": 0.91,
+      "text": "# padding\n\nRelevant Markdown snippet...",
+      "project": "tailwindcss-docs",
+      "path": "/spacing/padding.md",
+      "url": "https://prompt.2212148739lbw.workers.dev/raw/tailwindcss-docs/spacing/padding.md"
+    }
+  ]
+}
+```
+
+`text` is the matching search chunk, not necessarily the entire file. `url` points to the complete raw Markdown document. Crawl-safe `\\u003c` and `\\u003e` sequences from `/ai-index` are restored before JSON encoding, so a normal JSON parser receives the original `<` and `>` characters without an extra backslash layer.
 
 ## Configuration
 

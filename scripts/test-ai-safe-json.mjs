@@ -26,21 +26,47 @@ assert.deepEqual(JSON.parse(serialized), source, 'AI-safe JSON must preserve the
 const aiSearchPayload = {
   schemaVersion: '1.0',
   engine: 'cloudflare-ai-search',
+  searchQuery: 'padding',
+  query: {
+    text: 'padding',
+    project: { slug: 'tailwindcss-docs', name: 'Tailwind CSS Docs' },
+    mode: 'vector',
+    limit: 5,
+  },
+  count: 2,
   results: [
     {
+      id: 'padding-1',
+      type: 'text',
+      score: 0.91,
       text: '# padding\n\n`p-\\u003cnumber\\u003e`\n\n\\u003cdiv class="p-8"\\u003ep-8\\u003c/div\\u003e',
       source: {
-        key: 'https://prompt.example.com/ai-index/tailwindcss-docs/padding.md',
+        key: 'https://prompt.example.com/ai-index/tailwindcss-docs/spacing/padding.md',
+        url: 'https://prompt.example.com/ai-index/tailwindcss-docs/spacing/padding.md',
+        project: 'tailwindcss-docs',
+        path: '/spacing/padding.md',
+        rawPath: '/raw/tailwindcss-docs/spacing/padding.md',
+        metadata: { chunk_modality: 'text' },
       },
+      scoringDetails: { vector_score: 0.91 },
     },
     {
+      id: 'escaping-1',
+      type: 'text',
+      score: 0.72,
       text: 'Literal documentation of \\u003c must stay literal outside /ai-index.',
       source: {
         key: 'https://prompt.example.com/raw/tailwindcss-docs/escaping.md',
+        url: 'https://prompt.example.com/raw/tailwindcss-docs/escaping.md',
+        project: 'tailwindcss-docs',
+        path: '/escaping.md',
+        rawPath: '/raw/tailwindcss-docs/escaping.md',
       },
     },
   ],
+  diagnostics: { retrievedChunks: 50 },
 };
+
 const serializedAiSearch = serializeAiSafeJson(aiSearchPayload);
 const parsedAiSearch = JSON.parse(serializedAiSearch);
 
@@ -53,18 +79,31 @@ assert.ok(
   serializedAiSearch.includes('\\u003cdiv'),
   'AI Search JSON should retain one safe transport-level Unicode escape.',
 );
-assert.equal(
-  parsedAiSearch.results[0].text,
-  '# padding\n\n`p-<number>`\n\n<div class="p-8">p-8</div>',
-  'JSON consumers should receive the original Markdown and HTML tags.',
-);
-assert.equal(
-  parsedAiSearch.results[1].text,
-  'Literal documentation of \\u003c must stay literal outside /ai-index.',
-  'Only /ai-index search results should be restored.',
-);
-assert.equal(parsedAiSearch.results[0].text.startsWith('# padding'), true);
-assert.equal(parsedAiSearch.results[0].text.includes('`p-<number>`'), true);
+assert.deepEqual(parsedAiSearch, {
+  query: 'padding',
+  project: 'tailwindcss-docs',
+  count: 2,
+  results: [
+    {
+      score: 0.91,
+      text: '# padding\n\n`p-<number>`\n\n<div class="p-8">p-8</div>',
+      project: 'tailwindcss-docs',
+      path: '/spacing/padding.md',
+      url: 'https://prompt.example.com/raw/tailwindcss-docs/spacing/padding.md',
+    },
+    {
+      score: 0.72,
+      text: 'Literal documentation of \\u003c must stay literal outside /ai-index.',
+      project: 'tailwindcss-docs',
+      path: '/escaping.md',
+      url: 'https://prompt.example.com/raw/tailwindcss-docs/escaping.md',
+    },
+  ],
+});
+assert.equal(serializedAiSearch.includes('diagnostics'), false);
+assert.equal(serializedAiSearch.includes('scoringDetails'), false);
+assert.equal(serializedAiSearch.includes('schemaVersion'), false);
+assert.equal(serializedAiSearch.includes('cloudflare-ai-search'), false);
 
 assert.throws(() => serializeAiSafeJson(undefined), /not JSON serializable/i);
 

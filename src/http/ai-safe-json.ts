@@ -14,6 +14,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+function optionalString(value: unknown): string | null {
+  return typeof value === 'string' && value.trim() ? value : null;
+}
+
 function isAiIndexSourceKey(value: unknown): boolean {
   if (typeof value !== 'string') return false;
 
@@ -34,45 +38,65 @@ function restoreAiIndexEscapes(value: string): string {
     .replaceAll(AI_INDEX_ESCAPED_GREATER_THAN, '>');
 }
 
+function resolveRawUrl(source: Record<string, unknown>): string | null {
+  const rawPath = optionalString(source.rawPath);
+  const sourceUrl = optionalString(source.url) ?? optionalString(source.key);
+
+  if (rawPath && sourceUrl) {
+    try {
+      return new URL(rawPath, sourceUrl).toString();
+    } catch {
+      return rawPath;
+    }
+  }
+
+  return rawPath ?? sourceUrl;
+}
+
 function normalizeAiSearchPayload(value: unknown): unknown {
   if (!isRecord(value) || value.engine !== 'cloudflare-ai-search' || !Array.isArray(value.results)) {
     return value;
   }
 
-  let changed = false;
-  const results = value.results.map((result) => {
-    if (!isRecord(result) || typeof result.text !== 'string') return result;
+  const query = isRecord(value.query) ? value.query : {};
+  const queryProject = query.project;
+  const project = isRecord(queryProject)
+    ? optionalString(queryProject.slug)
+    : optionalString(queryProject);
 
-    const source = isRecord(result.source) ? result.source : null;
-    if (!source || !isAiIndexSourceKey(source.key)) return result;
+  const results = value.results.flatMap((result) => {
+    if (!isRecord(result)) return [];
 
-    const text = restoreAiIndexEscapes(result.text);
-    if (text === result.text) return result;
+    const source = isRecord(result.source) ? result.source : {};
+    const sourceKey = optionalString(source.key);
+    const rawText = optionalString(result.text) ?? '';
+    const text = sourceKey && isAiIndexSourceKey(sourceKey)
+      ? restoreAiIndexEscapes(rawText)
+      : rawText;
 
-    changed = true;
-    return {
-      ...result,
-      text,
-    };
+    return [
+      {
+        score: typeof result.score === 'number' ? result.score : 0,
+        text,
+        project: optionalString(source.project),
+        path: optionalString(source.path),
+        url: resolveRawUrl(source),
+      },
+    ];
   });
 
-  return changed
-    ? {
-        ...value,
-        results,
-      }
-    : value;
+  return {
+    query: optionalString(query.text) ?? optionalString(value.searchQuery) ?? '',
+    project,
+    count: results.length,
+    results,
+  };
 }
 
 /**
  * Serializes JSON without leaving literal HTML-significant characters in the
- * response body. Standard JSON parsers reconstruct the original content, while
- * generic HTML/text extractors cannot mistake JSX or MDX fragments for tags.
- *
- * AI Search indexes the crawl-safe /ai-index representation, where tag brackets
- * are stored as literal \\u003c and \\u003e sequences. Before serializing search
- * results, restore those brackets so JSON adds exactly one transport-level
- * escape. Consumers that parse the JSON receive the original Markdown/JSX text.
+ * response body. AI Search responses are also reduced to the fields callers
+ * need and crawl-safe tag escapes are restored before the final JSON encoding.
  */
 export function serializeAiSafeJson(value: unknown): string {
   const serialized = JSON.stringify(normalizeAiSearchPayload(value));
