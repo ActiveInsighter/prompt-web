@@ -26,7 +26,7 @@ function jsonResponse(value: unknown, status: JsonStatus = 200): Response {
 
 function discoveryResponse(): Response {
   return jsonResponse({
-    schemaVersion: '1.0',
+    schemaVersion: '1.1',
     service: 'cloudflare-ai-search',
     engine: 'Cloudflare AI Search',
     endpoints: {
@@ -39,7 +39,8 @@ function discoveryResponse(): Response {
       q: 'Required search text. Alias: query.',
       project: 'Optional public project slug.',
       limit: '1-20. Defaults to 10.',
-      mode: 'auto, hybrid, vector, or keyword. Defaults to auto.',
+      mode:
+        'Accepted values: auto, hybrid, vector, or keyword. Defaults to auto. Explicit modes that are disabled on the current index return retrieval_mode_unavailable.',
       group: 'files or chunks. Defaults to files.',
       threshold: '0-1. Defaults to 0.4.',
       context: '0-3 surrounding chunks. Defaults to 0.',
@@ -49,21 +50,49 @@ function discoveryResponse(): Response {
       query: 'Normalized search text.',
       project: 'Project slug or null.',
       count: 'Number of results.',
-      results: 'score, text, project, path, uri, and raw URL.',
+      results: 'score, title, text, project, path, uri, and raw URL.',
+      meta: 'Resolved retrieval mode, grouping, and duration_ms.',
+    },
+    errors: {
+      shape: '{ ok: false, error: { code, message, retryable, upstream_status?, details? } }',
     },
   });
 }
 
-function errorResponse(error: AiSearchServiceError): Response {
-  return jsonResponse(
-    {
-      schemaVersion: '1.0',
-      error: {
-        code: error.code,
-        message: error.message,
-        ...error.details,
-      },
+function structuredError(
+  code: string,
+  message: string,
+  options: {
+    retryable?: boolean;
+    upstreamStatus?: number;
+    details?: Record<string, unknown>;
+  } = {},
+) {
+  return {
+    ok: false,
+    error: {
+      code,
+      message,
+      retryable: options.retryable ?? false,
+      ...(options.upstreamStatus !== undefined
+        ? { upstream_status: options.upstreamStatus }
+        : {}),
+      ...(options.details ? { details: options.details } : {}),
     },
+  };
+}
+
+function errorResponse(error: AiSearchServiceError): Response {
+  const upstreamStatus =
+    typeof error.details?.upstreamStatus === 'number'
+      ? error.details.upstreamStatus
+      : undefined;
+  return jsonResponse(
+    structuredError(error.code, error.message, {
+      retryable: error.status >= 500,
+      upstreamStatus,
+      details: error.details,
+    }),
     error.status,
   );
 }
@@ -78,16 +107,7 @@ async function handleAiSearch(
     return jsonResponse(await searchAiDocuments(env, options, request.url));
   } catch (error) {
     if (error instanceof AiSearchRequestError) {
-      return jsonResponse(
-        {
-          schemaVersion: '1.0',
-          error: {
-            code: error.code,
-            message: error.message,
-          },
-        },
-        400,
-      );
+      return jsonResponse(structuredError(error.code, error.message), 400);
     }
     if (error instanceof AiSearchServiceError) return errorResponse(error);
     throw error;
