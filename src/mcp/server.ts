@@ -40,7 +40,7 @@ const fileSummarySchema = z.object({
   description: z.string().optional(),
   language: z.string(),
   tags: z.array(z.string()),
-  score: z.number().optional(),
+  bm25Rank: z.number().optional(),
 });
 
 const fileContentSchema = z.object({
@@ -57,11 +57,20 @@ const fileContentSchema = z.object({
 
 const aiSearchResultSchema = z.object({
   score: z.number(),
+  title: z.string(),
   text: z.string(),
   project: z.string().nullable(),
   path: z.string().nullable(),
   uri: z.string().nullable(),
   url: z.string().nullable(),
+});
+
+const commonPromptSummarySchema = z.object({
+  key: z.string(),
+  title: z.string(),
+  description: z.string(),
+  version: z.number().int(),
+  updatedAt: z.string().optional(),
 });
 
 const searchInputSchema = {
@@ -80,11 +89,10 @@ const aiSearchInputSchema = {
   query: z.string().trim().min(1).max(1_000),
   project: z.string().trim().max(128).optional(),
   limit: z.number().int().min(1).max(20).default(10),
-  mode: z.enum(['auto', 'hybrid', 'vector', 'keyword']).default('auto'),
+  mode: z.enum(['auto', 'vector']).default('auto'),
   group: z.enum(['files', 'chunks']).default('files'),
   threshold: z.number().min(0).max(1).default(0.4),
   context: z.number().int().min(0).max(3).default(0),
-  rerank: z.boolean().default(false),
 };
 
 function structuredResult(value: Record<string, unknown>) {
@@ -94,9 +102,30 @@ function structuredResult(value: Record<string, unknown>) {
   };
 }
 
-function errorResult(code: string, message: string) {
+function errorResult(
+  code: string,
+  message: string,
+  options: {
+    retryable?: boolean;
+    upstreamStatus?: number;
+    details?: Record<string, unknown>;
+  } = {},
+) {
+  const value = {
+    ok: false,
+    error: {
+      code,
+      message,
+      retryable: options.retryable ?? false,
+      ...(options.upstreamStatus !== undefined
+        ? { upstream_status: options.upstreamStatus }
+        : {}),
+      ...(options.details ? { details: options.details } : {}),
+    },
+  };
   return {
-    content: [{ type: 'text' as const, text: JSON.stringify({ error: { code, message } }) }],
+    content: [{ type: 'text' as const, text: JSON.stringify(value) }],
+    structuredContent: value,
     isError: true,
   };
 }
@@ -135,7 +164,7 @@ function compactSearchResult(file: PromptSearchResult) {
     ...(file.description ? { description: file.description } : {}),
     language: file.language,
     tags: file.tags,
-    ...(typeof file.score === 'number' ? { score: file.score } : {}),
+    ...(typeof file.score === 'number' ? { bm25Rank: file.score } : {}),
   };
 }
 
@@ -153,11 +182,15 @@ function compactFile(file: PromptFileRecord) {
   };
 }
 
+function isCommonPromptSummary(value: unknown): value is z.infer<typeof commonPromptSummarySchema> {
+  return commonPromptSummarySchema.safeParse(value).success;
+}
+
 export function createPromptMcpServer(env: Env, access: AccessContext): McpServer {
   const repository = new PromptRepository(env);
   const server = new McpServer({
     name: 'prompt-library',
-    version: '0.6.0',
+    version: '0.7.0',
   });
 
   server.registerTool(
@@ -204,7 +237,7 @@ export function createPromptMcpServer(env: Env, access: AccessContext): McpServe
     {
       title: 'Search files precisely',
       description:
-        'Search D1 by exact text and structured filters such as project, directory, tags, language, visibility, and role. Returns file metadata only; use fetch_file for content. Prefer ai_search for natural-language semantic questions.',
+        'Search D1 by exact text and structured filters such as project, directory, tags, language, visibility, and role. Returns file metadata only; use fetch_file for content. bm25Rank is the raw SQLite FTS5 BM25 rank, where smaller values rank earlier. Prefer ai_search for natural-language semantic questions.',
       inputSchema: searchInputSchema,
       outputSchema: {
         query: z.string(),
@@ -230,20 +263,35 @@ export function createPromptMcpServer(env: Env, access: AccessContext): McpServe
     {
       title: 'Semantic AI search',
       description:
-        'Search public indexed documentation with the same Cloudflare AI Search logic as the web API. Returns matching Markdown snippets plus prompt:// identifiers and raw URLs. Use fetch_file to read a complete result.',
+        'Search public indexed documentation with stable vector retrieval. auto safely resolves to vector. Returns ranked Markdown snippets plus titles, prompt:// identifiers, raw URLs, and measured duration. Use fetch_file to read a complete result.',
       inputSchema: aiSearchInputSchema,
       outputSchema: {
         query: z.string(),
         project: z.string().nullable(),
         count: z.number().int(),
         results: z.array(aiSearchResultSchema),
+        meta: z.object({
+          mode: z.literal('vector'),
+          group: z.enum(['files', 'chunks']),
+          duration_ms: z.number().int().nonnegative(),
+        }),
       },
     },
     async (input) => {
       try {
         return structuredResult(await searchAiDocumentsFromInput(env, input));
       } catch (error) {
-        if (error instanceof AiSearchRequestError || error instanceof AiSearchServiceError) {
+        if (error instanceof AiSearchServiceError) {
+          return errorResult(error.code, error.message, {
+            retryable: error.status >= 500,
+            upstreamStatus:
+              typeof error.details?.upstreamStatus === 'number'
+                ? error.details.upstreamStatus
+                : undefined,
+            details: error.details,
+          });
+        }
+        if (error instanceof AiSearchRequestError) {
           return errorResult(error.code, error.message);
         }
         throw error;
@@ -304,6 +352,7 @@ export function createPromptMcpServer(env: Env, access: AccessContext): McpServe
         uri: z.string(),
         title: z.string(),
         content: z.string(),
+        usedVariables: z.array(z.string()),
         missingVariables: z.array(z.string()),
       },
     },
@@ -315,6 +364,7 @@ export function createPromptMcpServer(env: Env, access: AccessContext): McpServe
         uri: file.uri,
         title: file.title,
         content: rendered.rendered,
+        usedVariables: file.variables.filter((variable) => Object.hasOwn(values, variable)),
         missingVariables: rendered.missingVariables,
       });
     },
@@ -349,10 +399,29 @@ export function createPromptMcpServer(env: Env, access: AccessContext): McpServe
   );
 
   server.registerTool(
+    'list_common_prompts',
+    {
+      title: 'List common public prompts',
+      description: 'List discoverable public common:* prompt keys stored in KV.',
+      inputSchema: {},
+      outputSchema: {
+        count: z.number().int(),
+        prompts: z.array(commonPromptSummarySchema),
+      },
+    },
+    async () => {
+      const index = await env.PROMPT_KV.get<unknown>('index:common', 'json');
+      const prompts = Array.isArray(index) ? index.filter(isCommonPromptSummary) : [];
+      return structuredResult({ count: prompts.length, prompts });
+    },
+  );
+
+  server.registerTool(
     'get_common_prompt',
     {
       title: 'Get a common public prompt',
-      description: 'Read one public versioned prompt from KV by an exact common:* key.',
+      description:
+        'Read one public versioned prompt from KV by an exact common:* key. Use list_common_prompts first when the key is unknown.',
       inputSchema: {
         key: z.string().trim().min(1).max(200),
       },
