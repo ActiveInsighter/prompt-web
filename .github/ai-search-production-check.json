@@ -1,0 +1,54 @@
+{
+  "passed": false,
+  "checks": {
+    "info": true,
+    "allProjects": false,
+    "projectScoped": false
+  },
+  "responses": {
+    "info": {
+      "status": 200,
+      "body": {
+        "schemaVersion": "1.0",
+        "service": "cloudflare-ai-search",
+        "engine": "Cloudflare AI Search",
+        "endpoints": {
+          "allProjects": "/api/ai-search?q=<query>",
+          "oneProject": "/api/ai-search/<project>?q=<query>",
+          "v1AllProjects": "/api/v1/ai-search?q=<query>",
+          "v1OneProject": "/api/v1/projects/<project>/ai-search?q=<query>"
+        },
+        "parameters": {
+          "q": "Required search text. Alias: query.",
+          "project": "Optional project slug on all-project endpoints.",
+          "limit": "1-20. Defaults to 10.",
+          "mode": "hybrid, vector, or keyword. Defaults to hybrid.",
+          "group": "files or chunks. Defaults to files.",
+          "threshold": "0-1. Defaults to 0.4.",
+          "context": "0-3 surrounding chunks. Defaults to 1.",
+          "rerank": "Boolean. Defaults to true."
+        }
+      }
+    },
+    "all": {
+      "status": 502,
+      "body": {
+        "schemaVersion": "1.0",
+        "error": {
+          "code": "ai_search_failed",
+          "message": "Cloudflare AI Search request failed."
+        }
+      }
+    },
+    "project": {
+      "status": 502,
+      "body": {
+        "schemaVersion": "1.0",
+        "error": {
+          "code": "ai_search_failed",
+          "message": "Cloudflare AI Search request failed."
+        }
+      }
+    }
+  }
+}
