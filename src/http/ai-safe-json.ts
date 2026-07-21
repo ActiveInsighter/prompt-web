@@ -29,7 +29,7 @@ export interface CompactAiSearchResult {
   url: string | null;
 }
 
-export interface CompactAiSearchResponse {
+export interface CompactAiSearchResponse extends Record<string, unknown> {
   query: string;
   project: string | null;
   count: number;
