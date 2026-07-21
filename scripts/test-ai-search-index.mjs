@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 
 import {
+  buildAiIndexDirectoryHtml,
+  buildAiIndexRootHtml,
+} from '../src/http/ai-index-html.ts';
+import {
   buildAiIndexFilePath,
   buildAiSearchRobotsTxt,
   buildAiSearchSitemap,
@@ -99,6 +103,67 @@ assert.equal(
   escapeAiIndexContent('<!-- keep <Button> literal -->'),
   '\\u003c!-- keep \\u003cButton\\u003e literal --\\u003e',
 );
+
+const project = {
+  id: 'project-1',
+  slug: 'shadcn-ui-docs',
+  name: 'shadcn/ui Docs',
+  description: 'Component documentation with <MDX> examples.',
+  visibility: 'public',
+  defaultLanguage: 'en',
+  metadata: {},
+  createdAt: '2026-07-20T12:00:00Z',
+  updatedAt: '2026-07-20T12:30:00Z',
+};
+
+const rootHtml = buildAiIndexRootHtml('https://prompt.example.com/ignored/path', [project]);
+assert.ok(rootHtml.includes('<link rel="canonical" href="https://prompt.example.com/ai-index">'));
+assert.ok(rootHtml.includes('href="https://prompt.example.com/ai-index/shadcn-ui-docs"'));
+assert.ok(rootHtml.includes('Component documentation with &lt;MDX&gt; examples.'));
+assert.equal(rootHtml.includes('/api/files/shadcn-ui-docs'), false);
+
+const directoryHtml = buildAiIndexDirectoryHtml('https://prompt.example.com', {
+  project,
+  path: '/components',
+  entries: [
+    {
+      id: 'folder-1',
+      projectId: project.id,
+      parentId: null,
+      type: 'folder',
+      name: 'forms',
+      path: '/components/forms',
+      depth: 2,
+      sortOrder: 0,
+      visibility: null,
+      updatedAt: '2026-07-20T12:30:00Z',
+    },
+    {
+      id: 'file-1',
+      projectId: project.id,
+      parentId: null,
+      type: 'file',
+      name: 'button.md',
+      path: '/components/button.md',
+      depth: 2,
+      sortOrder: 1,
+      visibility: null,
+      title: 'Button <API>',
+      description: 'Button documentation.',
+      language: 'en',
+      promptRole: 'reference',
+      updatedAt: '2026-07-20T12:30:00Z',
+    },
+  ],
+});
+assert.ok(directoryHtml.includes('href="https://prompt.example.com/ai-index/shadcn-ui-docs"'));
+assert.ok(
+  directoryHtml.includes(
+    'href="https://prompt.example.com/ai-index/shadcn-ui-docs/components/button.md"',
+  ),
+);
+assert.ok(directoryHtml.includes('Button &lt;API&gt;'));
+assert.ok(directoryHtml.includes('Parent directory'));
 
 const sitemap = buildAiSearchSitemap(
   'https://prompt.example.com/base/path?ignored=true',
