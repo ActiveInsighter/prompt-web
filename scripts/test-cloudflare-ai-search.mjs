@@ -6,6 +6,7 @@ import {
   chunkMatchesProject,
   formatAiSearchResults,
   normalizeAiSearchFolderRoot,
+  parseAiSearchProjectScopeMode,
   parseAiSearchRequest,
   parseIndexedSourceKey,
   resolveAiSearchFolderRoot,
@@ -43,6 +44,12 @@ assert.deepEqual(
     reranking: false,
   },
 );
+
+assert.equal(parseAiSearchProjectScopeMode(undefined), 'source');
+assert.equal(parseAiSearchProjectScopeMode('source'), 'source');
+assert.equal(parseAiSearchProjectScopeMode(' METADATA '), 'metadata');
+assert.equal(parseAiSearchProjectScopeMode('Auto'), 'auto');
+assert.equal(parseAiSearchProjectScopeMode('unsupported'), 'source');
 
 assert.equal(normalizeAiSearchFolderRoot('/api//files///'), '/api/files');
 assert.equal(
@@ -94,6 +101,14 @@ const buttonChunk = {
   },
   scoring_details: { vector_score: 0.9 },
 };
+const sourceOnlyButtonChunk = {
+  ...buttonChunk,
+  id: 'button-source-only',
+  item: {
+    key: 'https://prompt.example.com/api/files/shadcn-ui-docs/components/input.md',
+    metadata: { schema_version: 2 },
+  },
+};
 const duplicateButtonChunk = { ...buttonChunk, id: 'button-2', score: 0.8 };
 const zustandChunk = {
   ...buttonChunk,
@@ -107,6 +122,14 @@ const zustandChunk = {
 assert.equal(
   chunkMatchesProject(
     buttonChunk,
+    'shadcn-ui-docs',
+    'https://prompt.example.com/api/files',
+  ),
+  true,
+);
+assert.equal(
+  chunkMatchesProject(
+    sourceOnlyButtonChunk,
     'shadcn-ui-docs',
     'https://prompt.example.com/api/files',
   ),
@@ -154,6 +177,15 @@ assert.deepEqual(
     duplicateChunks: 1,
   },
 );
+
+const sourceScopedResults = formatAiSearchResults(
+  [zustandChunk, sourceOnlyButtonChunk],
+  { grouping: 'files', limit: 5, project: 'shadcn-ui-docs' },
+  'https://prompt.example.com/api/files',
+);
+assert.equal(sourceScopedResults.results.length, 1);
+assert.equal(sourceScopedResults.results[0]?.source.project, 'shadcn-ui-docs');
+assert.equal(sourceScopedResults.excludedChunks, 1);
 
 assert.throws(
   () => parseAiSearchRequest('https://prompt.example.com/api/ai-search?q=x&limit=100'),

@@ -8,6 +8,7 @@ export const MAX_AI_SEARCH_QUERY_LENGTH = 1_000;
 export type AiSearchRetrievalType = 'hybrid' | 'keyword' | 'vector';
 export type AiSearchRequestedRetrievalType = AiSearchRetrievalType | 'auto';
 export type AiSearchGrouping = 'files' | 'chunks';
+export type AiSearchProjectScopeMode = 'source' | 'metadata' | 'auto';
 
 export interface AiSearchRequestOptions {
   query: string;
@@ -138,6 +139,14 @@ function parseGrouping(value: string | null): AiSearchGrouping {
   const normalized = value?.trim().toLowerCase() || 'files';
   if (normalized === 'files' || normalized === 'chunks') return normalized;
   throw new AiSearchRequestError('group must be either files or chunks.', 'invalid_group');
+}
+
+export function parseAiSearchProjectScopeMode(
+  value: string | undefined,
+): AiSearchProjectScopeMode {
+  const normalized = value?.normalize('NFKC').trim().toLowerCase();
+  if (normalized === 'metadata' || normalized === 'auto') return normalized;
+  return 'source';
 }
 
 export function normalizeProjectIdentifier(value: string | undefined): string | undefined {

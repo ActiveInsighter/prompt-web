@@ -3,17 +3,28 @@ import type { Env } from '../types';
 import { serializeAiSafeJson } from './ai-safe-json';
 import {
   AiSearchRequestError,
+  MAX_AI_SEARCH_QUERY_LENGTH,
   buildProjectFolderFilter,
   formatAiSearchResults,
+  parseAiSearchProjectScopeMode,
   parseAiSearchRequest,
   resolveAiSearchFolderRoot,
   type AiSearchChunkLike,
+  type AiSearchProjectScopeMode,
   type AiSearchRequestOptions,
   type AiSearchRetrievalType,
 } from './cloudflare-ai-search-utils';
 
 type PromptApp = Hono<{ Bindings: Env }>;
 type JsonStatus = 200 | 400 | 404 | 502 | 503;
+type AiSearchBindingResult = Awaited<ReturnType<AiSearchInstance['search']>>;
+type ProjectScopeStrategy =
+  | 'all-projects'
+  | 'metadata-filter'
+  | 'source-key-filter'
+  | 'source-key-filter-with-project-hint'
+  | 'metadata-then-source';
+type ScopeAttemptStrategy = Exclude<ProjectScopeStrategy, 'metadata-then-source'>;
 
 interface PublicProjectRow {
   slug: string;
@@ -31,7 +42,24 @@ interface CachedCapabilities {
   expiresAt: number;
 }
 
+interface ScopeAttempt {
+  strategy: ScopeAttemptStrategy;
+  status: 'succeeded' | 'failed';
+  retrievedChunks: number;
+  matchedResults: number;
+  queryHintUsed: boolean;
+}
+
+interface ScopedSearchOutcome {
+  searchResult: AiSearchBindingResult;
+  chunks: AiSearchChunkLike[];
+  formatted: ReturnType<typeof formatAiSearchResults>;
+  strategy: ProjectScopeStrategy;
+  attempts: ScopeAttempt[];
+}
+
 const CAPABILITIES_CACHE_TTL_MS = 5 * 60 * 1_000;
+const MAX_PROJECT_SCOPE_RETRIEVAL_RESULTS = 50;
 let cachedCapabilities: CachedCapabilities | undefined;
 
 function jsonResponse(value: unknown, status: JsonStatus = 200): Response {
@@ -65,6 +93,14 @@ function discoveryResponse(): Response {
       threshold: '0-1. Defaults to 0.4.',
       context: '0-3 surrounding chunks. Defaults to 0.',
       rerank: 'Boolean. Defaults to false.',
+    },
+    projectScope: {
+      configuredBy: 'AI_SEARCH_PROJECT_SCOPE_MODE',
+      modes: {
+        source: 'Retrieve a broad candidate set and strictly keep source URLs from the requested project.',
+        metadata: 'Apply the Cloudflare folder metadata filter before retrieval.',
+        auto: 'Try metadata filtering first, then fall back to strict source URL filtering.',
+      },
     },
   });
 }
@@ -146,9 +182,10 @@ function buildSearchRequest(
   retrievalType: AiSearchRetrievalType,
   project: PublicProjectRow | null,
   folderRoot: string,
+  queryText = options.query,
 ) {
   return {
-    messages: [{ role: 'user' as const, content: options.query }],
+    messages: [{ role: 'user' as const, content: queryText }],
     ai_search_options: {
       retrieval: {
         retrieval_type: retrievalType,
@@ -177,10 +214,209 @@ async function runSearch(
   retrievalType: AiSearchRetrievalType,
   project: PublicProjectRow | null,
   folderRoot: string,
-) {
+  queryText = options.query,
+): Promise<AiSearchBindingResult> {
   return env.PROMPT_AI_SEARCH.search(
-    buildSearchRequest(options, retrievalType, project, folderRoot),
+    buildSearchRequest(options, retrievalType, project, folderRoot, queryText),
   );
+}
+
+function createOutcome(
+  searchResult: AiSearchBindingResult,
+  options: AiSearchRequestOptions,
+  folderRoot: string,
+  strategy: ProjectScopeStrategy,
+  attempts: ScopeAttempt[],
+): ScopedSearchOutcome {
+  const chunks = searchResult.chunks as unknown as AiSearchChunkLike[];
+  return {
+    searchResult,
+    chunks,
+    formatted: formatAiSearchResults(chunks, options, folderRoot),
+    strategy,
+    attempts,
+  };
+}
+
+function buildProjectHintedQuery(query: string, project: PublicProjectRow): string {
+  const suffix = `\nProject: ${project.name}\nProject slug: ${project.slug}`;
+  const availableLength = Math.max(1, MAX_AI_SEARCH_QUERY_LENGTH - suffix.length);
+  return `${query.slice(0, availableLength)}${suffix}`;
+}
+
+function broadProjectOptions(options: AiSearchRequestOptions): AiSearchRequestOptions {
+  return {
+    ...options,
+    retrievalLimit: MAX_PROJECT_SCOPE_RETRIEVAL_RESULTS,
+  };
+}
+
+async function runSourceScopedSearch(
+  env: Env,
+  options: AiSearchRequestOptions,
+  retrievalType: AiSearchRetrievalType,
+  project: PublicProjectRow,
+  folderRoot: string,
+): Promise<ScopedSearchOutcome> {
+  const broadOptions = broadProjectOptions(options);
+  const firstResult = await runSearch(
+    env,
+    broadOptions,
+    retrievalType,
+    null,
+    folderRoot,
+  );
+  const firstOutcome = createOutcome(
+    firstResult,
+    options,
+    folderRoot,
+    'source-key-filter',
+    [],
+  );
+  const firstAttempt: ScopeAttempt = {
+    strategy: 'source-key-filter',
+    status: 'succeeded',
+    retrievedChunks: firstOutcome.chunks.length,
+    matchedResults: firstOutcome.formatted.results.length,
+    queryHintUsed: false,
+  };
+
+  if (firstOutcome.formatted.results.length > 0) {
+    return {
+      ...firstOutcome,
+      attempts: [firstAttempt],
+    };
+  }
+
+  const hintedResult = await runSearch(
+    env,
+    broadOptions,
+    retrievalType,
+    null,
+    folderRoot,
+    buildProjectHintedQuery(options.query, project),
+  );
+  const hintedOutcome = createOutcome(
+    hintedResult,
+    options,
+    folderRoot,
+    'source-key-filter-with-project-hint',
+    [],
+  );
+  const hintedAttempt: ScopeAttempt = {
+    strategy: 'source-key-filter-with-project-hint',
+    status: 'succeeded',
+    retrievedChunks: hintedOutcome.chunks.length,
+    matchedResults: hintedOutcome.formatted.results.length,
+    queryHintUsed: true,
+  };
+
+  return {
+    ...hintedOutcome,
+    attempts: [firstAttempt, hintedAttempt],
+  };
+}
+
+async function runScopedSearch(
+  env: Env,
+  options: AiSearchRequestOptions,
+  retrievalType: AiSearchRetrievalType,
+  project: PublicProjectRow | null,
+  folderRoot: string,
+  scopeMode: AiSearchProjectScopeMode,
+): Promise<ScopedSearchOutcome> {
+  if (!project) {
+    const result = await runSearch(env, options, retrievalType, null, folderRoot);
+    const outcome = createOutcome(result, options, folderRoot, 'all-projects', []);
+    return {
+      ...outcome,
+      attempts: [
+        {
+          strategy: 'all-projects',
+          status: 'succeeded',
+          retrievedChunks: outcome.chunks.length,
+          matchedResults: outcome.formatted.results.length,
+          queryHintUsed: false,
+        },
+      ],
+    };
+  }
+
+  if (scopeMode === 'source') {
+    return runSourceScopedSearch(env, options, retrievalType, project, folderRoot);
+  }
+
+  try {
+    const metadataResult = await runSearch(
+      env,
+      options,
+      retrievalType,
+      project,
+      folderRoot,
+    );
+    const metadataOutcome = createOutcome(
+      metadataResult,
+      options,
+      folderRoot,
+      'metadata-filter',
+      [],
+    );
+    const metadataAttempt: ScopeAttempt = {
+      strategy: 'metadata-filter',
+      status: 'succeeded',
+      retrievedChunks: metadataOutcome.chunks.length,
+      matchedResults: metadataOutcome.formatted.results.length,
+      queryHintUsed: false,
+    };
+
+    if (scopeMode === 'metadata' || metadataOutcome.formatted.results.length > 0) {
+      return {
+        ...metadataOutcome,
+        attempts: [metadataAttempt],
+      };
+    }
+
+    const sourceOutcome = await runSourceScopedSearch(
+      env,
+      options,
+      retrievalType,
+      project,
+      folderRoot,
+    );
+    return {
+      ...sourceOutcome,
+      strategy: 'metadata-then-source',
+      attempts: [metadataAttempt, ...sourceOutcome.attempts],
+    };
+  } catch (error) {
+    if (scopeMode === 'metadata') throw error;
+
+    console.warn('cloudflare_ai_search_metadata_scope_fallback', {
+      project: project.slug,
+      error,
+    });
+    const sourceOutcome = await runSourceScopedSearch(
+      env,
+      options,
+      retrievalType,
+      project,
+      folderRoot,
+    );
+    return {
+      ...sourceOutcome,
+      strategy: 'metadata-then-source',
+      attempts: [
+        {
+          strategy: 'metadata-filter',
+          status: 'failed',
+          retrievedChunks: 0,
+          matchedResults: 0,
+          queryHintUsed: false,
+        },
+        ...sourceOutcome.attempts,
+      ],
+    };
+  }
 }
 
 async function handleAiSearch(
@@ -259,18 +495,20 @@ async function handleAiSearch(
   }
 
   const folderRoot = resolveAiSearchFolderRoot(env.AI_SEARCH_FOLDER_ROOT, request.url);
+  const projectScopeMode = parseAiSearchProjectScopeMode(env.AI_SEARCH_PROJECT_SCOPE_MODE);
   let effectiveRetrievalType = retrievalType;
   let fallbackFrom: AiSearchRetrievalType | null = null;
 
   try {
-    let searchResult;
+    let scopedOutcome: ScopedSearchOutcome;
     try {
-      searchResult = await runSearch(
+      scopedOutcome = await runScopedSearch(
         env,
         canonicalOptions,
         effectiveRetrievalType,
         project,
         folderRoot,
+        projectScopeMode,
       );
     } catch (error) {
       const canFallback =
@@ -286,22 +524,20 @@ async function handleAiSearch(
       });
       fallbackFrom = effectiveRetrievalType;
       effectiveRetrievalType = 'vector';
-      searchResult = await runSearch(
+      scopedOutcome = await runScopedSearch(
         env,
         canonicalOptions,
         effectiveRetrievalType,
         project,
         folderRoot,
+        projectScopeMode,
       );
     }
-
-    const chunks = searchResult.chunks as unknown as AiSearchChunkLike[];
-    const formatted = formatAiSearchResults(chunks, canonicalOptions, folderRoot);
 
     return jsonResponse({
       schemaVersion: '1.0',
       engine: 'cloudflare-ai-search',
-      searchQuery: searchResult.search_query,
+      searchQuery: scopedOutcome.searchResult.search_query,
       query: {
         text: canonicalOptions.query,
         project: project
@@ -318,14 +554,26 @@ async function handleAiSearch(
         contextExpansion: canonicalOptions.contextExpansion,
         reranking: canonicalOptions.reranking,
       },
-      count: formatted.results.length,
-      results: formatted.results,
+      count: scopedOutcome.formatted.results.length,
+      results: scopedOutcome.formatted.results,
       diagnostics: {
         capabilities,
         folderRoot,
-        retrievedChunks: chunks.length,
-        excludedChunks: formatted.excludedChunks,
-        duplicateChunks: formatted.duplicateChunks,
+        projectScope: project
+          ? {
+              mode: projectScopeMode,
+              strategy: scopedOutcome.strategy,
+              strictSourceValidation: true,
+              candidateLimit:
+                projectScopeMode === 'metadata'
+                  ? canonicalOptions.retrievalLimit
+                  : MAX_PROJECT_SCOPE_RETRIEVAL_RESULTS,
+              attempts: scopedOutcome.attempts,
+            }
+          : null,
+        retrievedChunks: scopedOutcome.chunks.length,
+        excludedChunks: scopedOutcome.formatted.excludedChunks,
+        duplicateChunks: scopedOutcome.formatted.duplicateChunks,
         fallbackFrom,
       },
     });
@@ -334,6 +582,7 @@ async function handleAiSearch(
       project: project?.slug ?? null,
       requestedMode: canonicalOptions.requestedRetrievalType,
       resolvedMode: effectiveRetrievalType,
+      projectScopeMode,
       error,
     });
     return jsonResponse(

@@ -8,6 +8,7 @@ export interface Env {
   PROMPT_KV: KVNamespace;
   PROMPT_AI_SEARCH: AiSearchInstance;
   AI_SEARCH_FOLDER_ROOT?: string;
+  AI_SEARCH_PROJECT_SCOPE_MODE?: string;
   ENVIRONMENT?: string;
   MCP_BEARER_TOKEN?: string;
   CONTENT_SYNC_TOKEN?: string;
