@@ -1,0 +1,113 @@
+name: Verify final AI Search production
+
+on:
+  push:
+    branches:
+      - verify/ai-search-production-final
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: verify/ai-search-production-final
+          fetch-depth: 0
+
+      - name: Query production endpoints
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          query() {
+            local name="$1"
+            local url="$2"
+            local body="/tmp/${name}.json"
+            local status
+            status="$(curl --silent --show-error --location \
+              --connect-timeout 15 --max-time 90 \
+              --output "$body" --write-out '%{http_code}' "$url")"
+            printf '%s' "$status" > "/tmp/${name}.status"
+          }
+
+          query info 'https://prompt.2212148739lbw.workers.dev/api/ai-search/info'
+          query all 'https://prompt.2212148739lbw.workers.dev/api/ai-search?q=button&limit=3'
+          query project 'https://prompt.2212148739lbw.workers.dev/api/ai-search/shadcn-ui-docs?q=button&limit=3'
+          query v1 'https://prompt.2212148739lbw.workers.dev/api/v1/projects/shadcn-ui-docs/ai-search?q=button&limit=2'
+          query hybrid 'https://prompt.2212148739lbw.workers.dev/api/ai-search?q=button&mode=hybrid&limit=2'
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          responses = {}
+          for name in ('info', 'all', 'project', 'v1', 'hybrid'):
+              raw = Path(f'/tmp/{name}.json').read_text(encoding='utf-8')
+              try:
+                  body = json.loads(raw)
+              except json.JSONDecodeError:
+                  body = {'raw': raw[:5000]}
+              responses[name] = {
+                  'status': int(Path(f'/tmp/{name}.status').read_text()),
+                  'body': body,
+              }
+
+          all_body = responses['all']['body']
+          project_body = responses['project']['body']
+          v1_body = responses['v1']['body']
+          hybrid_body = responses['hybrid']['body']
+
+          checks = {
+              'info': responses['info']['status'] == 200,
+              'allProjects': (
+                  responses['all']['status'] == 200
+                  and all_body.get('query', {}).get('requestedMode') == 'auto'
+                  and all_body.get('query', {}).get('mode') == 'vector'
+                  and len(all_body.get('results', [])) > 0
+              ),
+              'projectScoped': (
+                  responses['project']['status'] == 200
+                  and project_body.get('query', {}).get('project', {}).get('slug') == 'shadcn-ui-docs'
+                  and len(project_body.get('results', [])) > 0
+                  and all(
+                      result.get('source', {}).get('project') == 'shadcn-ui-docs'
+                      for result in project_body.get('results', [])
+                  )
+              ),
+              'v1ProjectScoped': (
+                  responses['v1']['status'] == 200
+                  and len(v1_body.get('results', [])) > 0
+                  and all(
+                      result.get('source', {}).get('project') == 'shadcn-ui-docs'
+                      for result in v1_body.get('results', [])
+                  )
+              ),
+              'disabledHybridMode': (
+                  responses['hybrid']['status'] == 400
+                  and hybrid_body.get('error', {}).get('code') == 'retrieval_mode_unavailable'
+                  and 'vector' in hybrid_body.get('error', {}).get('availableModes', [])
+              ),
+          }
+
+          report = {
+              'passed': all(checks.values()),
+              'checks': checks,
+              'responses': responses,
+          }
+          Path('.github/ai-search-production-final-check.json').write_text(
+              json.dumps(report, ensure_ascii=False, indent=2) + '\n',
+              encoding='utf-8',
+          )
+          PY
+
+      - name: Commit verification result
+        run: |
+          rm .github/workflows/temp-verify-final-ai-search-production.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/ai-search-production-final-check.json .github/workflows/temp-verify-final-ai-search-production.yml
+          git commit -m "test: record final AI Search production verification"
+          git push origin HEAD:verify/ai-search-production-final
