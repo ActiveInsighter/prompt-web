@@ -75,7 +75,7 @@ assert.equal(
   `\\u003cButton
   disabled={value > 0}
   onClick={() => value < 10 ? \\u003cIcon /\\u003e : null}
- \\u003e
+\\u003e
   Save
 \\u003c/Button\\u003e`,
 );
