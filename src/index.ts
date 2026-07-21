@@ -10,6 +10,7 @@ import {
   buildAiSearchSitemap,
   MAX_SITEMAP_URLS,
 } from './http/ai-search-index';
+import { registerCloudflareAiSearchRoutes } from './http/cloudflare-ai-search';
 import { serializeAiSafeJson } from './http/ai-safe-json';
 import { normalizeTrailingSlashRequest } from './http/trailing-slash';
 import { createPromptMcpServer } from './mcp/server';
@@ -50,6 +51,8 @@ app.use(
     maxAge: 86400,
   }),
 );
+
+registerCloudflareAiSearchRoutes(app);
 
 function parseTags(values: string[] | undefined): string[] {
   return (values ?? [])
@@ -176,6 +179,9 @@ function getServiceInfo() {
       tree: '/api/tree?project=<slug>&path=/',
       search: '/api/files/search?q=<keywords>',
       v1Search: '/api/v1/search?q=<keywords>',
+      aiSearch: '/api/ai-search?q=<keywords>',
+      aiSearchProject: '/api/ai-search/<project>?q=<keywords>',
+      aiSearchInfo: '/api/ai-search/info',
       fetch: '/api/files/fetch?identifier=<id-or-uri>',
       bootstrap: '/api/bootstrap/:client/:profile',
       contentSyncSnapshot: '/api/admin/library/snapshot',
