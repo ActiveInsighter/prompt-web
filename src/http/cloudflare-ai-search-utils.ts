@@ -2,7 +2,7 @@ export const DEFAULT_AI_SEARCH_LIMIT = 10;
 export const MAX_AI_SEARCH_LIMIT = 20;
 export const DEFAULT_AI_SEARCH_THRESHOLD = 0.4;
 export const DEFAULT_CONTEXT_EXPANSION = 0;
-export const DEFAULT_FOLDER_ROOT = '/raw';
+export const DEFAULT_FOLDER_ROOT = '/ai-index';
 export const MAX_AI_SEARCH_QUERY_LENGTH = 1_000;
 
 export type AiSearchRetrievalType = 'hybrid' | 'keyword' | 'vector';
@@ -244,7 +244,7 @@ export function resolveAiSearchFolderRoot(configuredRoot: string | undefined, re
   if (normalizeOptionalText(configuredRoot)) {
     return normalizeAiSearchFolderRoot(configuredRoot);
   }
-  return normalizeAiSearchFolderRoot(new URL('/raw', requestUrl).toString());
+  return normalizeAiSearchFolderRoot(new URL(DEFAULT_FOLDER_ROOT, requestUrl).toString());
 }
 
 export function buildProjectFolderPrefix(project: string, folderRoot?: string): string {
@@ -297,7 +297,7 @@ export function parseIndexedSourceKey(key: string): {
   }
 
   const normalizedPathname = pathname.startsWith('/') ? pathname : `/${pathname}`;
-  const match = normalizedPathname.match(/^\/(?:raw|api\/files)\/([^/]+)\/(.+)$/u);
+  const match = normalizedPathname.match(/^\/(?:ai-index|raw|api\/files)\/([^/]+)\/(.+)$/u);
   if (!match) {
     return {
       url,
