@@ -5,7 +5,17 @@ const source = await readFile(new URL('../src/mcp/server.ts', import.meta.url), 
 
 assert.match(source, /registerTool\(\s*['"]ai_search['"]/u);
 assert.match(source, /structuredContent:\s*value/u);
-assert.equal((source.match(/outputSchema:/gu) ?? []).length, 9);
+assert.match(source, /bm25Rank/u);
+assert.match(source, /z\.enum\(\['auto', 'vector'\]\)/u);
+assert.equal((source.match(/outputSchema:/gu) ?? []).length, 10);
+
+for (const unsupportedAiOption of ["'hybrid'", "'keyword'", 'rerank: z.boolean']) {
+  assert.equal(
+    source.includes(unsupportedAiOption),
+    false,
+    `MCP schema should not expose unavailable AI option ${unsupportedAiOption}.`,
+  );
+}
 
 for (const legacyTool of ['search', 'fetch', 'list_categories']) {
   assert.equal(
@@ -24,6 +34,7 @@ for (const tool of [
   'fetch_files',
   'render_prompt',
   'get_bootstrap_context',
+  'list_common_prompts',
   'get_common_prompt',
 ]) {
   assert.match(source, new RegExp(`registerTool\\(\\s*['"]${tool}['"]`, 'u'));
