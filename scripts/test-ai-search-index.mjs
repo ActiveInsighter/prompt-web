@@ -53,10 +53,11 @@ const escapedIndexContent = escapeAiIndexContent(
 );
 assert.equal(
   escapedIndexContent,
-  '\\u003cCodeTabs\\u003e\n\\u003cTabsTrigger value="manual"\\u003eManual \\u0026 advanced\\u003c/TabsTrigger\\u003e',
+  '\\u003cCodeTabs\\u003e\n\\u003cTabsTrigger value="manual"\\u003eManual & advanced\\u003c/TabsTrigger\\u003e',
 );
 assert.equal(escapedIndexContent.includes('<'), false);
 assert.equal(escapedIndexContent.includes('>'), false);
+assert.equal(escapedIndexContent.includes('&'), true);
 assert.equal(escapedIndexContent.includes('{'), false);
 
 const sitemap = buildAiSearchSitemap(
