@@ -1,0 +1,158 @@
+name: Diagnose AI Search metadata filter
+
+on:
+  push:
+    branches:
+      - diagnose/ai-search-metadata-filter
+
+permissions:
+  contents: write
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: diagnose/ai-search-metadata-filter
+          fetch-depth: 0
+
+      - name: Test metadata filter candidates
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import os
+          import subprocess
+          from pathlib import Path
+
+          account = os.environ['CLOUDFLARE_ACCOUNT_ID']
+          token = os.environ['CLOUDFLARE_API_TOKEN']
+          base = f'https://api.cloudflare.com/client/v4/accounts/{account}/ai-search/instances/little-hall-7cd2'
+
+          def request(method, url, body=None):
+              args = [
+                  'curl', '--silent', '--show-error', '--location',
+                  '--connect-timeout', '15', '--max-time', '120',
+                  '-X', method,
+                  '-H', f'Authorization: Bearer {token}',
+                  '-H', 'Content-Type: application/json',
+                  '--write-out', '\n__STATUS__:%{http_code}',
+                  url,
+              ]
+              if body is not None:
+                  args.extend(['--data', json.dumps(body, ensure_ascii=False)])
+              output = subprocess.check_output(args, text=True)
+              raw, status = output.rsplit('\n__STATUS__:', 1)
+              try:
+                  parsed = json.loads(raw)
+              except json.JSONDecodeError:
+                  parsed = {'raw': raw[:5000]}
+              return int(status), parsed
+
+          candidates = {
+              'folder_absolute': {
+                  'folder': {
+                      '$gte': 'https://prompt.2212148739lbw.workers.dev/api/files/shadcn-ui-docs/',
+                      '$lt': 'https://prompt.2212148739lbw.workers.dev/api/files/shadcn-ui-docs0',
+                  }
+              },
+              'folder_host_path': {
+                  'folder': {
+                      '$gte': 'prompt.2212148739lbw.workers.dev/api/files/shadcn-ui-docs/',
+                      '$lt': 'prompt.2212148739lbw.workers.dev/api/files/shadcn-ui-docs0',
+                  }
+              },
+              'folder_leading_path': {
+                  'folder': {
+                      '$gte': '/api/files/shadcn-ui-docs/',
+                      '$lt': '/api/files/shadcn-ui-docs0',
+                  }
+              },
+              'folder_relative_path': {
+                  'folder': {
+                      '$gte': 'api/files/shadcn-ui-docs/',
+                      '$lt': 'api/files/shadcn-ui-docs0',
+                  }
+              },
+              'folder_project_only': {
+                  'folder': {
+                      '$gte': 'shadcn-ui-docs/',
+                      '$lt': 'shadcn-ui-docs0',
+                  }
+              },
+              'filename_absolute': {
+                  'filename': {
+                      '$gte': 'https://prompt.2212148739lbw.workers.dev/api/files/shadcn-ui-docs/',
+                      '$lt': 'https://prompt.2212148739lbw.workers.dev/api/files/shadcn-ui-docs0',
+                  }
+              },
+              'filename_leading_path': {
+                  'filename': {
+                      '$gte': '/api/files/shadcn-ui-docs/',
+                      '$lt': '/api/files/shadcn-ui-docs0',
+                  }
+              },
+              'filename_relative_path': {
+                  'filename': {
+                      '$gte': 'api/files/shadcn-ui-docs/',
+                      '$lt': 'api/files/shadcn-ui-docs0',
+                  }
+              },
+          }
+
+          report = {'filters': {}}
+          for name, filters in candidates.items():
+              status, response = request(
+                  'POST',
+                  f'{base}/search',
+                  {
+                      'messages': [{'role': 'user', 'content': 'button'}],
+                      'ai_search_options': {
+                          'retrieval': {
+                              'retrieval_type': 'vector',
+                              'max_num_results': 3,
+                              'match_threshold': 0.2,
+                              'filters': filters,
+                          }
+                      },
+                  },
+              )
+              result = response.get('result', response)
+              chunks = result.get('chunks', []) if isinstance(result, dict) else []
+              report['filters'][name] = {
+                  'status': status,
+                  'success': response.get('success') if isinstance(response, dict) else None,
+                  'count': len(chunks),
+                  'keys': [chunk.get('item', {}).get('key') for chunk in chunks],
+                  'errors': response.get('errors') if isinstance(response, dict) else None,
+              }
+
+          for endpoint in ('', '/items?per_page=5', '/stats'):
+              name = 'instance' if endpoint == '' else endpoint.split('?')[0].strip('/')
+              status, response = request('GET', f'{base}{endpoint}')
+              result = response.get('result', response) if isinstance(response, dict) else response
+              report[name] = {
+                  'status': status,
+                  'success': response.get('success') if isinstance(response, dict) else None,
+                  'result': result,
+                  'errors': response.get('errors') if isinstance(response, dict) else None,
+              }
+
+          Path('.github/ai-search-metadata-filter-diagnostics.json').write_text(
+              json.dumps(report, ensure_ascii=False, indent=2) + '\n',
+              encoding='utf-8',
+          )
+          PY
+
+      - name: Commit diagnostics
+        run: |
+          rm .github/workflows/temp-diagnose-ai-search-metadata-filter.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/ai-search-metadata-filter-diagnostics.json .github/workflows/temp-diagnose-ai-search-metadata-filter.yml
+          git commit -m "test: record AI Search metadata filter diagnostics"
+          git push origin HEAD:diagnose/ai-search-metadata-filter
