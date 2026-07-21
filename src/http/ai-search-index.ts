@@ -52,12 +52,10 @@ function normalizeLastmod(value: string): string | undefined {
   return Number.isFinite(timestamp) ? new Date(timestamp).toISOString() : undefined;
 }
 
-export function buildApiFilesPath(projectSlug?: string, path?: string): string {
-  if (!projectSlug) return '/api/files';
-
+export function buildRawFilePath(projectSlug: string, path: string): string {
   const project = encodeURIComponent(projectSlug.normalize('NFKC').trim());
-  const encodedPath = encodePath(path ?? '');
-  return encodedPath ? `/api/files/${project}/${encodedPath}` : `/api/files/${project}`;
+  const encodedPath = encodePath(path);
+  return `/raw/${project}/${encodedPath}`;
 }
 
 export function buildAiSearchSitemap(
@@ -68,6 +66,9 @@ export function buildAiSearchSitemap(
   const baseOrigin = normalizeOrigin(origin);
   const entries: string[] = [];
   const seen = new Set<string>();
+  const publicProjects = new Set(
+    projects.map((project) => project.slug.normalize('NFKC').trim().toLowerCase()),
+  );
 
   const addEntry = (path: string, updatedAt: string | undefined, priority: number) => {
     if (entries.length >= MAX_SITEMAP_URLS) return;
@@ -88,17 +89,10 @@ export function buildAiSearchSitemap(
     );
   };
 
-  const timestamps = [...projects.map((project) => project.updatedAt), ...files.map((file) => file.updatedAt)]
-    .map((value) => Date.parse(value))
-    .filter(Number.isFinite);
-  const latestUpdatedAt = timestamps.length > 0 ? new Date(Math.max(...timestamps)).toISOString() : undefined;
-
-  addEntry(buildApiFilesPath(), latestUpdatedAt, 1);
-  for (const project of projects) {
-    addEntry(buildApiFilesPath(project.slug), project.updatedAt, 0.8);
-  }
   for (const file of files) {
-    addEntry(buildApiFilesPath(file.projectSlug, file.path), file.updatedAt, 0.7);
+    const projectSlug = file.projectSlug.normalize('NFKC').trim();
+    if (!publicProjects.has(projectSlug.toLowerCase())) continue;
+    addEntry(buildRawFilePath(projectSlug, file.path), file.updatedAt, 0.7);
   }
 
   return [
@@ -114,9 +108,9 @@ export function buildAiSearchRobotsTxt(origin: string): string {
   const sitemapUrl = new URL('/sitemap.xml', normalizeOrigin(origin)).toString();
   return [
     'User-agent: Cloudflare-AI-Search',
-    'Allow: /api/files',
-    'Disallow: /api/files/search',
-    'Disallow: /api/files/fetch',
+    'Allow: /raw/',
+    'Disallow: /api/',
+    'Disallow: /p/',
     '',
     'User-agent: *',
     'Allow: /',
