@@ -1,18 +1,68 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { renderPromptTemplate } from '../lib/prompt-utils';
+import { AiSearchRequestError } from '../http/cloudflare-ai-search-utils';
+import { createPromptUri, renderPromptTemplate } from '../lib/prompt-utils';
 import { PromptRepository } from '../repositories/prompt-repository';
-import type { AccessContext, Env, PromptSearchOptions } from '../types';
+import {
+  AiSearchServiceError,
+  searchAiDocumentsFromInput,
+} from '../services/ai-search-service';
+import type {
+  AccessContext,
+  DirectoryListing,
+  Env,
+  ProjectRecord,
+  PromptFileRecord,
+  PromptSearchOptions,
+  PromptSearchResult,
+} from '../types';
 
-function textResult(value: unknown) {
-  return {
-    content: [{ type: 'text' as const, text: JSON.stringify(value, null, 2) }],
-  };
-}
+const projectSummarySchema = z.object({
+  slug: z.string(),
+  name: z.string(),
+  description: z.string(),
+});
 
-function errorResult(message: string) {
-  return { ...textResult({ error: message }), isError: true };
-}
+const directoryEntrySchema = z.object({
+  type: z.enum(['folder', 'file']),
+  name: z.string(),
+  path: z.string(),
+  title: z.string().optional(),
+  description: z.string().optional(),
+  uri: z.string().optional(),
+});
+
+const fileSummarySchema = z.object({
+  title: z.string(),
+  project: z.string(),
+  path: z.string(),
+  uri: z.string(),
+  description: z.string().optional(),
+  language: z.string(),
+  tags: z.array(z.string()),
+  score: z.number().optional(),
+});
+
+const fileContentSchema = z.object({
+  uri: z.string(),
+  title: z.string(),
+  project: z.string(),
+  path: z.string(),
+  content: z.string(),
+  language: z.string(),
+  format: z.enum(['markdown', 'text', 'json']),
+  role: z.enum(['system', 'developer', 'user', 'template', 'reference']),
+  variables: z.array(z.string()),
+});
+
+const aiSearchResultSchema = z.object({
+  score: z.number(),
+  text: z.string(),
+  project: z.string().nullable(),
+  path: z.string().nullable(),
+  uri: z.string().nullable(),
+  url: z.string().nullable(),
+});
 
 const searchInputSchema = {
   query: z.string().trim().max(300).optional(),
@@ -23,112 +73,249 @@ const searchInputSchema = {
   tags: z.array(z.string().trim().max(50)).max(10).optional(),
   visibility: z.enum(['public', 'private']).optional(),
   promptRole: z.enum(['system', 'developer', 'user', 'template', 'reference']).optional(),
-  limit: z.number().int().min(1).max(50).default(10),
+  limit: z.number().int().min(1).max(20).default(10),
 };
+
+const aiSearchInputSchema = {
+  query: z.string().trim().min(1).max(1_000),
+  project: z.string().trim().max(128).optional(),
+  limit: z.number().int().min(1).max(20).default(10),
+  mode: z.enum(['auto', 'hybrid', 'vector', 'keyword']).default('auto'),
+  group: z.enum(['files', 'chunks']).default('files'),
+  threshold: z.number().min(0).max(1).default(0.4),
+  context: z.number().int().min(0).max(3).default(0),
+  rerank: z.boolean().default(false),
+};
+
+function structuredResult(value: Record<string, unknown>) {
+  return {
+    content: [{ type: 'text' as const, text: JSON.stringify(value) }],
+    structuredContent: value,
+  };
+}
+
+function errorResult(code: string, message: string) {
+  return {
+    content: [{ type: 'text' as const, text: JSON.stringify({ error: { code, message } }) }],
+    isError: true,
+  };
+}
+
+function compactProject(project: ProjectRecord) {
+  return {
+    slug: project.slug,
+    name: project.name,
+    description: project.description,
+  };
+}
+
+function compactDirectory(listing: DirectoryListing) {
+  return {
+    project: listing.project.slug,
+    path: listing.path,
+    entries: listing.entries.map((entry) => ({
+      type: entry.type,
+      name: entry.name,
+      path: entry.path,
+      ...(entry.title ? { title: entry.title } : {}),
+      ...(entry.description ? { description: entry.description } : {}),
+      ...(entry.type === 'file'
+        ? { uri: createPromptUri(listing.project.slug, entry.path) }
+        : {}),
+    })),
+  };
+}
+
+function compactSearchResult(file: PromptSearchResult) {
+  return {
+    title: file.title,
+    project: file.projectSlug,
+    path: file.path,
+    uri: file.uri,
+    ...(file.description ? { description: file.description } : {}),
+    language: file.language,
+    tags: file.tags,
+    ...(typeof file.score === 'number' ? { score: file.score } : {}),
+  };
+}
+
+function compactFile(file: PromptFileRecord) {
+  return {
+    uri: file.uri,
+    title: file.title,
+    project: file.projectSlug,
+    path: file.path,
+    content: file.content,
+    language: file.language,
+    format: file.format,
+    role: file.promptRole,
+    variables: file.variables,
+  };
+}
 
 export function createPromptMcpServer(env: Env, access: AccessContext): McpServer {
   const repository = new PromptRepository(env);
   const server = new McpServer({
     name: 'prompt-library',
-    version: '0.3.0',
+    version: '0.6.0',
   });
 
   server.registerTool(
     'list_projects',
     {
       title: 'List prompt projects',
-      description:
-        'List projects visible to the caller. Use this before browsing when the target project is unknown.',
+      description: 'List projects visible to the caller. Use when the project is unknown.',
       inputSchema: {},
+      outputSchema: {
+        projects: z.array(projectSummarySchema),
+      },
     },
-    async () => textResult({ projects: await repository.listProjects(access) }),
+    async () =>
+      structuredResult({
+        projects: (await repository.listProjects(access)).map(compactProject),
+      }),
   );
 
   server.registerTool(
     'list_directory',
     {
-      title: 'List a prompt directory',
-      description:
-        'List the direct children of a project directory. Paths start with /. Directories can be nested to any depth.',
+      title: 'Browse a project directory',
+      description: 'List direct children of one project directory. Paths start with /.',
       inputSchema: {
         project: z.string().trim().min(1).max(100),
         path: z.string().trim().max(500).default('/'),
       },
+      outputSchema: {
+        project: z.string(),
+        path: z.string(),
+        entries: z.array(directoryEntrySchema),
+      },
     },
     async ({ project, path }) => {
       const listing = await repository.listDirectory(project, path, access);
-      return listing ? textResult(listing) : errorResult('Project or directory not found.');
+      return listing
+        ? structuredResult(compactDirectory(listing))
+        : errorResult('directory_not_found', 'Project or directory not found.');
     },
   );
 
   server.registerTool(
     'search_files',
     {
-      title: 'Search prompt files',
+      title: 'Search files precisely',
       description:
-        'Search D1 prompt files by text, project, directory, language, tags, visibility, and prompt role. Returns metadata only; call fetch_file to read content.',
+        'Search D1 by exact text and structured filters such as project, directory, tags, language, visibility, and role. Returns file metadata only; use fetch_file for content. Prefer ai_search for natural-language semantic questions.',
       inputSchema: searchInputSchema,
+      outputSchema: {
+        query: z.string(),
+        project: z.string().nullable(),
+        count: z.number().int(),
+        results: z.array(fileSummarySchema),
+      },
     },
-    async (input) =>
-      textResult({
-        results: await repository.search(input, access),
-        authenticated: access.authenticated,
-      }),
+    async (input) => {
+      const options: PromptSearchOptions = input;
+      const results = (await repository.search(options, access)).map(compactSearchResult);
+      return structuredResult({
+        query: input.query ?? '',
+        project: input.project ?? null,
+        count: results.length,
+        results,
+      });
+    },
+  );
+
+  server.registerTool(
+    'ai_search',
+    {
+      title: 'Semantic AI search',
+      description:
+        'Search public indexed documentation with the same Cloudflare AI Search logic as the web API. Returns matching Markdown snippets plus prompt:// identifiers and raw URLs. Use fetch_file to read a complete result.',
+      inputSchema: aiSearchInputSchema,
+      outputSchema: {
+        query: z.string(),
+        project: z.string().nullable(),
+        count: z.number().int(),
+        results: z.array(aiSearchResultSchema),
+      },
+    },
+    async (input) => {
+      try {
+        return structuredResult(await searchAiDocumentsFromInput(env, input));
+      } catch (error) {
+        if (error instanceof AiSearchRequestError || error instanceof AiSearchServiceError) {
+          return errorResult(error.code, error.message);
+        }
+        throw error;
+      }
+    },
   );
 
   server.registerTool(
     'fetch_file',
     {
-      title: 'Fetch a prompt file',
+      title: 'Read a complete file',
       description:
-        'Read one complete prompt file by immutable file id, prompt:// URI, project:/path identifier, or legacy path.',
+        'Read one complete file by file id, prompt:// URI, project:/path identifier, or legacy path.',
       inputSchema: {
         identifier: z.string().trim().min(1).max(800),
       },
+      outputSchema: fileContentSchema.shape,
     },
     async ({ identifier }) => {
       const file = await repository.get(identifier, access);
-      return file ? textResult(file) : errorResult('Prompt file not found or not accessible.');
+      return file
+        ? structuredResult(compactFile(file))
+        : errorResult('file_not_found', 'File not found or not accessible.');
     },
   );
 
   server.registerTool(
     'fetch_files',
     {
-      title: 'Fetch multiple prompt files',
-      description: 'Read up to 10 prompt files in one call after search_files returns related results.',
+      title: 'Read multiple complete files',
+      description: 'Read up to 10 complete files returned by search or directory browsing.',
       inputSchema: {
         identifiers: z.array(z.string().trim().min(1).max(800)).min(1).max(10),
       },
+      outputSchema: {
+        count: z.number().int(),
+        files: z.array(fileContentSchema),
+      },
     },
     async ({ identifiers }) => {
-      const files = (await repository.getMany(identifiers, access)).filter(
-        (file): file is NonNullable<typeof file> => file !== null,
-      );
-      return textResult({ files, requested: identifiers.length, found: files.length });
+      const files = (await repository.getMany(identifiers, access))
+        .filter((file): file is PromptFileRecord => file !== null)
+        .map(compactFile);
+      return structuredResult({ count: files.length, files });
     },
   );
 
   server.registerTool(
     'render_prompt',
     {
-      title: 'Render a prompt file',
-      description:
-        'Fetch a D1 prompt file and replace {{variable}} placeholders. Missing variables remain visible.',
+      title: 'Render a prompt template',
+      description: 'Read a file and replace {{variable}} placeholders. Missing variables stay visible.',
       inputSchema: {
         identifier: z.string().trim().min(1).max(800),
         values: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).default({}),
       },
+      outputSchema: {
+        uri: z.string(),
+        title: z.string(),
+        content: z.string(),
+        missingVariables: z.array(z.string()),
+      },
     },
     async ({ identifier, values }) => {
       const file = await repository.get(identifier, access);
-      if (!file) return errorResult('Prompt file not found or not accessible.');
-
-      return textResult({
-        id: file.id,
+      if (!file) return errorResult('file_not_found', 'File not found or not accessible.');
+      const rendered = renderPromptTemplate(file.content, values);
+      return structuredResult({
         uri: file.uri,
         title: file.title,
-        ...renderPromptTemplate(file.content, values),
+        content: rendered.rendered,
+        missingVariables: rendered.missingVariables,
       });
     },
   );
@@ -138,15 +325,26 @@ export function createPromptMcpServer(env: Env, access: AccessContext): McpServe
     {
       title: 'Get conversation bootstrap context',
       description:
-        'Read a versioned, pre-composed base prompt bundle from KV. Call once near the start of a relevant conversation; do not repeat when the version is unchanged.',
+        'Read a versioned base prompt bundle from KV. Call once near the start of a relevant conversation.',
       inputSchema: {
         client: z.enum(['chatgpt', 'codex']).default('chatgpt'),
         profile: z.string().trim().min(1).max(50).default('default'),
       },
+      outputSchema: {
+        version: z.number().int(),
+        title: z.string(),
+        content: z.string(),
+      },
     },
     async ({ client, profile }) => {
       const context = await repository.getBootstrapContext(client, profile);
-      return context ? textResult(context) : errorResult('Bootstrap context not found.');
+      return context
+        ? structuredResult({
+            version: context.version,
+            title: context.title,
+            content: context.content,
+          })
+        : errorResult('bootstrap_not_found', 'Bootstrap context not found.');
     },
   );
 
@@ -154,76 +352,29 @@ export function createPromptMcpServer(env: Env, access: AccessContext): McpServe
     'get_common_prompt',
     {
       title: 'Get a common public prompt',
-      description:
-        'Read one public, versioned common prompt directly from KV by an exact common:* key. KV is not used for fuzzy search.',
+      description: 'Read one public versioned prompt from KV by an exact common:* key.',
       inputSchema: {
         key: z.string().trim().min(1).max(200),
+      },
+      outputSchema: {
+        key: z.string(),
+        title: z.string(),
+        content: z.string(),
+        variables: z.array(z.string()),
+        version: z.number().int(),
       },
     },
     async ({ key }) => {
       const prompt = await repository.getCommonPrompt(key);
-      return prompt ? textResult(prompt) : errorResult('Common prompt not found.');
-    },
-  );
-
-  // Backward-compatible aliases for clients configured against version 0.2.
-  server.registerTool(
-    'search',
-    {
-      title: 'Search prompts (legacy alias)',
-      description: 'Compatibility alias for search_files. The old category field maps to project.',
-      inputSchema: {
-        query: z.string().trim().max(300).optional(),
-        category: z.string().trim().max(100).optional(),
-        project: z.string().trim().max(100).optional(),
-        directory: z.string().trim().max(500).optional(),
-        recursive: z.boolean().default(true),
-        language: z.string().trim().max(50).optional(),
-        tags: z.array(z.string().trim().max(50)).max(10).optional(),
-        visibility: z.enum(['public', 'private']).optional(),
-        promptRole: z.enum(['system', 'developer', 'user', 'template', 'reference']).optional(),
-        limit: z.number().int().min(1).max(50).default(10),
-      },
-    },
-    async ({ category, ...input }) => {
-      const options: PromptSearchOptions = { ...input, project: input.project ?? category };
-      return textResult({
-        results: await repository.search(options, access),
-        authenticated: access.authenticated,
-      });
-    },
-  );
-
-  server.registerTool(
-    'fetch',
-    {
-      title: 'Fetch a prompt (legacy alias)',
-      description: 'Compatibility alias for fetch_file.',
-      inputSchema: {
-        identifier: z.string().trim().min(1).max(800),
-      },
-    },
-    async ({ identifier }) => {
-      const file = await repository.get(identifier, access);
-      return file ? textResult(file) : errorResult('Prompt file not found or not accessible.');
-    },
-  );
-
-  server.registerTool(
-    'list_categories',
-    {
-      title: 'List projects (legacy alias)',
-      description: 'Compatibility alias that returns accessible projects as categories.',
-      inputSchema: {},
-    },
-    async () => {
-      const projects = await repository.listProjects(access);
-      return textResult({
-        categories: projects.map((project) => ({
-          category: project.slug,
-          name: project.name,
-        })),
-      });
+      return prompt
+        ? structuredResult({
+            key: prompt.key,
+            title: prompt.title,
+            content: prompt.content,
+            variables: prompt.variables,
+            version: prompt.version,
+          })
+        : errorResult('common_prompt_not_found', 'Common prompt not found.');
     },
   );
 
