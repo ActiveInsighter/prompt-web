@@ -81,7 +81,7 @@ async function getAiSearchCapabilities(env: Env): Promise<AiSearchCapabilities> 
 
   try {
     const info = await env.PROMPT_AI_SEARCH.info();
-    const infoRecord = isRecord(info) ? info : {};
+    const infoRecord: Record<string, unknown> = isRecord(info) ? info : {};
     const indexMethodValue = infoRecord.index_method ?? infoRecord.indexMethod;
     const indexMethod = isRecord(indexMethodValue) ? indexMethodValue : {};
     const capabilities: AiSearchCapabilities = {
