@@ -78,24 +78,26 @@ Supported query parameters:
 | `q` | required | Search text. `query` is accepted as an alias. |
 | `project` | all public projects | Project slug for all-project routes. |
 | `limit` | `10` | Number of returned results, from 1 to 20. |
-| `mode` | `hybrid` | `hybrid`, `vector`, or `keyword`. |
+| `mode` | `auto` | `auto`, `hybrid`, `vector`, or `keyword`. `auto` reads the instance capabilities and selects an available mode. |
 | `group` | `files` | `files` deduplicates chunks by source file; `chunks` returns raw chunks. |
 | `threshold` | `0.4` | Minimum match score from 0 to 1. |
-| `context` | `1` | Surrounding chunks from 0 to 3. |
-| `rerank` | `true` | Enable or disable reranking. |
+| `context` | `0` | Surrounding chunks from 0 to 3. |
+| `rerank` | `false` | Enable or disable reranking. |
+
+The current instance has vector indexing enabled and keyword indexing disabled, so the default `auto` mode resolves to `vector`. When keyword indexing is enabled later, `auto` can select `hybrid`. Explicitly requesting a disabled mode returns a structured `retrieval_mode_unavailable` response instead of a provider error. Instance capabilities are cached in each Worker isolate for five minutes to avoid adding a configuration request to every search.
 
 Project-scoped search first verifies that the project exists and is public in D1. It then applies a Cloudflare metadata range filter to the built-in `folder` field before retrieval:
 
 ```json
 {
   "folder": {
-    "$gte": "api/files/shadcn-ui-docs/",
-    "$lt": "api/files/shadcn-ui-docs0"
+    "$gte": "https://prompt.2212148739lbw.workers.dev/api/files/shadcn-ui-docs/",
+    "$lt": "https://prompt.2212148739lbw.workers.dev/api/files/shadcn-ui-docs0"
   }
 }
 ```
 
-This includes root-level files and all nested folders in the project. Results are checked against the requested project again before they are returned.
+Website crawler item keys and built-in folder metadata use the indexed URL, so the filter root includes the scheme and hostname. This range includes root-level files and every nested folder in the project. Results are checked against the requested project again before they are returned.
 
 The default response groups chunks by file and includes:
 
@@ -104,23 +106,18 @@ The default response groups chunks by file and includes:
 - project and file path parsed from the source URL;
 - direct `/api/files`, `/p`, and `/raw` paths;
 - Cloudflare scoring details and source metadata;
-- diagnostics for excluded and duplicate chunks.
+- the requested and effective retrieval modes;
+- diagnostics for capabilities, folder root, excluded chunks, duplicate chunks, and automatic fallback.
 
 ## Configuration
 
-The default crawler folder root is:
+The crawler folder root is configured as the absolute URL prefix used by AI Search:
 
 ```text
-AI_SEARCH_FOLDER_ROOT=api/files
+AI_SEARCH_FOLDER_ROOT=https://prompt.2212148739lbw.workers.dev/api/files
 ```
 
-If the AI Search metadata shown in Playground contains a leading slash, change it to:
-
-```text
-AI_SEARCH_FOLDER_ROOT=/api/files
-```
-
-The project parser also validates the source URL, so normal website-crawler keys under `/api/files/<project>/<path>` work with either absolute or relative item keys.
+When this variable is omitted, the Worker derives the root from the incoming request origin. Set it explicitly when the public crawler source uses a different canonical hostname from the Worker request URL.
 
 ## Limits
 
@@ -130,4 +127,5 @@ The generated sitemap follows the standard maximum of 50,000 URLs. Cloudflare AI
 
 - https://developers.cloudflare.com/ai-search/api/search/workers-binding/
 - https://developers.cloudflare.com/ai-search/configuration/retrieval/filtering/
+- https://developers.cloudflare.com/ai-search/configuration/indexing/metadata/
 - https://developers.cloudflare.com/ai-search/configuration/data-source/website/
