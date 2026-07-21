@@ -1,6 +1,7 @@
 const HTML_SIGNIFICANT_CHARACTERS = /[<>&\u2028\u2029]/g;
 const AI_INDEX_ESCAPED_LESS_THAN = '\\u003c';
 const AI_INDEX_ESCAPED_GREATER_THAN = '\\u003e';
+const AI_SEARCH_MARKDOWN_ESCAPED_CHARACTERS = new Set(['#', '`', '*', '_', '[', ']']);
 
 const JSON_ESCAPE_BY_CHARACTER: Record<string, string> = {
   '<': '\\u003c',
@@ -32,10 +33,35 @@ function isAiIndexSourceKey(value: unknown): boolean {
   return normalizedPathname.startsWith('/ai-index/');
 }
 
-function restoreAiIndexEscapes(value: string): string {
-  return value
-    .replaceAll(AI_INDEX_ESCAPED_LESS_THAN, '<')
-    .replaceAll(AI_INDEX_ESCAPED_GREATER_THAN, '>');
+function restoreAiSearchMarkdownEscapes(value: string): string {
+  let restored = '';
+
+  for (let index = 0; index < value.length; index += 1) {
+    const character = value[index];
+    const nextCharacter = value[index + 1];
+
+    if (
+      character === '\\' &&
+      nextCharacter !== undefined &&
+      AI_SEARCH_MARKDOWN_ESCAPED_CHARACTERS.has(nextCharacter)
+    ) {
+      restored += nextCharacter;
+      index += 1;
+      continue;
+    }
+
+    restored += character;
+  }
+
+  return restored;
+}
+
+function restoreAiIndexSearchText(value: string): string {
+  return restoreAiSearchMarkdownEscapes(
+    value
+      .replaceAll(AI_INDEX_ESCAPED_LESS_THAN, '<')
+      .replaceAll(AI_INDEX_ESCAPED_GREATER_THAN, '>'),
+  );
 }
 
 function resolveRawUrl(source: Record<string, unknown>): string | null {
@@ -71,7 +97,7 @@ function normalizeAiSearchPayload(value: unknown): unknown {
     const sourceKey = optionalString(source.key);
     const rawText = optionalString(result.text) ?? '';
     const text = sourceKey && isAiIndexSourceKey(sourceKey)
-      ? restoreAiIndexEscapes(rawText)
+      ? restoreAiIndexSearchText(rawText)
       : rawText;
 
     return [
@@ -96,7 +122,8 @@ function normalizeAiSearchPayload(value: unknown): unknown {
 /**
  * Serializes JSON without leaving literal HTML-significant characters in the
  * response body. AI Search responses are also reduced to the fields callers
- * need and crawl-safe tag escapes are restored before the final JSON encoding.
+ * need. For /ai-index results, crawl-safe tag escapes and the Markdown escapes
+ * added by Cloudflare AI Search are restored before the final JSON encoding.
  */
 export function serializeAiSafeJson(value: unknown): string {
   const serialized = JSON.stringify(normalizeAiSearchPayload(value));
