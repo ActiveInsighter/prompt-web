@@ -1,12 +1,22 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const source = await readFile(new URL('../src/mcp/server.ts', import.meta.url), 'utf8');
+const [source, indexSource, packageSource] = await Promise.all([
+  readFile(new URL('../src/mcp/server.ts', import.meta.url), 'utf8'),
+  readFile(new URL('../src/index.ts', import.meta.url), 'utf8'),
+  readFile(new URL('../package.json', import.meta.url), 'utf8'),
+]);
+const packageVersion = JSON.parse(packageSource).version;
+const mcpVersion = source.match(/new McpServer\(\{[\s\S]*?version:\s*['"]([^'"]+)['"]/u)?.[1];
+const publicInfoVersion = indexSource.match(
+  /service:\s*['"]prompt-library-mcp['"][\s\S]*?version:\s*['"]([^'"]+)['"]/u,
+)?.[1];
 
+assert.equal(mcpVersion, packageVersion, 'MCP version must match package.json.');
+assert.equal(publicInfoVersion, packageVersion, '/api/info version must match package.json.');
 assert.match(source, /registerTool\(\s*['"]ai_search['"]/u);
 assert.match(source, /structuredContent:\s*value/u);
 assert.match(source, /bm25Rank/u);
-assert.match(source, /version:\s*['"]0\.8\.0['"]/u);
 assert.match(
   source,
   /z\.enum\(\['auto', 'hybrid', 'vector', 'keyword'\]\)\.default\('auto'\)/u,
