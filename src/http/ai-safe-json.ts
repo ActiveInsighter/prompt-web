@@ -20,6 +20,8 @@ const JSON_ESCAPE_BY_CHARACTER: Record<string, string> = {
   '\u2029': '\\u2029',
 };
 
+type CompactAiSearchMode = 'hybrid' | 'keyword' | 'vector';
+
 export interface CompactAiSearchResult {
   score: number;
   title: string;
@@ -36,7 +38,7 @@ export interface CompactAiSearchResponse extends Record<string, unknown> {
   count: number;
   results: CompactAiSearchResult[];
   meta: {
-    mode: 'vector';
+    mode: CompactAiSearchMode;
     group: 'files' | 'chunks';
     duration_ms: number;
   };
@@ -151,12 +153,15 @@ function resolveResultTitle(
 
 function compactMeta(value: Record<string, unknown>): CompactAiSearchResponse['meta'] {
   const meta = isRecord(value.meta) ? value.meta : {};
+  const mode: CompactAiSearchMode =
+    meta.mode === 'hybrid' || meta.mode === 'keyword' ? meta.mode : 'vector';
   const group = meta.group === 'chunks' ? 'chunks' : 'files';
-  const duration = typeof meta.duration_ms === 'number' && Number.isFinite(meta.duration_ms)
-    ? Math.max(0, Math.round(meta.duration_ms))
-    : 0;
+  const duration =
+    typeof meta.duration_ms === 'number' && Number.isFinite(meta.duration_ms)
+      ? Math.max(0, Math.round(meta.duration_ms))
+      : 0;
   return {
-    mode: 'vector',
+    mode,
     group,
     duration_ms: duration,
   };
@@ -179,9 +184,10 @@ export function compactAiSearchPayload(value: unknown): unknown {
     const source = isRecord(result.source) ? result.source : {};
     const sourceKey = optionalString(source.key);
     const rawText = optionalString(result.text) ?? '';
-    const text = sourceKey && isAiIndexSourceKey(sourceKey)
-      ? restoreAiIndexSearchText(rawText)
-      : rawText;
+    const text =
+      sourceKey && isAiIndexSourceKey(sourceKey)
+        ? restoreAiIndexSearchText(rawText)
+        : rawText;
     const resultProject = optionalString(source.project);
     const path = optionalString(source.path);
 
