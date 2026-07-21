@@ -1,0 +1,58 @@
+name: Diagnose AI Search production
+
+on:
+  push:
+    branches:
+      - verify/ai-search-production
+
+permissions:
+  contents: write
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: verify/ai-search-production
+          fetch-depth: 0
+
+      - name: Query retrieval variants
+        shell: bash
+        run: |
+          set -euo pipefail
+          for mode in vector keyword hybrid; do
+            url="https://prompt.2212148739lbw.workers.dev/api/ai-search?q=button&limit=2&mode=${mode}&rerank=false&context=0"
+            curl --silent --show-error --location --connect-timeout 15 --max-time 90 \
+              --output "/tmp/${mode}.json" --write-out '%{http_code}' "$url" > "/tmp/${mode}.status"
+          done
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = {}
+          for mode in ('vector', 'keyword', 'hybrid'):
+              raw = Path(f'/tmp/{mode}.json').read_text(encoding='utf-8')
+              try:
+                  body = json.loads(raw)
+              except json.JSONDecodeError:
+                  body = {'raw': raw[:5000]}
+              report[mode] = {
+                  'status': int(Path(f'/tmp/{mode}.status').read_text()),
+                  'body': body,
+              }
+          Path('.github/ai-search-production-diagnostics.json').write_text(
+              json.dumps(report, ensure_ascii=False, indent=2) + '\n',
+              encoding='utf-8',
+          )
+          PY
+
+      - name: Commit diagnostics
+        run: |
+          rm .github/workflows/temp-diagnose-ai-search-production.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/ai-search-production-diagnostics.json .github/workflows/temp-diagnose-ai-search-production.yml
+          git commit -m "test: record AI Search production diagnostics"
+          git push origin HEAD:verify/ai-search-production
