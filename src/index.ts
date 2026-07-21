@@ -162,7 +162,7 @@ function parseSearchBody(value: unknown): PromptSearchOptions {
 function getServiceInfo() {
   return {
     service: 'prompt-library-mcp',
-    version: '0.5.0',
+    version: '0.8.0',
     status: 'ok',
     endpoints: {
       frontend: '/',
