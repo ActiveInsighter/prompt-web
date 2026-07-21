@@ -1,9 +1,9 @@
 repository=ActiveInsighter/prompt-web
 workflow=Prompt Web CI
-run_id=29797374354
+run_id=29797648977
 run_attempt=1
-head_sha=078773a3b4b195acd3aef8c4399b7c6f1dbc9f59
-started_at=2026-07-21T03:01:22Z
+head_sha=47b120adb96b288feeceb2114957128765b9558f
+started_at=2026-07-21T03:07:01Z
 
 added 212 packages in 23s
 npm warn allow-scripts 4 packages have install scripts not yet covered by allowScripts:
@@ -15,14 +15,30 @@ npm warn allow-scripts
 npm warn allow-scripts Run `npm approve-scripts --allow-scripts-pending` to review, or `npm approve-scripts <pkg>` to allow.
 Collecting PyYAML<7,>=6.0.2 (from -r scripts/requirements.txt (line 1))
   Downloading pyyaml-6.0.3-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.4 kB)
+Collecting beautifulsoup4<5,>=4.15.0 (from -r scripts/requirements.txt (line 2))
+  Downloading beautifulsoup4-4.15.0-py3-none-any.whl.metadata (3.8 kB)
+Collecting markdownify<2,>=1.2.3 (from -r scripts/requirements.txt (line 3))
+  Downloading markdownify-1.2.3-py3-none-any.whl.metadata (9.9 kB)
+Collecting soupsieve>=1.6.1 (from beautifulsoup4<5,>=4.15.0->-r scripts/requirements.txt (line 2))
+  Downloading soupsieve-2.9-py3-none-any.whl.metadata (4.6 kB)
+Collecting typing-extensions>=4.0.0 (from beautifulsoup4<5,>=4.15.0->-r scripts/requirements.txt (line 2))
+  Downloading typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
+Collecting six<2,>=1.15 (from markdownify<2,>=1.2.3->-r scripts/requirements.txt (line 3))
+  Downloading six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
 Downloading pyyaml-6.0.3-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (801 kB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 801.6/801.6 kB 9.2 MB/s  0:00:00
-Installing collected packages: PyYAML
-Successfully installed PyYAML-6.0.3
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 801.6/801.6 kB 28.5 MB/s  0:00:00
+Downloading beautifulsoup4-4.15.0-py3-none-any.whl (109 kB)
+Downloading markdownify-1.2.3-py3-none-any.whl (15 kB)
+Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
+Downloading soupsieve-2.9-py3-none-any.whl (37 kB)
+Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+Installing collected packages: typing-extensions, soupsieve, six, PyYAML, beautifulsoup4, markdownify
+
+Successfully installed PyYAML-6.0.3 beautifulsoup4-4.15.0 markdownify-1.2.3 six-1.17.0 soupsieve-2.9 typing-extensions-4.16.0
 
 ## Project CI
 command=npm run project:ci
-started_at=2026-07-21T03:01:48.840Z
+started_at=2026-07-21T03:07:27.438Z
 
 
 > prompt-web@0.5.0 project:ci
@@ -96,19 +112,19 @@ Your database may not be available to serve requests during the migration, conti
 > prompt-web@0.5.0 content:validate
 > python -m scripts.cli validate
 
-Content validation succeeded: projects=3 folders=21 files=150 manifest=sha256:e94d77113c6065465ee1ecb2b4d09f18d108cc41582b77673995f9131b08d5f1
+Content validation succeeded: projects=4 folders=39 files=348 manifest=sha256:78a7f1039495407a5253176edfb390e7954cf58689e861202789108a3718802e
 
 > prompt-web@0.5.0 content:build
 > python -m scripts.cli build
 
-Wrote /home/runner/work/prompt-web/prompt-web/.prompt-sync/manifest.json: projects=3 folders=21 files=150 manifest=sha256:e94d77113c6065465ee1ecb2b4d09f18d108cc41582b77673995f9131b08d5f1
+Wrote /home/runner/work/prompt-web/prompt-web/.prompt-sync/manifest.json: projects=4 folders=39 files=348 manifest=sha256:78a7f1039495407a5253176edfb390e7954cf58689e861202789108a3718802e
 
 > prompt-web@0.5.0 content:test
 > python -m unittest discover -s scripts/tests -p "test_*.py"
 
-...............
+..................
 ----------------------------------------------------------------------
-Ran 15 tests in 0.023s
+Ran 18 tests in 0.062s
 
 OK
 
@@ -163,5 +179,5 @@ env.AI_SEARCH_PROJECT_SCOPE_MODE ("source")                                     
 
 --dry-run: exiting now.
 
-finished_at=2026-07-21T03:01:57.705Z
+finished_at=2026-07-21T03:07:39.250Z
 exit_code=0
