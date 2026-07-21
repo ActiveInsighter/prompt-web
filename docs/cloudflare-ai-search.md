@@ -86,18 +86,27 @@ Supported query parameters:
 
 The current instance has vector indexing enabled and keyword indexing disabled, so the default `auto` mode resolves to `vector`. When keyword indexing is enabled later, `auto` can select `hybrid`. Explicitly requesting a disabled mode returns a structured `retrieval_mode_unavailable` response instead of a provider error. Instance capabilities are cached in each Worker isolate for five minutes to avoid adding a configuration request to every search.
 
-Project-scoped search first verifies that the project exists and is public in D1. It then applies a Cloudflare metadata range filter to the built-in `folder` field before retrieval:
+## Project scoping
 
-```json
-{
-  "folder": {
-    "$gte": "https://prompt.2212148739lbw.workers.dev/api/files/shadcn-ui-docs/",
-    "$lt": "https://prompt.2212148739lbw.workers.dev/api/files/shadcn-ui-docs0"
-  }
-}
+Every project-scoped request first verifies in D1 that the project exists and is public. Returned chunks are then strictly validated by parsing their indexed source URL:
+
+```text
+https://prompt.2212148739lbw.workers.dev/api/files/<project>/<path>
 ```
 
-Website crawler item keys and built-in folder metadata use the indexed URL, so the filter root includes the scheme and hostname. This range includes root-level files and every nested folder in the project. Results are checked against the requested project again before they are returned.
+A result is returned only when the parsed project exactly matches the requested project. This prevents chunks from another project from leaking into a scoped response.
+
+The scoping strategy is controlled by `AI_SEARCH_PROJECT_SCOPE_MODE`:
+
+| Value | Behavior |
+| --- | --- |
+| `source` | Current production default. Retrieve up to 50 candidates from the shared index, then strictly filter by the project segment in each source URL. When the first pass finds no project match, retry once with a project-name hint and apply the same strict filter. |
+| `metadata` | Apply a Cloudflare `folder` metadata range filter before retrieval. Use only after the exact metadata value has been verified for the index. |
+| `auto` | Try metadata filtering first and fall back to source URL filtering when the metadata attempt fails or returns no matching result. |
+
+The website crawler index currently does not produce matches for the assumed `folder` prefix, although the item source keys reliably contain `/api/files/<project>/...`. Production therefore uses `source` mode. It guarantees project-correct output, but candidate retrieval still comes from the shared vector index.
+
+For hard pre-retrieval tenant isolation, upload items with an explicit `project` metadata field through the Items API, or use a separate AI Search instance per isolated project. Once verified custom metadata is available, switch the Worker to `metadata` or adapt the filter to that field.
 
 The default response groups chunks by file and includes:
 
@@ -107,21 +116,22 @@ The default response groups chunks by file and includes:
 - direct `/api/files`, `/p`, and `/raw` paths;
 - Cloudflare scoring details and source metadata;
 - the requested and effective retrieval modes;
-- diagnostics for capabilities, folder root, excluded chunks, duplicate chunks, and automatic fallback.
+- diagnostics for capabilities, scope mode, scope strategy, candidate attempts, excluded chunks, duplicate chunks, and automatic fallback.
 
 ## Configuration
 
-The crawler folder root is configured as the absolute URL prefix used by AI Search:
-
 ```text
 AI_SEARCH_FOLDER_ROOT=https://prompt.2212148739lbw.workers.dev/api/files
+AI_SEARCH_PROJECT_SCOPE_MODE=source
 ```
 
-When this variable is omitted, the Worker derives the root from the incoming request origin. Set it explicitly when the public crawler source uses a different canonical hostname from the Worker request URL.
+`AI_SEARCH_FOLDER_ROOT` is used by metadata mode and by result validation. When it is omitted, the Worker derives the root from the incoming request origin. Set it explicitly when the public crawler source uses a different canonical hostname from the Worker request URL.
+
+Unknown `AI_SEARCH_PROJECT_SCOPE_MODE` values safely fall back to `source` mode.
 
 ## Limits
 
-The generated sitemap follows the standard maximum of 50,000 URLs. Cloudflare AI Search accepts individual files up to 4 MB; files exceeding that limit appear in the AI Search indexing error logs. The HTTP API limits queries to 1,000 characters and at most 20 returned results.
+The generated sitemap follows the standard maximum of 50,000 URLs. Cloudflare AI Search accepts individual files up to 4 MB; files exceeding that limit appear in the AI Search indexing error logs. The HTTP API limits queries to 1,000 characters and at most 20 returned results. Source-scoped project searches request at most 50 candidate chunks internally before strict filtering.
 
 ## Cloudflare documentation
 
