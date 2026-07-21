@@ -39,7 +39,7 @@ const aiSearchPayload = {
       id: 'padding-1',
       type: 'text',
       score: 0.91,
-      text: '# padding\n\n`p-\\u003cnumber\\u003e`\n\n\\u003cdiv class="p-8"\\u003ep-8\\u003c/div\\u003e',
+      text: '\\# padding\n\n| \\`p-\\u003cnumber\\u003e\\` | \\`padding: calc(var(--spacing) \\* \\u003cnumber\\u003e);\\` |\n\n## \\[Examples\\](#examples)\n\n\\`\\`\\`\n\\u003cdiv class="p-8"\\u003ep-8\\u003c/div\\u003e\n\\`\\`\\`',
       source: {
         key: 'https://prompt.example.com/ai-index/tailwindcss-docs/spacing/padding.md',
         url: 'https://prompt.example.com/ai-index/tailwindcss-docs/spacing/padding.md',
@@ -54,7 +54,7 @@ const aiSearchPayload = {
       id: 'escaping-1',
       type: 'text',
       score: 0.72,
-      text: 'Literal documentation of \\u003c must stay literal outside /ai-index.',
+      text: 'Literal documentation of \\u003c, \\# and \\` must stay literal outside /ai-index.',
       source: {
         key: 'https://prompt.example.com/raw/tailwindcss-docs/escaping.md',
         url: 'https://prompt.example.com/raw/tailwindcss-docs/escaping.md',
@@ -79,6 +79,11 @@ assert.ok(
   serializedAiSearch.includes('\\u003cdiv'),
   'AI Search JSON should retain one safe transport-level Unicode escape.',
 );
+assert.equal(
+  serializedAiSearch.includes('\\\\# padding'),
+  false,
+  'Cloudflare-added Markdown escapes must be removed before JSON serialization.',
+);
 assert.deepEqual(parsedAiSearch, {
   query: 'padding',
   project: 'tailwindcss-docs',
@@ -86,14 +91,14 @@ assert.deepEqual(parsedAiSearch, {
   results: [
     {
       score: 0.91,
-      text: '# padding\n\n`p-<number>`\n\n<div class="p-8">p-8</div>',
+      text: '# padding\n\n| `p-<number>` | `padding: calc(var(--spacing) * <number>);` |\n\n## [Examples](#examples)\n\n```\n<div class="p-8">p-8</div>\n```',
       project: 'tailwindcss-docs',
       path: '/spacing/padding.md',
       url: 'https://prompt.example.com/raw/tailwindcss-docs/spacing/padding.md',
     },
     {
       score: 0.72,
-      text: 'Literal documentation of \\u003c must stay literal outside /ai-index.',
+      text: 'Literal documentation of \\u003c, \\# and \\` must stay literal outside /ai-index.',
       project: 'tailwindcss-docs',
       path: '/escaping.md',
       url: 'https://prompt.example.com/raw/tailwindcss-docs/escaping.md',
