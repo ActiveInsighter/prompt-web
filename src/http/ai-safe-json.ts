@@ -20,6 +20,22 @@ const JSON_ESCAPE_BY_CHARACTER: Record<string, string> = {
   '\u2029': '\\u2029',
 };
 
+export interface CompactAiSearchResult {
+  score: number;
+  text: string;
+  project: string | null;
+  path: string | null;
+  uri: string | null;
+  url: string | null;
+}
+
+export interface CompactAiSearchResponse {
+  query: string;
+  project: string | null;
+  count: number;
+  results: CompactAiSearchResult[];
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -99,7 +115,7 @@ function resolvePromptUri(project: string | null, path: string | null): string |
   return encodedPath ? `prompt://${encodedProject}/${encodedPath}` : null;
 }
 
-function normalizeAiSearchPayload(value: unknown): unknown {
+export function compactAiSearchPayload(value: unknown): unknown {
   if (!isRecord(value) || value.engine !== 'cloudflare-ai-search' || !Array.isArray(value.results)) {
     return value;
   }
@@ -110,7 +126,7 @@ function normalizeAiSearchPayload(value: unknown): unknown {
     ? optionalString(queryProject.slug)
     : optionalString(queryProject);
 
-  const results = value.results.flatMap((result) => {
+  const results = value.results.flatMap((result): CompactAiSearchResult[] => {
     if (!isRecord(result)) return [];
 
     const source = isRecord(result.source) ? result.source : {};
@@ -139,7 +155,7 @@ function normalizeAiSearchPayload(value: unknown): unknown {
     project,
     count: results.length,
     results,
-  };
+  } satisfies CompactAiSearchResponse;
 }
 
 /**
@@ -149,7 +165,7 @@ function normalizeAiSearchPayload(value: unknown): unknown {
  * tags and Markdown punctuation are restored before the final JSON encoding.
  */
 export function serializeAiSafeJson(value: unknown): string {
-  const serialized = JSON.stringify(normalizeAiSearchPayload(value));
+  const serialized = JSON.stringify(compactAiSearchPayload(value));
   if (serialized === undefined) {
     throw new TypeError('Value is not JSON serializable.');
   }
