@@ -27,13 +27,20 @@ jobs:
           console.log('STATUS=' + response.status);
           if (!response.ok) throw new Error(raw);
           const data = JSON.parse(raw);
-          const text = data?.results?.[0]?.text ?? '';
-          console.log('RAW_PREFIX=' + JSON.stringify(raw.slice(0, 1200)));
-          console.log('PARSED_TEXT=' + JSON.stringify(text.slice(0, 2000)));
+          const result = data?.results?.find((item) => item?.path === '/spacing/padding.md');
+          if (!result) throw new Error('padding.md result was not returned: ' + raw.slice(0, 2000));
+          const text = result.text ?? '';
+          console.log('RESULT_PATH=' + result.path);
+          console.log('PARSED_TEXT_PREFIX=' + JSON.stringify(text.slice(0, 1800)));
           console.log('HAS_ESCAPED_HEADING=' + text.includes('\\# padding'));
           console.log('HAS_ESCAPED_BACKTICK=' + text.includes('\\`'));
           console.log('HAS_ESCAPED_BRACKET=' + text.includes('\\['));
           console.log('HAS_LITERAL_HEADING=' + text.includes('# padding'));
           console.log('HAS_LITERAL_BACKTICK=' + text.includes('`'));
           console.log('HAS_LITERAL_NUMBER_TAG=' + text.includes('<number>'));
+          console.log('HAS_ONE_LITERAL_UNICODE_ESCAPE=' + text.includes('\\u003cnumber\\u003e'));
+          console.log('HAS_DOUBLE_LITERAL_UNICODE_ESCAPE=' + text.includes('\\\\u003cnumber\\\\u003e'));
+          console.log('FIRST_NUMBER_INDEX=' + text.indexOf('number'));
+          const numberIndex = text.indexOf('number');
+          console.log('NUMBER_CONTEXT=' + JSON.stringify(text.slice(Math.max(0, numberIndex - 20), numberIndex + 30)));
           NODE
