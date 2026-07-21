@@ -88,6 +88,17 @@ function resolveRawUrl(source: Record<string, unknown>): string | null {
   return rawPath ?? sourceUrl;
 }
 
+function resolvePromptUri(project: string | null, path: string | null): string | null {
+  if (!project || !path) return null;
+  const encodedProject = encodeURIComponent(project);
+  const encodedPath = path
+    .replace(/^\/+/, '')
+    .split('/')
+    .map((segment) => encodeURIComponent(segment))
+    .join('/');
+  return encodedPath ? `prompt://${encodedProject}/${encodedPath}` : null;
+}
+
 function normalizeAiSearchPayload(value: unknown): unknown {
   if (!isRecord(value) || value.engine !== 'cloudflare-ai-search' || !Array.isArray(value.results)) {
     return value;
@@ -108,13 +119,16 @@ function normalizeAiSearchPayload(value: unknown): unknown {
     const text = sourceKey && isAiIndexSourceKey(sourceKey)
       ? restoreAiIndexSearchText(rawText)
       : rawText;
+    const resultProject = optionalString(source.project);
+    const path = optionalString(source.path);
 
     return [
       {
         score: typeof result.score === 'number' ? result.score : 0,
         text,
-        project: optionalString(source.project),
-        path: optionalString(source.path),
+        project: resultProject,
+        path,
+        uri: resolvePromptUri(resultProject, path),
         url: resolveRawUrl(source),
       },
     ];
