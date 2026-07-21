@@ -14,9 +14,26 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
       - name: Query live AI Search
-        run: node scripts/check-live-ai-search.mjs
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          const url = 'https://prompt.2212148739lbw.workers.dev/api/ai-search/tailwindcss-docs?q=padding&limit=5';
+          const response = await fetch(url, {
+            headers: { accept: 'application/json' },
+            signal: AbortSignal.timeout(60_000),
+          });
+          const raw = await response.text();
+          console.log('STATUS=' + response.status);
+          if (!response.ok) throw new Error(raw);
+          const data = JSON.parse(raw);
+          const text = data?.results?.[0]?.text ?? '';
+          console.log('RAW_PREFIX=' + JSON.stringify(raw.slice(0, 1200)));
+          console.log('PARSED_TEXT=' + JSON.stringify(text.slice(0, 2000)));
+          console.log('HAS_ESCAPED_HEADING=' + text.includes('\\# padding'));
+          console.log('HAS_ESCAPED_BACKTICK=' + text.includes('\\`'));
+          console.log('HAS_ESCAPED_BRACKET=' + text.includes('\\['));
+          console.log('HAS_LITERAL_HEADING=' + text.includes('# padding'));
+          console.log('HAS_LITERAL_BACKTICK=' + text.includes('`'));
+          console.log('HAS_LITERAL_NUMBER_TAG=' + text.includes('<number>'));
+          NODE
