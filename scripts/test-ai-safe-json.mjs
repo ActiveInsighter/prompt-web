@@ -132,6 +132,16 @@ assert.equal(serializedAiSearch.includes('scoringDetails'), false);
 assert.equal(serializedAiSearch.includes('schemaVersion'), false);
 assert.equal(serializedAiSearch.includes('cloudflare-ai-search'), false);
 
+for (const mode of ['hybrid', 'keyword']) {
+  const parsed = JSON.parse(
+    serializeAiSafeJson({
+      ...aiSearchPayload,
+      meta: { ...aiSearchPayload.meta, mode },
+    }),
+  );
+  assert.equal(parsed.meta.mode, mode, `Resolved ${mode} mode must not be rewritten as vector.`);
+}
+
 assert.throws(() => serializeAiSafeJson(undefined), /not JSON serializable/i);
 
 console.log('AI-safe JSON serialization tests passed.');

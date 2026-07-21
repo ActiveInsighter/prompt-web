@@ -89,10 +89,11 @@ const aiSearchInputSchema = {
   query: z.string().trim().min(1).max(1_000),
   project: z.string().trim().max(128).optional(),
   limit: z.number().int().min(1).max(20).default(10),
-  mode: z.enum(['auto', 'vector']).default('auto'),
+  mode: z.enum(['auto', 'hybrid', 'vector', 'keyword']).default('auto'),
   group: z.enum(['files', 'chunks']).default('files'),
   threshold: z.number().min(0).max(1).default(0.4),
   context: z.number().int().min(0).max(3).default(0),
+  rerank: z.boolean().default(false),
 };
 
 function structuredResult(value: Record<string, unknown>) {
@@ -190,7 +191,7 @@ export function createPromptMcpServer(env: Env, access: AccessContext): McpServe
   const repository = new PromptRepository(env);
   const server = new McpServer({
     name: 'prompt-library',
-    version: '0.7.0',
+    version: '0.8.0',
   });
 
   server.registerTool(
@@ -263,7 +264,7 @@ export function createPromptMcpServer(env: Env, access: AccessContext): McpServe
     {
       title: 'Semantic AI search',
       description:
-        'Search public indexed documentation with stable vector retrieval. auto safely resolves to vector. Returns ranked Markdown snippets plus titles, prompt:// identifiers, raw URLs, and measured duration. Use fetch_file to read a complete result.',
+        'Search public indexed documentation with the same capability-aware Cloudflare AI Search logic as the web API. auto selects an available mode; explicit hybrid or keyword requests return a structured retrieval_mode_unavailable error when the index does not support them. Returns ranked Markdown snippets plus titles, prompt:// identifiers, raw URLs, and measured duration. Use fetch_file to read a complete result.',
       inputSchema: aiSearchInputSchema,
       outputSchema: {
         query: z.string(),
@@ -271,7 +272,7 @@ export function createPromptMcpServer(env: Env, access: AccessContext): McpServe
         count: z.number().int(),
         results: z.array(aiSearchResultSchema),
         meta: z.object({
-          mode: z.literal('vector'),
+          mode: z.enum(['hybrid', 'keyword', 'vector']),
           group: z.enum(['files', 'chunks']),
           duration_ms: z.number().int().nonnegative(),
         }),
