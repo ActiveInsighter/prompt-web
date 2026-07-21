@@ -55,6 +55,18 @@ export interface ContentSyncPlan {
   }>;
 }
 
+interface ContentSyncAnalysis {
+  plan: ContentSyncPlan;
+  existing: Map<string, SyncEntryRow>;
+}
+
+export interface ContentSyncResult {
+  dryRun: boolean;
+  runId: string | null;
+  skipped: boolean;
+  plan: ContentSyncPlan;
+}
+
 const EMPTY_STATS = (): SyncEntityStats => ({
   created: 0,
   updated: 0,
@@ -80,6 +92,21 @@ function parentPath(path: string): string {
 
 function pathDepth(path: string): number {
   return path.split('/').filter(Boolean).length - 1;
+}
+
+export function contentSyncEntryNeedsUpdate(
+  entry: Pick<SyncEntryRow, 'source_path' | 'content_hash'> | undefined,
+  sourcePath: string,
+  contentHash: string,
+): boolean {
+  return !entry || entry.source_path !== sourcePath || entry.content_hash !== contentHash;
+}
+
+export function hasContentSyncPlanMutations(plan: ContentSyncPlan): boolean {
+  const hasEntityMutations = [plan.projects, plan.folders, plan.files].some(
+    (stats) => stats.created > 0 || stats.updated > 0 || stats.moved > 0 || stats.deleted > 0,
+  );
+  return hasEntityMutations || plan.deletions.length > 0;
 }
 
 function validateManifestReferences(manifest: ContentManifest): void {
@@ -203,7 +230,12 @@ function upsertSyncEntry(
        source_path = excluded.source_path,
        content_hash = excluded.content_hash,
        last_seen_run_id = excluded.last_seen_run_id,
-       updated_at = excluded.updated_at`,
+       updated_at = excluded.updated_at
+     WHERE content_sync_entries.entity_type IS NOT excluded.entity_type
+        OR content_sync_entries.entity_id IS NOT excluded.entity_id
+        OR content_sync_entries.project_id IS NOT excluded.project_id
+        OR content_sync_entries.source_path IS NOT excluded.source_path
+        OR content_sync_entries.content_hash IS NOT excluded.content_hash`,
   ).bind(
     entityKey(entityType, entityId),
     entityType,
@@ -216,6 +248,7 @@ function upsertSyncEntry(
 }
 
 function projectStatements(env: Env, project: ContentProject, runId: string): D1PreparedStatement[] {
+  const metadataJson = JSON.stringify(project.metadata);
   return [
     env.DB.prepare(
       `INSERT INTO projects(
@@ -230,7 +263,14 @@ function projectStatements(env: Env, project: ContentProject, runId: string): D1
          default_language = excluded.default_language,
          metadata_json = excluded.metadata_json,
          updated_at = excluded.updated_at,
-         deleted_at = NULL`,
+         deleted_at = NULL
+       WHERE projects.slug IS NOT excluded.slug
+          OR projects.name IS NOT excluded.name
+          OR projects.description IS NOT excluded.description
+          OR projects.visibility IS NOT excluded.visibility
+          OR projects.default_language IS NOT excluded.default_language
+          OR projects.metadata_json IS NOT excluded.metadata_json
+          OR projects.deleted_at IS NOT NULL`,
     ).bind(
       project.id,
       project.slug,
@@ -238,7 +278,7 @@ function projectStatements(env: Env, project: ContentProject, runId: string): D1
       project.description,
       project.visibility,
       project.defaultLanguage,
-      JSON.stringify(project.metadata),
+      metadataJson,
     ),
     upsertSyncEntry(
       env,
@@ -269,7 +309,16 @@ function folderStatements(env: Env, folder: ContentFolder, runId: string): D1Pre
          sort_order = excluded.sort_order,
          visibility = excluded.visibility,
          updated_at = excluded.updated_at,
-         deleted_at = NULL`,
+         deleted_at = NULL
+       WHERE nodes.project_id IS NOT excluded.project_id
+          OR nodes.parent_id IS NOT excluded.parent_id
+          OR nodes.node_type IS NOT 'folder'
+          OR nodes.name IS NOT excluded.name
+          OR nodes.path IS NOT excluded.path
+          OR nodes.depth IS NOT excluded.depth
+          OR nodes.sort_order IS NOT excluded.sort_order
+          OR nodes.visibility IS NOT excluded.visibility
+          OR nodes.deleted_at IS NOT NULL`,
     ).bind(
       folder.id,
       folder.projectId,
@@ -316,7 +365,16 @@ function fileStatements(env: Env, file: ContentFile, runId: string): D1PreparedS
          sort_order = excluded.sort_order,
          visibility = excluded.visibility,
          updated_at = excluded.updated_at,
-         deleted_at = NULL`,
+         deleted_at = NULL
+       WHERE nodes.project_id IS NOT excluded.project_id
+          OR nodes.parent_id IS NOT excluded.parent_id
+          OR nodes.node_type IS NOT 'file'
+          OR nodes.name IS NOT excluded.name
+          OR nodes.path IS NOT excluded.path
+          OR nodes.depth IS NOT excluded.depth
+          OR nodes.sort_order IS NOT excluded.sort_order
+          OR nodes.visibility IS NOT excluded.visibility
+          OR nodes.deleted_at IS NOT NULL`,
     ).bind(
       file.id,
       file.projectId,
@@ -377,7 +435,19 @@ function fileStatements(env: Env, file: ContentFile, runId: string): D1PreparedS
              ELSE updated_at
            END,
            content_hash = ?
-       WHERE node_id = ?`,
+       WHERE node_id = ?
+         AND (
+           title IS NOT ?
+           OR description IS NOT ?
+           OR content IS NOT ?
+           OR language IS NOT ?
+           OR format IS NOT ?
+           OR prompt_role IS NOT ?
+           OR variables_json IS NOT ?
+           OR metadata_json IS NOT ?
+           OR tags_text IS NOT ?
+           OR content_hash IS NOT ?
+         )`,
     ).bind(
       file.title,
       file.description,
@@ -392,6 +462,16 @@ function fileStatements(env: Env, file: ContentFile, runId: string): D1PreparedS
       file.contentHash,
       file.contentHash,
       file.id,
+      file.title,
+      file.description,
+      file.content,
+      file.language,
+      file.format,
+      file.promptRole,
+      variablesJson,
+      metadataJson,
+      tagsText,
+      file.contentHash,
     ),
   ];
 
@@ -400,12 +480,27 @@ function fileStatements(env: Env, file: ContentFile, runId: string): D1PreparedS
       env.DB.prepare(
         `INSERT INTO tags(name, normalized_name)
          VALUES (?, ?)
-         ON CONFLICT(normalized_name) DO UPDATE SET name = excluded.name`,
+         ON CONFLICT(normalized_name) DO UPDATE SET name = excluded.name
+         WHERE tags.name IS NOT excluded.name`,
       ).bind(tag.display, tag.normalized),
     );
   }
 
-  statements.push(env.DB.prepare('DELETE FROM file_tags WHERE file_id = ?').bind(file.id));
+  if (tags.length === 0) {
+    statements.push(env.DB.prepare('DELETE FROM file_tags WHERE file_id = ?').bind(file.id));
+  } else {
+    const placeholders = tags.map(() => '?').join(', ');
+    statements.push(
+      env.DB.prepare(
+        `DELETE FROM file_tags
+         WHERE file_id = ?
+           AND tag_id NOT IN (
+             SELECT id FROM tags WHERE normalized_name IN (${placeholders})
+           )`,
+      ).bind(file.id, ...tags.map(({ normalized }) => normalized)),
+    );
+  }
+
   for (const tag of tags) {
     statements.push(
       env.DB.prepare(
@@ -444,6 +539,20 @@ function compareEntry(
   if (moved) stats.moved += 1;
   if (updated) stats.updated += 1;
   if (!moved && !updated) stats.unchanged += 1;
+}
+
+function movedOnlyStatements(
+  env: Env,
+  runId: string,
+  entityType: EntityType,
+  entityId: string,
+  projectId: string,
+  sourcePath: string,
+  contentHash: string,
+): D1PreparedStatement[] {
+  return [
+    upsertSyncEntry(env, runId, entityType, entityId, projectId, sourcePath, contentHash),
+  ];
 }
 
 export class ContentSyncService {
@@ -505,7 +614,10 @@ export class ContentSyncService {
     };
   }
 
-  async plan(manifest: ContentManifest, pruneRequested: boolean): Promise<ContentSyncPlan> {
+  private async analyze(
+    manifest: ContentManifest,
+    pruneRequested: boolean,
+  ): Promise<ContentSyncAnalysis> {
     validateManifestReferences(manifest);
     const rows = await this.env.DB.prepare(
       `SELECT sync_key, entity_type, entity_id, project_id, source_path,
@@ -563,17 +675,48 @@ export class ContentSyncService {
       }
     }
 
-    return plan;
+    return { plan, existing };
   }
 
-  async sync(request: ContentSyncRequest): Promise<{
-    dryRun: boolean;
-    runId: string | null;
-    plan: ContentSyncPlan;
-  }> {
+  async plan(manifest: ContentManifest, pruneRequested: boolean): Promise<ContentSyncPlan> {
+    return (await this.analyze(manifest, pruneRequested)).plan;
+  }
+
+  async sync(request: ContentSyncRequest): Promise<ContentSyncResult> {
     const { manifest, prune, dryRun } = request;
-    const plan = await this.plan(manifest, prune);
-    if (dryRun) return { dryRun: true, runId: null, plan };
+    const { plan, existing } = await this.analyze(manifest, prune);
+    const skipped = !hasContentSyncPlanMutations(plan);
+    if (dryRun) return { dryRun: true, runId: null, skipped, plan };
+
+    if (skipped) {
+      console.log(
+        'content_sync_skipped',
+        JSON.stringify({ manifestHash: manifest.manifestHash, reason: 'manifest-already-applied' }),
+      );
+      return { dryRun: false, runId: null, skipped: true, plan };
+    }
+
+    const changedProjects = manifest.projects.filter((project) =>
+      contentSyncEntryNeedsUpdate(
+        existing.get(entityKey('project', project.id)),
+        project.sourcePath,
+        project.configHash,
+      ),
+    );
+    const changedFolders = manifest.folders.filter((folder) =>
+      contentSyncEntryNeedsUpdate(
+        existing.get(entityKey('folder', folder.id)),
+        folder.sourcePath,
+        folder.configHash,
+      ),
+    );
+    const changedFiles = manifest.files.filter((file) =>
+      contentSyncEntryNeedsUpdate(
+        existing.get(entityKey('file', file.id)),
+        file.sourcePath,
+        file.syncHash,
+      ),
+    );
 
     const runId = `content-sync-${Date.now()}-${crypto.randomUUID()}`;
     await this.env.DB.prepare(
@@ -587,21 +730,60 @@ export class ContentSyncService {
     try {
       await executeStatementGroups(
         this.env.DB,
-        manifest.projects.map((project) => projectStatements(this.env, project, runId)),
+        changedProjects.map((project) => {
+          const entry = existing.get(entityKey('project', project.id));
+          return entry && entry.content_hash === project.configHash
+            ? movedOnlyStatements(
+                this.env,
+                runId,
+                'project',
+                project.id,
+                project.id,
+                project.sourcePath,
+                project.configHash,
+              )
+            : projectStatements(this.env, project, runId);
+        }),
       );
 
       await executeStatementGroups(
         this.env.DB,
-        [...manifest.folders]
+        [...changedFolders]
           .sort((left, right) => left.depth - right.depth || left.path.localeCompare(right.path))
-          .map((folder) => folderStatements(this.env, folder, runId)),
+          .map((folder) => {
+            const entry = existing.get(entityKey('folder', folder.id));
+            return entry && entry.content_hash === folder.configHash
+              ? movedOnlyStatements(
+                  this.env,
+                  runId,
+                  'folder',
+                  folder.id,
+                  folder.projectId,
+                  folder.sourcePath,
+                  folder.configHash,
+                )
+              : folderStatements(this.env, folder, runId);
+          }),
       );
 
       await executeStatementGroups(
         this.env.DB,
-        [...manifest.files]
+        [...changedFiles]
           .sort((left, right) => left.depth - right.depth || left.path.localeCompare(right.path))
-          .map((file) => fileStatements(this.env, file, runId)),
+          .map((file) => {
+            const entry = existing.get(entityKey('file', file.id));
+            return entry && entry.content_hash === file.syncHash
+              ? movedOnlyStatements(
+                  this.env,
+                  runId,
+                  'file',
+                  file.id,
+                  file.projectId,
+                  file.sourcePath,
+                  file.syncHash,
+                )
+              : fileStatements(this.env, file, runId);
+          }),
       );
 
       if (plan.deletions.length > 0) {
@@ -617,7 +799,7 @@ export class ContentSyncService {
               `UPDATE nodes
                SET deleted_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'),
                    updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
-               WHERE id = ? AND project_id = ?`,
+               WHERE id = ? AND project_id = ? AND deleted_at IS NULL`,
             ).bind(entry.entityId, entry.projectId),
             this.env.DB.prepare('DELETE FROM content_sync_entries WHERE sync_key = ?').bind(
               entry.syncKey,
@@ -626,11 +808,16 @@ export class ContentSyncService {
         await executeStatementGroups(this.env.DB, deletionGroups);
       }
 
-      await this.env.DB.batch([
-        this.env.DB.prepare(
-          `DELETE FROM tags
-           WHERE id NOT IN (SELECT DISTINCT tag_id FROM file_tags)`,
-        ),
+      const completionStatements: D1PreparedStatement[] = [];
+      if (changedFiles.length > 0) {
+        completionStatements.push(
+          this.env.DB.prepare(
+            `DELETE FROM tags
+             WHERE id NOT IN (SELECT DISTINCT tag_id FROM file_tags)`,
+          ),
+        );
+      }
+      completionStatements.push(
         this.env.DB.prepare(
           `UPDATE content_sync_runs
            SET status = 'succeeded',
@@ -638,9 +825,21 @@ export class ContentSyncService {
                finished_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
            WHERE id = ?`,
         ).bind(JSON.stringify(plan), runId),
-      ]);
+      );
+      await this.env.DB.batch(completionStatements);
 
-      return { dryRun: false, runId, plan };
+      console.log(
+        'content_sync_applied',
+        JSON.stringify({
+          runId,
+          manifestHash: manifest.manifestHash,
+          projects: changedProjects.length,
+          folders: changedFolders.length,
+          files: changedFiles.length,
+          deletions: plan.deletions.length,
+        }),
+      );
+      return { dryRun: false, runId, skipped: false, plan };
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       await this.env.DB.prepare(
