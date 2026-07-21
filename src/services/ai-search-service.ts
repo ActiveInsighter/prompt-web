@@ -14,6 +14,7 @@ import {
   type AiSearchProjectScopeMode,
   type AiSearchRequestOptions,
   type AiSearchRequestedRetrievalType,
+  type AiSearchResult,
   type AiSearchRetrievalType,
 } from '../http/cloudflare-ai-search-utils';
 import type { Env } from '../types';
@@ -66,10 +67,23 @@ export class AiSearchServiceError extends Error {
 
 const CAPABILITIES_CACHE_TTL_MS = 5 * 60 * 1_000;
 const MAX_PROJECT_SCOPE_RETRIEVAL_RESULTS = 50;
+const GENERIC_DOCUMENT_NAMES = new Set([
+  'changelog',
+  'components',
+  'component',
+  'index',
+  'overview',
+  'readme',
+  'sections',
+]);
 let cachedCapabilities: CachedCapabilities | undefined;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function optionalString(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim() ? value : undefined;
 }
 
 function resolveMcpRequestUrl(env: Env): string {
@@ -134,8 +148,6 @@ function resolveRetrievalType(
 ): AiSearchRetrievalType | null {
   const requested = options.requestedRetrievalType;
   if (requested === 'auto') {
-    if (capabilities.vector && capabilities.keyword) return 'hybrid';
-    if (capabilities.keyword) return 'keyword';
     return capabilities.vector ? 'vector' : null;
   }
   if (requested === 'hybrid') {
@@ -168,7 +180,9 @@ function buildSearchRequest(
   queryText = options.query,
 ) {
   return {
-    messages: [{ role: 'user' as const, content: queryText }],
+    // The query primitive bypasses conversational query rewriting and is more
+    // predictable for exact document retrieval, including CJK input.
+    query: queryText,
     ai_search_options: {
       retrieval: {
         retrieval_type: retrievalType,
@@ -204,16 +218,93 @@ async function runSearch(
   );
 }
 
+function normalizeRankText(value: string): string {
+  return value
+    .normalize('NFKC')
+    .toLocaleLowerCase()
+    .replace(/\.[a-z0-9]+$/u, '')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim();
+}
+
+function sourceTitle(result: AiSearchResult): string {
+  const metadata = result.source.metadata;
+  return (
+    optionalString(metadata.title) ??
+    optionalString(metadata.display_title) ??
+    optionalString(metadata.name) ??
+    ''
+  );
+}
+
+function sourceStem(result: AiSearchResult): string {
+  const fileName = result.source.path?.split('/').filter(Boolean).at(-1) ?? '';
+  return fileName.replace(/\.[^.]+$/u, '');
+}
+
+function scoreResult(result: AiSearchResult, query: string): number {
+  const normalizedQuery = normalizeRankText(query);
+  if (!normalizedQuery) return result.score;
+
+  const normalizedTitle = normalizeRankText(sourceTitle(result));
+  const normalizedStem = normalizeRankText(sourceStem(result));
+  const normalizedPath = normalizeRankText(result.source.path ?? '');
+  const terms = normalizedQuery.split(/\s+/u).filter(Boolean);
+  let adjustment = 0;
+
+  if (normalizedStem === normalizedQuery) adjustment += 0.3;
+  if (normalizedTitle === normalizedQuery) adjustment += 0.28;
+  if (normalizedPath.includes(normalizedQuery)) adjustment += 0.1;
+  if (
+    terms.length > 1 &&
+    terms.every((term) => normalizedTitle.includes(term) || normalizedPath.includes(term))
+  ) {
+    adjustment += 0.06;
+  }
+
+  if (GENERIC_DOCUMENT_NAMES.has(normalizedStem)) adjustment -= 0.14;
+  if (result.source.path?.toLocaleLowerCase().includes('/sections/')) adjustment -= 0.08;
+  if (result.source.path?.toLocaleLowerCase().endsWith('/changelog.md')) adjustment -= 0.12;
+
+  return Math.max(0, Math.min(1, Number((result.score + adjustment).toFixed(6))));
+}
+
+function rankResults(results: AiSearchResult[], query: string, limit: number): AiSearchResult[] {
+  return results
+    .map((result, index) => ({
+      result: { ...result, score: scoreResult(result, query) },
+      originalScore: result.score,
+      index,
+    }))
+    .sort(
+      (left, right) =>
+        right.result.score - left.result.score ||
+        right.originalScore - left.originalScore ||
+        left.index - right.index,
+    )
+    .slice(0, limit)
+    .map(({ result }) => result);
+}
+
 function createOutcome(
   searchResult: AiSearchBindingResult,
   options: AiSearchRequestOptions,
   folderRoot: string,
 ): SearchOutcome {
   const chunks = searchResult.chunks as unknown as AiSearchChunkLike[];
+  const candidateLimit = options.grouping === 'files' ? options.retrievalLimit : options.limit;
+  const formatted = formatAiSearchResults(
+    chunks,
+    { ...options, limit: candidateLimit },
+    folderRoot,
+  );
   return {
     searchResult,
     chunks,
-    formatted: formatAiSearchResults(chunks, options, folderRoot),
+    formatted: {
+      ...formatted,
+      results: rankResults(formatted.results, options.query, options.limit),
+    },
   };
 }
 
@@ -301,11 +392,40 @@ function availableModes(capabilities: AiSearchCapabilities): string[] {
   ];
 }
 
+function upstreamErrorDetails(error: unknown): Record<string, unknown> {
+  if (!isRecord(error)) {
+    return error instanceof Error ? { upstreamMessage: error.message } : {};
+  }
+
+  const statusCandidates = [error.status, error.statusCode, error.httpStatus, error.responseStatus];
+  const upstreamStatus = statusCandidates.find(
+    (value): value is number => typeof value === 'number' && Number.isFinite(value),
+  );
+  const upstreamCode = optionalString(error.code) ?? optionalString(error.name);
+  const upstreamMessage = optionalString(error.message);
+
+  return {
+    ...(upstreamStatus !== undefined ? { upstreamStatus } : {}),
+    ...(upstreamCode ? { upstreamCode } : {}),
+    ...(upstreamMessage ? { upstreamMessage } : {}),
+  };
+}
+
+function safeRetryOptions(options: AiSearchRequestOptions): AiSearchRequestOptions {
+  return {
+    ...options,
+    requestedRetrievalType: 'vector',
+    contextExpansion: 0,
+    reranking: false,
+  };
+}
+
 export async function searchAiDocuments(
   env: Env,
   options: AiSearchRequestOptions,
   requestUrl: string,
 ): Promise<CompactAiSearchResponse> {
+  const startedAt = Date.now();
   if (!env.PROMPT_AI_SEARCH) {
     throw new AiSearchServiceError(
       'ai_search_unavailable',
@@ -337,6 +457,7 @@ export async function searchAiDocuments(
   const folderRoot = resolveAiSearchFolderRoot(env.AI_SEARCH_FOLDER_ROOT, requestUrl);
   const projectScopeMode = parseAiSearchProjectScopeMode(env.AI_SEARCH_PROJECT_SCOPE_MODE);
   let effectiveRetrievalType = retrievalType;
+  let firstError: unknown;
 
   try {
     let outcome: SearchOutcome;
@@ -350,25 +471,26 @@ export async function searchAiDocuments(
         projectScopeMode,
       );
     } catch (error) {
-      const canFallback =
-        canonicalOptions.requestedRetrievalType === 'auto' &&
-        effectiveRetrievalType !== 'vector' &&
-        capabilities.vector;
-      if (!canFallback) throw error;
+      firstError = error;
+      const canRetryVector =
+        capabilities.vector &&
+        (canonicalOptions.requestedRetrievalType === 'auto' ||
+          canonicalOptions.requestedRetrievalType === 'vector');
+      if (!canRetryVector) throw error;
 
-      console.warn('cloudflare_ai_search_mode_fallback', {
-        from: effectiveRetrievalType,
-        to: 'vector',
+      console.warn('cloudflare_ai_search_safe_vector_retry', {
+        project: project?.slug ?? null,
+        requestedMode: canonicalOptions.requestedRetrievalType,
         error,
       });
       effectiveRetrievalType = 'vector';
       outcome = await runScopedSearch(
         env,
-        canonicalOptions,
+        safeRetryOptions(canonicalOptions),
         effectiveRetrievalType,
         project,
         folderRoot,
-        projectScopeMode,
+        'source',
       );
     }
 
@@ -380,20 +502,28 @@ export async function searchAiDocuments(
         project: project ? { slug: project.slug, name: project.name } : null,
       },
       results: outcome.formatted.results,
+      meta: {
+        mode: effectiveRetrievalType,
+        group: canonicalOptions.grouping,
+        duration_ms: Date.now() - startedAt,
+      },
     }) as CompactAiSearchResponse;
   } catch (error) {
     if (error instanceof AiSearchServiceError) throw error;
-    console.error('cloudflare_ai_search_failed', {
+    const details = {
       project: project?.slug ?? null,
       requestedMode: canonicalOptions.requestedRetrievalType,
       resolvedMode: effectiveRetrievalType,
       projectScopeMode,
-      error,
-    });
+      ...upstreamErrorDetails(error),
+      ...(firstError ? { firstAttempt: upstreamErrorDetails(firstError) } : {}),
+    };
+    console.error('cloudflare_ai_search_failed', { ...details, error });
     throw new AiSearchServiceError(
       'ai_search_failed',
-      'Cloudflare AI Search request failed.',
+      'Cloudflare AI Search request failed after a safe vector retry.',
       502,
+      details,
     );
   }
 }
