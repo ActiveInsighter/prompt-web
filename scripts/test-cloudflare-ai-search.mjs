@@ -8,6 +8,7 @@ import {
   normalizeAiSearchFolderRoot,
   parseAiSearchRequest,
   parseIndexedSourceKey,
+  resolveAiSearchFolderRoot,
 } from '../src/http/cloudflare-ai-search-utils.ts';
 
 assert.deepEqual(
@@ -18,23 +19,52 @@ assert.deepEqual(
   {
     query: 'button',
     project: 'shadcn-ui-docs',
-    retrievalType: 'hybrid',
+    requestedRetrievalType: 'hybrid',
     grouping: 'files',
     limit: 5,
     retrievalLimit: 15,
     matchThreshold: 0.4,
-    contextExpansion: 1,
-    reranking: true,
+    contextExpansion: 0,
+    reranking: false,
+  },
+);
+
+assert.deepEqual(
+  parseAiSearchRequest('https://prompt.example.com/api/ai-search?q=button'),
+  {
+    query: 'button',
+    project: undefined,
+    requestedRetrievalType: 'auto',
+    grouping: 'files',
+    limit: 10,
+    retrievalLimit: 30,
+    matchThreshold: 0.4,
+    contextExpansion: 0,
+    reranking: false,
   },
 );
 
 assert.equal(normalizeAiSearchFolderRoot('/api//files///'), '/api/files');
-assert.deepEqual(buildProjectFolderFilter('shadcn-ui-docs'), {
-  folder: {
-    $gte: 'api/files/shadcn-ui-docs/',
-    $lt: 'api/files/shadcn-ui-docs0',
+assert.equal(
+  normalizeAiSearchFolderRoot('https://prompt.example.com/api//files///'),
+  'https://prompt.example.com/api/files',
+);
+assert.equal(
+  resolveAiSearchFolderRoot(undefined, 'https://prompt.example.com/api/ai-search?q=x'),
+  'https://prompt.example.com/api/files',
+);
+assert.deepEqual(
+  buildProjectFolderFilter(
+    'shadcn-ui-docs',
+    'https://prompt.example.com/api/files',
+  ),
+  {
+    folder: {
+      $gte: 'https://prompt.example.com/api/files/shadcn-ui-docs/',
+      $lt: 'https://prompt.example.com/api/files/shadcn-ui-docs0',
+    },
   },
-});
+);
 
 assert.deepEqual(
   parseIndexedSourceKey(
@@ -58,7 +88,9 @@ const buttonChunk = {
   item: {
     key: 'https://prompt.example.com/api/files/shadcn-ui-docs/components/button.md',
     timestamp: 123,
-    metadata: { folder: 'api/files/shadcn-ui-docs/components/' },
+    metadata: {
+      folder: 'https://prompt.example.com/api/files/shadcn-ui-docs/components/',
+    },
   },
   scoring_details: { vector_score: 0.9 },
 };
@@ -68,17 +100,32 @@ const zustandChunk = {
   id: 'zustand-1',
   item: {
     key: 'https://prompt.example.com/api/files/zustand-docs/guide.md',
-    metadata: { folder: 'api/files/zustand-docs/' },
+    metadata: { folder: 'https://prompt.example.com/api/files/zustand-docs/' },
   },
 };
 
-assert.equal(chunkMatchesProject(buttonChunk, 'shadcn-ui-docs'), true);
-assert.equal(chunkMatchesProject(zustandChunk, 'shadcn-ui-docs'), false);
+assert.equal(
+  chunkMatchesProject(
+    buttonChunk,
+    'shadcn-ui-docs',
+    'https://prompt.example.com/api/files',
+  ),
+  true,
+);
+assert.equal(
+  chunkMatchesProject(
+    zustandChunk,
+    'shadcn-ui-docs',
+    'https://prompt.example.com/api/files',
+  ),
+  false,
+);
 
 assert.deepEqual(
   formatAiSearchResults(
     [buttonChunk, duplicateButtonChunk, zustandChunk],
     { grouping: 'files', limit: 5, project: 'shadcn-ui-docs' },
+    'https://prompt.example.com/api/files',
   ),
   {
     results: [
@@ -96,7 +143,9 @@ assert.deepEqual(
           viewerPath: '/p/shadcn-ui-docs/components/button.md',
           rawPath: '/raw/shadcn-ui-docs/components/button.md',
           timestamp: 123,
-          metadata: { folder: 'api/files/shadcn-ui-docs/components/' },
+          metadata: {
+            folder: 'https://prompt.example.com/api/files/shadcn-ui-docs/components/',
+          },
         },
         scoringDetails: { vector_score: 0.9 },
       },
