@@ -84,7 +84,7 @@ Supported query parameters:
 | `context` | `0` | Surrounding chunks from 0 to 3. |
 | `rerank` | `false` | Enable or disable reranking. |
 
-The current instance has vector indexing enabled and keyword indexing disabled, so the default `auto` mode resolves to `vector`. When keyword indexing is enabled later, `auto` can select `hybrid`. Explicitly requesting a disabled mode returns a structured `retrieval_mode_unavailable` response instead of a provider error.
+The current instance has vector indexing enabled and keyword indexing disabled, so the default `auto` mode resolves to `vector`. When keyword indexing is enabled later, `auto` can select `hybrid`. Explicitly requesting a disabled mode returns a structured `retrieval_mode_unavailable` response instead of a provider error. Instance capabilities are cached in each Worker isolate for five minutes to avoid adding a configuration request to every search.
 
 Project-scoped search first verifies that the project exists and is public in D1. It then applies a Cloudflare metadata range filter to the built-in `folder` field before retrieval:
 
