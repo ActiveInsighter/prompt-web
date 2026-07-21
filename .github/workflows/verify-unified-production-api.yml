@@ -91,6 +91,10 @@ jobs:
           if [[ "$VERIFY_AI_SEARCH_INDEX" == "true" ]]; then
             get_json "$BASE_URL/api/files" "$temp_dir/api-root-no-slash.json"
             get_json "$BASE_URL/api/files/" "$temp_dir/api-root-slash.json"
+            get_text "$BASE_URL/ai-index" "$temp_dir/ai-index-root.html"
+            get_text "$BASE_URL/ai-index/" "$temp_dir/ai-index-root-slash.html"
+            get_text "$BASE_URL/ai-index/shadcn-ui-docs" "$temp_dir/ai-index-project.html"
+            get_text "$BASE_URL/ai-index/shadcn-ui-docs/components/progress.md" "$temp_dir/ai-index-file.txt"
             get_text "$BASE_URL/robots.txt" "$temp_dir/robots.txt"
             get_text "$BASE_URL/sitemap.xml" "$temp_dir/sitemap.xml"
           fi
@@ -168,6 +172,10 @@ jobs:
           if (process.env.VERIFY_AI_SEARCH_INDEX === 'true') {
             const apiRootNoSlash = readJson('api-root-no-slash.json');
             const apiRootSlash = readJson('api-root-slash.json');
+            const aiIndexRoot = readText('ai-index-root.html');
+            const aiIndexRootSlash = readText('ai-index-root-slash.html');
+            const aiIndexProject = readText('ai-index-project.html');
+            const aiIndexFile = readText('ai-index-file.txt');
             const robots = readText('robots.txt');
             const sitemap = readText('sitemap.xml');
 
@@ -186,8 +194,41 @@ jobs:
               }
             }
 
+            for (const [name, html] of [
+              ['AI index root without slash', aiIndexRoot],
+              ['AI index root with slash', aiIndexRootSlash],
+            ]) {
+              if (
+                !html.startsWith('<!doctype html>') ||
+                !html.includes(`<link rel="canonical" href="${process.env.BASE_URL}/ai-index">`) ||
+                !html.includes(`href="${process.env.BASE_URL}/ai-index/shadcn-ui-docs"`)
+              ) {
+                throw new Error(`Invalid ${name}: ${html.slice(0, 500)}`);
+              }
+            }
+
+            if (
+              !aiIndexProject.startsWith('<!doctype html>') ||
+              !aiIndexProject.includes(
+                `href="${process.env.BASE_URL}/ai-index/shadcn-ui-docs/components"`,
+              )
+            ) {
+              throw new Error(`Invalid AI index project directory: ${aiIndexProject.slice(0, 500)}`);
+            }
+
+            if (
+              !aiIndexFile.includes('\\u003cProgress') ||
+              !aiIndexFile.includes('\\u003cTabsTrigger') ||
+              aiIndexFile.includes('<Progress')
+            ) {
+              throw new Error(`Invalid AI index document response: ${aiIndexFile.slice(0, 500)}`);
+            }
+
             if (
               !robots.includes('User-agent: Cloudflare-AI-Search') ||
+              !robots.includes('Allow: /ai-index/') ||
+              !robots.includes('Disallow: /raw/') ||
+              !robots.includes('Disallow: /api/') ||
               !robots.includes(`Sitemap: ${process.env.BASE_URL}/sitemap.xml`)
             ) {
               throw new Error(`Invalid robots.txt: ${robots}`);
@@ -195,13 +236,14 @@ jobs:
 
             if (
               !sitemap.startsWith('<?xml version="1.0" encoding="UTF-8"?>') ||
-              !sitemap.includes(`<loc>${process.env.BASE_URL}/api/files</loc>`) ||
               !sitemap.includes(
-                `<loc>${process.env.BASE_URL}/api/files/shadcn-ui-docs/components/progress.md</loc>`,
+                `<loc>${process.env.BASE_URL}/ai-index/shadcn-ui-docs/components/progress.md</loc>`,
               ) ||
+              sitemap.includes(`<loc>${process.env.BASE_URL}/api/files`) ||
+              sitemap.includes(`<loc>${process.env.BASE_URL}/raw/`) ||
               !sitemap.includes('<lastmod>')
             ) {
-              throw new Error('AI Search sitemap is missing required API URLs or metadata.');
+              throw new Error('AI Search sitemap is missing required /ai-index URLs or metadata.');
             }
           }
 
