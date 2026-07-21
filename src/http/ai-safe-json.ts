@@ -22,6 +22,7 @@ const JSON_ESCAPE_BY_CHARACTER: Record<string, string> = {
 
 export interface CompactAiSearchResult {
   score: number;
+  title: string;
   text: string;
   project: string | null;
   path: string | null;
@@ -34,6 +35,11 @@ export interface CompactAiSearchResponse extends Record<string, unknown> {
   project: string | null;
   count: number;
   results: CompactAiSearchResult[];
+  meta: {
+    mode: 'vector';
+    group: 'files' | 'chunks';
+    duration_ms: number;
+  };
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -115,6 +121,47 @@ function resolvePromptUri(project: string | null, path: string | null): string |
   return encodedPath ? `prompt://${encodedProject}/${encodedPath}` : null;
 }
 
+function titleFromPath(path: string | null): string | null {
+  if (!path) return null;
+  const fileName = path.split('/').filter(Boolean).at(-1);
+  if (!fileName) return null;
+  const stem = fileName.replace(/\.[^.]+$/u, '').replace(/[-_]+/gu, ' ').trim();
+  if (!stem) return null;
+  return stem.replace(/(^|\s)(\p{L})/gu, (_match, prefix: string, letter: string) =>
+    `${prefix}${letter.toLocaleUpperCase()}`,
+  );
+}
+
+function resolveResultTitle(
+  result: Record<string, unknown>,
+  source: Record<string, unknown>,
+  path: string | null,
+): string {
+  const metadata = isRecord(source.metadata) ? source.metadata : {};
+  return (
+    optionalString(result.title) ??
+    optionalString(source.title) ??
+    optionalString(metadata.title) ??
+    optionalString(metadata.display_title) ??
+    optionalString(metadata.name) ??
+    titleFromPath(path) ??
+    'Untitled'
+  );
+}
+
+function compactMeta(value: Record<string, unknown>): CompactAiSearchResponse['meta'] {
+  const meta = isRecord(value.meta) ? value.meta : {};
+  const group = meta.group === 'chunks' ? 'chunks' : 'files';
+  const duration = typeof meta.duration_ms === 'number' && Number.isFinite(meta.duration_ms)
+    ? Math.max(0, Math.round(meta.duration_ms))
+    : 0;
+  return {
+    mode: 'vector',
+    group,
+    duration_ms: duration,
+  };
+}
+
 export function compactAiSearchPayload(value: unknown): unknown {
   if (!isRecord(value) || value.engine !== 'cloudflare-ai-search' || !Array.isArray(value.results)) {
     return value;
@@ -141,6 +188,7 @@ export function compactAiSearchPayload(value: unknown): unknown {
     return [
       {
         score: typeof result.score === 'number' ? result.score : 0,
+        title: resolveResultTitle(result, source, path),
         text,
         project: resultProject,
         path,
@@ -155,6 +203,7 @@ export function compactAiSearchPayload(value: unknown): unknown {
     project,
     count: results.length,
     results,
+    meta: compactMeta(value),
   } satisfies CompactAiSearchResponse;
 }
 
