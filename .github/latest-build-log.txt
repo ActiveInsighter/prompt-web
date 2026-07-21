@@ -1,11 +1,11 @@
 repository=ActiveInsighter/prompt-web
 workflow=Prompt Web CI
-run_id=29751442252
+run_id=29795909981
 run_attempt=1
-head_sha=2c8284821b528ad4a4414858321f69cb9292b2dc
-started_at=2026-07-20T14:37:19Z
+head_sha=cdb7d44187303d9f0dc6cdc848b1d41c2c5cb42f
+started_at=2026-07-21T02:28:24Z
 
-added 212 packages in 27s
+added 212 packages in 22s
 npm warn allow-scripts 4 packages have install scripts not yet covered by allowScripts:
 npm warn allow-scripts   esbuild@0.28.1 (postinstall: node install.js)
 npm warn allow-scripts   core-js-pure@3.49.0 (postinstall: node -e "try{require('./postinstall')}catch(e){}")
@@ -16,13 +16,13 @@ npm warn allow-scripts Run `npm approve-scripts --allow-scripts-pending` to revi
 Collecting PyYAML<7,>=6.0.2 (from -r scripts/requirements.txt (line 1))
   Downloading pyyaml-6.0.3-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.4 kB)
 Downloading pyyaml-6.0.3-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (801 kB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 801.6/801.6 kB 2.5 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 801.6/801.6 kB 15.0 MB/s  0:00:00
 Installing collected packages: PyYAML
 Successfully installed PyYAML-6.0.3
 
 ## Project CI
 command=npm run project:ci
-started_at=2026-07-20T14:37:53.633Z
+started_at=2026-07-21T02:28:49.068Z
 
 
 > prompt-web@0.5.0 project:ci
@@ -108,12 +108,12 @@ Wrote /home/runner/work/prompt-web/prompt-web/.prompt-sync/manifest.json: projec
 
 ...............
 ----------------------------------------------------------------------
-Ran 15 tests in 0.019s
+Ran 15 tests in 0.033s
 
 OK
 
 > prompt-web@0.5.0 test
-> npm run test:run-state && npm run test:viewer && npm run test:ai-safe-json && npm run test:ai-search-index
+> npm run test:run-state && npm run test:viewer && npm run test:ai-safe-json && npm run test:ai-search-index && npm run test:cloudflare-ai-search
 
 
 > prompt-web@0.5.0 test:run-state
@@ -136,6 +136,11 @@ AI-safe JSON serialization tests passed.
 
 AI Search indexing and trailing-slash tests passed.
 
+> prompt-web@0.5.0 test:cloudflare-ai-search
+> node --experimental-strip-types scripts/test-cloudflare-ai-search.mjs
+
+Cloudflare AI Search API tests passed.
+
 > prompt-web@0.5.0 worker:dry-run
 > wrangler deploy --dry-run --outdir .wrangler/dry-run
 
@@ -145,15 +150,17 @@ AI Search indexing and trailing-slash tests passed.
 
 Cloudflare collects anonymous telemetry about your usage of Wrangler. Learn more at https://github.com/cloudflare/workers-sdk/tree/main/packages/wrangler/telemetry.md
 ✨ Read 4 files from the assets directory /home/runner/work/prompt-web/prompt-web/public
-Total Upload: 2205.07 KiB / gzip: 400.61 KiB
+Total Upload: 2220.09 KiB / gzip: 403.98 KiB
 Your Worker has access to the following bindings:
-Binding                                                 Resource                  
-env.PROMPT_KV (00000000000000000000000000000000)        KV Namespace              
-env.DB (prompt-web-db)                                  D1 Database               
-env.ASSETS                                              Assets                    
-env.ENVIRONMENT ("development")                         Environment Variable      
+Binding                                                           Resource                  
+env.PROMPT_KV (00000000000000000000000000000000)                  KV Namespace              
+env.DB (prompt-web-db)                                            D1 Database               
+env.PROMPT_AI_SEARCH (little-hall-7cd2)                           AI Search Instance        
+env.ASSETS                                                        Assets                    
+env.ENVIRONMENT ("development")                                   Environment Variable      
+env.AI_SEARCH_FOLDER_ROOT ("api/files")                           Environment Variable      
 
 --dry-run: exiting now.
 
-finished_at=2026-07-20T14:38:02.206Z
+finished_at=2026-07-21T02:29:00.475Z
 exit_code=0
