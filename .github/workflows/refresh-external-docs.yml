@@ -17,7 +17,7 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     steps:
       - name: Checkout main
@@ -50,6 +50,9 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: python -m scripts.cli collect zustand_docs --config scripts/configs/zustand-docs.yaml
 
+      - name: Refresh Tailwind CSS docs
+        run: python -m scripts.cli collect tailwindcss_docs --config scripts/configs/tailwindcss-docs.yaml
+
       - name: Validate refreshed content and project
         run: npm run project:ci
 
@@ -67,9 +70,11 @@ jobs:
 
             - shadcn/ui docs sidebar
             - pmndrs/zustand `docs/`
+            - Tailwind CSS official docs sidebar and rendered pages
           add-paths: |
             content/shadcn-ui-docs
             content/zustand-docs
+            content/tailwindcss-docs
 
       - name: Write refresh summary
         if: always()
