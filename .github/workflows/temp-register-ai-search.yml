@@ -1,0 +1,65 @@
+name: Register AI Search routes
+
+on:
+  push:
+    branches:
+      - feat/cloudflare-ai-search-api
+
+permissions:
+  contents: write
+
+jobs:
+  patch-index:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/cloudflare-ai-search-api
+          fetch-depth: 0
+
+      - name: Patch Worker entrypoint
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('src/index.ts')
+          content = path.read_text(encoding='utf-8')
+
+          import_line = "import { registerCloudflareAiSearchRoutes } from './http/cloudflare-ai-search';\n"
+          import_marker = "import { serializeAiSafeJson } from './http/ai-safe-json';\n"
+          if import_line not in content:
+              if import_marker not in content:
+                  raise SystemExit('Could not find index import marker')
+              content = content.replace(import_marker, import_line + import_marker, 1)
+
+          route_call = 'registerCloudflareAiSearchRoutes(app);'
+          route_marker = '\nfunction parseTags(values: string[] | undefined): string[] {'
+          if route_call not in content:
+              if route_marker not in content:
+                  raise SystemExit('Could not find route registration marker')
+              content = content.replace(route_marker, f'\n{route_call}\n{route_marker}', 1)
+
+          endpoint_marker = "      search: '/api/files/search?q=<keywords>',\n      v1Search: '/api/v1/search?q=<keywords>',\n"
+          endpoint_replacement = (
+              "      search: '/api/files/search?q=<keywords>',\n"
+              "      v1Search: '/api/v1/search?q=<keywords>',\n"
+              "      aiSearch: '/api/ai-search?q=<keywords>',\n"
+              "      aiSearchProject: '/api/ai-search/<project>?q=<keywords>',\n"
+              "      aiSearchInfo: '/api/ai-search/info',\n"
+          )
+          if "aiSearch: '/api/ai-search?q=<keywords>'" not in content:
+              if endpoint_marker not in content:
+                  raise SystemExit('Could not find service-info endpoint marker')
+              content = content.replace(endpoint_marker, endpoint_replacement, 1)
+
+          path.write_text(content, encoding='utf-8')
+          PY
+
+      - name: Remove temporary workflow and commit
+        run: |
+          rm .github/workflows/temp-register-ai-search.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/index.ts .github/workflows/temp-register-ai-search.yml
+          git commit -m "feat: register Cloudflare AI Search routes"
+          git push origin HEAD:feat/cloudflare-ai-search-api
