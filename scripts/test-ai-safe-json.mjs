@@ -23,6 +23,20 @@ assert.ok(serialized.includes('\\u003cTabsTrigger'));
 assert.ok(serialized.includes('\\u003eCommand\\u003c/TabsTrigger\\u003e'));
 assert.deepEqual(JSON.parse(serialized), source, 'AI-safe JSON must preserve the exact source after parsing.');
 
+const indexedPaddingText = [
+  String.raw`\# padding`,
+  '',
+  String.raw`| \`p-\\u003cnumber\\u003e\` | \`padding: calc(var(--spacing) \* \\u003cnumber\\u003e);\` |`,
+  '',
+  String.raw`## \[Examples\](#examples)`,
+  '',
+  String.raw`\`\`\``,
+  String.raw`\\u003cdiv class="p-8"\\u003ep-8\\u003c/div\\u003e`,
+  String.raw`\`\`\``,
+  '',
+  String.raw`\<span\>already partially restored\</span\>`,
+].join('\n');
+
 const aiSearchPayload = {
   schemaVersion: '1.0',
   engine: 'cloudflare-ai-search',
@@ -39,7 +53,7 @@ const aiSearchPayload = {
       id: 'padding-1',
       type: 'text',
       score: 0.91,
-      text: '\\# padding\n\n| \\`p-\\u003cnumber\\u003e\\` | \\`padding: calc(var(--spacing) \\* \\u003cnumber\\u003e);\\` |\n\n## \\[Examples\\](#examples)\n\n\\`\\`\\`\n\\u003cdiv class="p-8"\\u003ep-8\\u003c/div\\u003e\n\\`\\`\\`',
+      text: indexedPaddingText,
       source: {
         key: 'https://prompt.example.com/ai-index/tailwindcss-docs/spacing/padding.md',
         url: 'https://prompt.example.com/ai-index/tailwindcss-docs/spacing/padding.md',
@@ -91,7 +105,7 @@ assert.deepEqual(parsedAiSearch, {
   results: [
     {
       score: 0.91,
-      text: '# padding\n\n| `p-<number>` | `padding: calc(var(--spacing) * <number>);` |\n\n## [Examples](#examples)\n\n```\n<div class="p-8">p-8</div>\n```',
+      text: '# padding\n\n| `p-<number>` | `padding: calc(var(--spacing) * <number>);` |\n\n## [Examples](#examples)\n\n```\n<div class="p-8">p-8</div>\n```\n\n<span>already partially restored</span>',
       project: 'tailwindcss-docs',
       path: '/spacing/padding.md',
       url: 'https://prompt.example.com/raw/tailwindcss-docs/spacing/padding.md',
@@ -105,6 +119,8 @@ assert.deepEqual(parsedAiSearch, {
     },
   ],
 });
+assert.equal(parsedAiSearch.results[0].text.includes('\\<'), false);
+assert.equal(parsedAiSearch.results[0].text.includes('\\>'), false);
 assert.equal(serializedAiSearch.includes('diagnostics'), false);
 assert.equal(serializedAiSearch.includes('scoringDetails'), false);
 assert.equal(serializedAiSearch.includes('schemaVersion'), false);
