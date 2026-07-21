@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   buildAiIndexDirectoryHtml,
   buildAiIndexRootHtml,
-} from '../src/http/ai-index.ts';
+} from '../src/http/ai-index-html.ts';
 import {
   buildAiIndexFilePath,
   buildAiSearchRobotsTxt,
