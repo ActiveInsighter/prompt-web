@@ -55,10 +55,50 @@ assert.equal(
   escapedIndexContent,
   '\\u003cCodeTabs\\u003e\n\\u003cTabsTrigger value="manual"\\u003eManual & advanced\\u003c/TabsTrigger\\u003e',
 );
-assert.equal(escapedIndexContent.includes('<'), false);
-assert.equal(escapedIndexContent.includes('>'), false);
+assert.equal(escapedIndexContent.includes('<CodeTabs>'), false);
+assert.equal(escapedIndexContent.includes('\n'), true);
 assert.equal(escapedIndexContent.includes('&'), true);
 assert.equal(escapedIndexContent.includes('{'), false);
+
+const expressionHeavyTag = `<Button
+  disabled={value > 0}
+  onClick={() => value < 10 ? <Icon /> : null}
+>
+  Save
+</Button>`;
+assert.equal(
+  escapeAiIndexContent(expressionHeavyTag),
+  `\\u003cButton
+  disabled={value > 0}
+  onClick={() => value < 10 ? \\u003cIcon /\\u003e : null}
+\\u003e
+  Save
+\\u003c/Button\\u003e`,
+);
+
+assert.equal(escapeAiIndexContent('x < y && a > b'), 'x < y && a > b');
+assert.equal(
+  escapeAiIndexContent('(value) => setValue(value >= 0 ? value : 0)'),
+  '(value) => setValue(value >= 0 ? value : 0)',
+);
+assert.equal(
+  escapeAiIndexContent('const identity = <T>(value: T): T => value'),
+  'const identity = <T>(value: T): T => value',
+);
+assert.equal(escapeAiIndexContent('type Result = Promise<T>'), 'type Result = Promise<T>');
+assert.equal(
+  escapeAiIndexContent('<https://example.com/docs?q=a>b>'),
+  '<https://example.com/docs?q=a>b>',
+);
+assert.equal(escapeAiIndexContent('<br>'), '\\u003cbr\\u003e');
+assert.equal(
+  escapeAiIndexContent('<>value</>'),
+  '\\u003c\\u003evalue\\u003c/\\u003e',
+);
+assert.equal(
+  escapeAiIndexContent('<!-- keep <Button> literal -->'),
+  '\\u003c!-- keep \\u003cButton\\u003e literal --\\u003e',
+);
 
 const sitemap = buildAiSearchSitemap(
   'https://prompt.example.com/base/path?ignored=true',
