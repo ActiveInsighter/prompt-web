@@ -14,13 +14,13 @@ import {
 
 assert.deepEqual(
   parseAiSearchRequest(
-    'https://prompt.example.com/api/ai-search/shadcn-ui-docs?q=button&limit=5&mode=hybrid',
+    'https://prompt.example.com/api/ai-search/shadcn-ui-docs?q=button&limit=5',
     'shadcn-ui-docs',
   ),
   {
     query: 'button',
     project: 'shadcn-ui-docs',
-    requestedRetrievalType: 'hybrid',
+    requestedRetrievalType: 'vector',
     grouping: 'files',
     limit: 5,
     retrievalLimit: 15,
@@ -35,7 +35,7 @@ assert.deepEqual(
   {
     query: 'button',
     project: undefined,
-    requestedRetrievalType: 'auto',
+    requestedRetrievalType: 'vector',
     grouping: 'files',
     limit: 10,
     retrievalLimit: 30,
@@ -45,6 +45,11 @@ assert.deepEqual(
   },
 );
 
+assert.equal(
+  parseAiSearchRequest('https://prompt.example.com/api/ai-search?q=x&mode=hybrid&group=chunks')
+    .requestedRetrievalType,
+  'vector',
+);
 assert.equal(parseAiSearchProjectScopeMode(undefined), 'source');
 assert.equal(parseAiSearchProjectScopeMode('source'), 'source');
 assert.equal(parseAiSearchProjectScopeMode(' METADATA '), 'metadata');

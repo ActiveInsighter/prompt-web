@@ -46,11 +46,6 @@ export interface AiSearchInput {
   query: string;
   project?: string;
   limit?: number;
-  mode?: AiSearchRequestedRetrievalType;
-  group?: AiSearchGrouping;
-  threshold?: number;
-  context?: number;
-  rerank?: boolean;
 }
 
 export class AiSearchServiceError extends Error {
@@ -103,11 +98,6 @@ export function createAiSearchRequestOptions(input: AiSearchInput): AiSearchRequ
   url.searchParams.set('q', input.query);
   if (input.project) url.searchParams.set('project', input.project);
   if (input.limit !== undefined) url.searchParams.set('limit', String(input.limit));
-  if (input.mode) url.searchParams.set('mode', input.mode);
-  if (input.group) url.searchParams.set('group', input.group);
-  if (input.threshold !== undefined) url.searchParams.set('threshold', String(input.threshold));
-  if (input.context !== undefined) url.searchParams.set('context', String(input.context));
-  if (input.rerank !== undefined) url.searchParams.set('rerank', String(input.rerank));
   return parseAiSearchRequest(url.toString());
 }
 

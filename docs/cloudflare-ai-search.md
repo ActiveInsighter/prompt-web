@@ -78,16 +78,11 @@ Supported query parameters:
 
 | Parameter | Default | Description |
 | --- | --- | --- |
-| `q` | required | Search text. `query` is accepted as an alias. |
+| `q` | required | Search text. |
 | `project` | all public projects | Project slug for all-project routes. |
 | `limit` | `10` | Number of returned results, from 1 to 20. |
-| `mode` | `auto` | `auto`, `hybrid`, `vector`, or `keyword`. |
-| `group` | `files` | `files` deduplicates chunks by source file; `chunks` returns raw chunks. |
-| `threshold` | `0.4` | Minimum match score from 0 to 1. |
-| `context` | `0` | Surrounding chunks from 0 to 3. |
-| `rerank` | `false` | Enable or disable reranking. |
 
-The Worker reads the instance capabilities dynamically. The default `auto` mode selects the best retrieval mode enabled by `ai-search-prompt`; explicitly requesting an unavailable mode returns a structured `retrieval_mode_unavailable` response. Instance capabilities are cached in each Worker isolate for five minutes.
+The public API has no retrieval-mode or tuning parameters. Every request uses `vector` retrieval, groups results by source file, applies a `0.4` match threshold, disables context expansion, and disables reranking.
 
 ## Project scoping
 

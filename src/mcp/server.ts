@@ -74,14 +74,8 @@ const commonPromptSummarySchema = z.object({
 });
 
 const searchInputSchema = {
-  query: z.string().trim().max(300).optional(),
+  query: z.string().trim().min(1).max(300),
   project: z.string().trim().max(100).optional(),
-  directory: z.string().trim().max(500).optional(),
-  recursive: z.boolean().default(true),
-  language: z.string().trim().max(50).optional(),
-  tags: z.array(z.string().trim().max(50)).max(10).optional(),
-  visibility: z.enum(['public', 'private']).optional(),
-  promptRole: z.enum(['system', 'developer', 'user', 'template', 'reference']).optional(),
   limit: z.number().int().min(1).max(20).default(10),
 };
 
@@ -89,11 +83,6 @@ const aiSearchInputSchema = {
   query: z.string().trim().min(1).max(1_000),
   project: z.string().trim().max(128).optional(),
   limit: z.number().int().min(1).max(20).default(10),
-  mode: z.enum(['auto', 'hybrid', 'vector', 'keyword']).default('auto'),
-  group: z.enum(['files', 'chunks']).default('files'),
-  threshold: z.number().min(0).max(1).default(0.4),
-  context: z.number().int().min(0).max(3).default(0),
-  rerank: z.boolean().default(false),
 };
 
 function structuredResult(value: Record<string, unknown>) {
@@ -238,7 +227,7 @@ export function createPromptMcpServer(env: Env, access: AccessContext): McpServe
     {
       title: 'Search files precisely',
       description:
-        'Search D1 by exact text and structured filters such as project, directory, tags, language, visibility, and role. Returns file metadata only; use fetch_file for content. bm25Rank is the raw SQLite FTS5 BM25 rank, where smaller values rank earlier. Prefer ai_search for natural-language semantic questions.',
+        'Search D1 by text, with an optional project scope and result limit. Returns file metadata only; use fetch_file for complete content. Prefer ai_search for natural-language semantic questions.',
       inputSchema: searchInputSchema,
       outputSchema: {
         query: z.string(),
@@ -264,7 +253,7 @@ export function createPromptMcpServer(env: Env, access: AccessContext): McpServe
     {
       title: 'Semantic AI search',
       description:
-        'Search public indexed documentation with the same capability-aware Cloudflare AI Search logic as the web API. auto selects an available mode; explicit hybrid or keyword requests return a structured retrieval_mode_unavailable error when the index does not support them. Returns ranked Markdown snippets plus titles, prompt:// identifiers, raw URLs, and measured duration. Use fetch_file to read a complete result.',
+        'Search public indexed documentation with fixed vector retrieval. Provide only the query, an optional project, and an optional result limit. Returns ranked Markdown snippets plus titles, prompt:// identifiers, raw URLs, and measured duration. Use fetch_file to read a complete result.',
       inputSchema: aiSearchInputSchema,
       outputSchema: {
         query: z.string(),
@@ -272,8 +261,8 @@ export function createPromptMcpServer(env: Env, access: AccessContext): McpServe
         count: z.number().int(),
         results: z.array(aiSearchResultSchema),
         meta: z.object({
-          mode: z.enum(['hybrid', 'keyword', 'vector']),
-          group: z.enum(['files', 'chunks']),
+          mode: z.literal('vector'),
+          group: z.literal('files'),
           duration_ms: z.number().int().nonnegative(),
         }),
       },
