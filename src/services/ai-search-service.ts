@@ -11,7 +11,6 @@ import {
   type AiSearchResult,
   type AiSearchRetrievalType,
 } from '../http/cloudflare-ai-search-utils';
-import { createPromptUri } from '../lib/prompt-utils';
 import type { AccessContext, Env, PromptVisibility } from '../types';
 
 interface VisibleProjectRow {
@@ -34,6 +33,12 @@ interface SearchResponseLike {
   search_query?: string;
   chunks: AiSearchChunkLike[];
   errors?: Array<{ instance_id?: string; message?: string }>;
+}
+
+interface UpstreamErrorDetails extends Record<string, unknown> {
+  upstreamStatus?: number;
+  upstreamCode?: string;
+  upstreamMessage?: string;
 }
 
 export interface AiSearchInput {
@@ -67,7 +72,7 @@ function optionalString(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim() ? value : undefined;
 }
 
-function upstreamDetails(error: unknown): Record<string, unknown> {
+function upstreamDetails(error: unknown): UpstreamErrorDetails {
   if (!isRecord(error)) {
     return error instanceof Error ? { upstreamMessage: error.message } : {};
   }
@@ -87,8 +92,6 @@ function placeholders(length: number): string {
 }
 
 function resolveRetrievalType(requested: AiSearchRequestedRetrievalType): AiSearchRetrievalType {
-  // All managed instances are created with vector and keyword indexes enabled.
-  // Keep auto deterministic and inexpensive rather than invoking query rewriting.
   return requested === 'auto' ? 'vector' : requested;
 }
 
@@ -370,13 +373,14 @@ export async function searchAiDocuments(
     }) as CompactAiSearchResponse;
   } catch (error) {
     if (error instanceof AiSearchServiceError) throw error;
-    const details = {
+    const upstream = upstreamDetails(error);
+    const details: Record<string, unknown> = {
       projects: projects.map((project) => project.slug),
       requestedMode: options.requestedRetrievalType,
       resolvedMode: retrievalType,
-      ...upstreamDetails(error),
+      ...upstream,
     };
-    const message = optionalString(details.upstreamMessage) ?? '';
+    const message = upstream.upstreamMessage ?? '';
     if (/retrieval|keyword|hybrid|index method/iu.test(message)) {
       throw new AiSearchServiceError(
         'retrieval_mode_unavailable',
