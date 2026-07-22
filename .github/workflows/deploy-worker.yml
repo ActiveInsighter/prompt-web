@@ -133,22 +133,49 @@ jobs:
           base_url="${DEPLOYMENT_URL%/}"
           ready=false
 
+          # A newly published Worker secret can take a few seconds to reach every
+          # edge isolate. Treat short-lived 401 responses as propagation delay,
+          # while keeping retries bounded and logging the actual response body.
+          authenticated_json() {
+            local method="$1"
+            local url="$2"
+            local max_time="$3"
+            local response_file
+            local http_status
+
+            for auth_attempt in $(seq 1 12); do
+              response_file="$(mktemp)"
+              http_status="$(curl \
+                --silent \
+                --show-error \
+                --max-time "$max_time" \
+                --request "$method" \
+                --header "Authorization: Bearer $CONTENT_SYNC_TOKEN" \
+                --output "$response_file" \
+                --write-out '%{http_code}' \
+                "$url" || true)"
+
+              if [[ "$http_status" =~ ^2[0-9][0-9]$ ]]; then
+                cat "$response_file"
+                rm -f "$response_file"
+                return 0
+              fi
+
+              echo "Authenticated request attempt $auth_attempt returned HTTP ${http_status:-transport-error}: $url" >&2
+              if [[ -s "$response_file" ]]; then
+                cat "$response_file" >&2
+                echo >&2
+              fi
+              rm -f "$response_file"
+              sleep 3
+            done
+
+            return 1
+          }
+
           for attempt in $(seq 1 8); do
-            process_json="$(curl \
-              --fail \
-              --silent \
-              --show-error \
-              --max-time 300 \
-              --request POST \
-              --header "Authorization: Bearer $CONTENT_SYNC_TOKEN" \
-              "$base_url/api/admin/ai-search/process?limit=10")"
-            status_json="$(curl \
-              --fail \
-              --silent \
-              --show-error \
-              --max-time 30 \
-              --header "Authorization: Bearer $CONTENT_SYNC_TOKEN" \
-              "$base_url/api/admin/ai-search/status")"
+            process_json="$(authenticated_json POST "$base_url/api/admin/ai-search/process?limit=10" 300)"
+            status_json="$(authenticated_json GET "$base_url/api/admin/ai-search/status" 30)"
 
             echo "ai_search_process=$process_json"
             echo "ai_search_status=$status_json"
