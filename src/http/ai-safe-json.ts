@@ -1,16 +1,4 @@
 const HTML_SIGNIFICANT_CHARACTERS = /[<>&\u2028\u2029]/g;
-const AI_INDEX_ESCAPED_LESS_THAN = /\\+u003c/giu;
-const AI_INDEX_ESCAPED_GREATER_THAN = /\\+u003e/giu;
-const AI_SEARCH_MARKDOWN_ESCAPED_CHARACTERS = new Set([
-  '#',
-  '`',
-  '*',
-  '_',
-  '[',
-  ']',
-  '<',
-  '>',
-]);
 
 const JSON_ESCAPE_BY_CHARACTER: Record<string, string> = {
   '<': '\\u003c',
@@ -52,51 +40,6 @@ function optionalString(value: unknown): string | null {
   return typeof value === 'string' && value.trim() ? value : null;
 }
 
-function isAiIndexSourceKey(value: unknown): boolean {
-  if (typeof value !== 'string') return false;
-
-  let pathname = value.normalize('NFKC').trim();
-  try {
-    pathname = new URL(pathname).pathname;
-  } catch {
-    pathname = pathname.split(/[?#]/u, 1)[0] ?? pathname;
-  }
-
-  const normalizedPathname = pathname.startsWith('/') ? pathname : `/${pathname}`;
-  return normalizedPathname.startsWith('/ai-index/');
-}
-
-function restoreAiSearchMarkdownEscapes(value: string): string {
-  let restored = '';
-
-  for (let index = 0; index < value.length; index += 1) {
-    const character = value[index];
-    const nextCharacter = value[index + 1];
-
-    if (
-      character === '\\' &&
-      nextCharacter !== undefined &&
-      AI_SEARCH_MARKDOWN_ESCAPED_CHARACTERS.has(nextCharacter)
-    ) {
-      restored += nextCharacter;
-      index += 1;
-      continue;
-    }
-
-    restored += character;
-  }
-
-  return restored;
-}
-
-function restoreAiIndexSearchText(value: string): string {
-  return restoreAiSearchMarkdownEscapes(
-    value
-      .replace(AI_INDEX_ESCAPED_LESS_THAN, '<')
-      .replace(AI_INDEX_ESCAPED_GREATER_THAN, '>'),
-  );
-}
-
 function resolveRawUrl(source: Record<string, unknown>): string | null {
   const rawPath = optionalString(source.rawPath);
   const sourceUrl = optionalString(source.url) ?? optionalString(source.key);
@@ -108,7 +51,6 @@ function resolveRawUrl(source: Record<string, unknown>): string | null {
       return rawPath;
     }
   }
-
   return rawPath ?? sourceUrl;
 }
 
@@ -160,11 +102,7 @@ function compactMeta(value: Record<string, unknown>): CompactAiSearchResponse['m
     typeof meta.duration_ms === 'number' && Number.isFinite(meta.duration_ms)
       ? Math.max(0, Math.round(meta.duration_ms))
       : 0;
-  return {
-    mode,
-    group,
-    duration_ms: duration,
-  };
+  return { mode, group, duration_ms: duration };
 }
 
 export function compactAiSearchPayload(value: unknown): unknown {
@@ -180,22 +118,14 @@ export function compactAiSearchPayload(value: unknown): unknown {
 
   const results = value.results.flatMap((result): CompactAiSearchResult[] => {
     if (!isRecord(result)) return [];
-
     const source = isRecord(result.source) ? result.source : {};
-    const sourceKey = optionalString(source.key);
-    const rawText = optionalString(result.text) ?? '';
-    const text =
-      sourceKey && isAiIndexSourceKey(sourceKey)
-        ? restoreAiIndexSearchText(rawText)
-        : rawText;
     const resultProject = optionalString(source.project);
     const path = optionalString(source.path);
-
     return [
       {
         score: typeof result.score === 'number' ? result.score : 0,
         title: resolveResultTitle(result, source, path),
-        text,
+        text: optionalString(result.text) ?? '',
         project: resultProject,
         path,
         uri: resolvePromptUri(resultProject, path),
@@ -214,17 +144,15 @@ export function compactAiSearchPayload(value: unknown): unknown {
 }
 
 /**
- * Serializes JSON without leaving literal HTML-significant characters in the
- * response body. AI Search responses are also reduced to the fields callers
- * need. For /ai-index results, one or more crawl/indexer escape layers around
- * tags and Markdown punctuation are restored before the final JSON encoding.
+ * Serializes JSON while escaping HTML-significant characters for safe embedding
+ * and transport. Search text is otherwise preserved exactly as returned by the
+ * Items API index; there is no crawler-specific de-escaping layer.
  */
 export function serializeAiSafeJson(value: unknown): string {
   const serialized = JSON.stringify(compactAiSearchPayload(value));
   if (serialized === undefined) {
     throw new TypeError('Value is not JSON serializable.');
   }
-
   return serialized.replace(
     HTML_SIGNIFICANT_CHARACTERS,
     (character) => JSON_ESCAPE_BY_CHARACTER[character] ?? character,
