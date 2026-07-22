@@ -5,33 +5,21 @@ import { logger } from 'hono/logger';
 import { hasValidBearerToken, resolveAccessContext } from './auth';
 import { contentSyncRequestSchema } from './content-sync/schema';
 import { ContentSyncService } from './content-sync/service';
-import { registerAiIndexRoutes } from './http/ai-index';
-import {
-  buildAiSearchRobotsTxt,
-  buildAiSearchSitemap,
-  MAX_SITEMAP_URLS,
-} from './http/ai-search-index';
-import { registerCloudflareAiSearchRoutes } from './http/cloudflare-ai-search';
 import { serializeAiSafeJson } from './http/ai-safe-json';
+import { registerCloudflareAiSearchRoutes } from './http/cloudflare-ai-search';
 import { normalizeTrailingSlashRequest } from './http/trailing-slash';
 import { createPromptMcpServer } from './mcp/server';
 import { PromptRepository } from './repositories/prompt-repository';
+import {
+  getAiSearchIndexStatus,
+  processAiSearchJobs,
+  reconcileAiSearchJobs,
+} from './services/ai-search-indexing-service';
 import type { Env, PromptRole, PromptSearchOptions, PromptVisibility } from './types';
 
 const app = new Hono<{ Bindings: Env }>({ strict: false });
 const MAX_CONTENT_SYNC_BODY_BYTES = 8_000_000;
 type AppContext = Context<{ Bindings: Env }>;
-
-interface D1AiSearchProjectRow {
-  slug: string;
-  updated_at: string;
-}
-
-interface D1AiSearchFileRow {
-  project_slug: string;
-  path: string;
-  updated_at: string;
-}
 
 app.use('*', logger());
 app.use(
@@ -54,7 +42,6 @@ app.use(
 );
 
 registerCloudflareAiSearchRoutes(app);
-registerAiIndexRoutes(app);
 
 function parseTags(values: string[] | undefined): string[] {
   return (values ?? [])
@@ -162,8 +149,13 @@ function parseSearchBody(value: unknown): PromptSearchOptions {
 function getServiceInfo() {
   return {
     service: 'prompt-library-mcp',
-    version: '0.8.0',
+    version: '0.9.0',
     status: 'ok',
+    aiSearch: {
+      storage: 'built-in-items',
+      isolation: 'one-instance-per-project',
+      synchronization: 'd1-outbox-and-cron',
+    },
     endpoints: {
       frontend: '/',
       viewer: '/p/<project>/<path-to-file.md>',
@@ -171,8 +163,6 @@ function getServiceInfo() {
       aiRoot: '/api/files',
       aiFile: '/api/files/<project>/<path-to-file.md>',
       aiResource: '/api/files/<project>/<optional-path>',
-      aiSearchSitemap: '/sitemap.xml',
-      robots: '/robots.txt',
       v1Contents: '/api/v1/projects/<project>/contents/<optional-path>',
       info: '/api/info',
       health: '/health',
@@ -188,9 +178,26 @@ function getServiceInfo() {
       bootstrap: '/api/bootstrap/:client/:profile',
       contentSyncSnapshot: '/api/admin/library/snapshot',
       contentSync: '/api/admin/library/sync',
+      aiSearchStatus: '/api/admin/ai-search/status',
+      aiSearchProcess: '/api/admin/ai-search/process',
       mcp: '/mcp',
     },
   };
+}
+
+function contentSyncAuthorizationError(context: AppContext): Response | null {
+  if (!context.env.CONTENT_SYNC_TOKEN) {
+    return context.json({ error: 'Content sync is not configured.' }, 503);
+  }
+  if (!hasValidBearerToken(context.req.raw, context.env.CONTENT_SYNC_TOKEN)) {
+    return context.json({ error: 'Unauthorized.' }, 401);
+  }
+  return null;
+}
+
+async function runAiSearchMaintenance(env: Env, limit = 3) {
+  await reconcileAiSearchJobs(env);
+  return processAiSearchJobs(env, limit);
 }
 
 async function serveProjects(context: AppContext) {
@@ -211,7 +218,7 @@ async function serveAiFilesRoot(context: AppContext) {
   return aiSafeJson(
     context,
     {
-      schemaVersion: '1.0',
+      schemaVersion: '1.1',
       type: 'directory',
       path: '/',
       entries: projects.map((project) => ({
@@ -227,9 +234,10 @@ async function serveAiFilesRoot(context: AppContext) {
         apiPath: `/api/files/${encodeURIComponent(project.slug)}`,
         updatedAt: project.updatedAt,
       })),
-      indexing: {
-        sitemap: '/sitemap.xml',
-        robots: '/robots.txt',
+      semanticIndex: {
+        engine: 'cloudflare-ai-search',
+        storage: 'built-in-items',
+        isolation: 'project-instance',
       },
       authenticated: access.authenticated,
     },
@@ -261,60 +269,11 @@ async function serveSearch(context: AppContext, options: PromptSearchOptions) {
   });
 }
 
-async function serveAiSearchSitemap(context: AppContext) {
-  const projects = await context.env.DB.prepare(
-    `SELECT slug, updated_at
-     FROM projects
-     WHERE deleted_at IS NULL
-       AND visibility = 'public'
-     ORDER BY slug COLLATE NOCASE ASC`,
-  ).all<D1AiSearchProjectRow>();
-
-  const fileLimit = Math.max(0, MAX_SITEMAP_URLS - 1 - projects.results.length);
-  const files = await context.env.DB.prepare(
-    `SELECT project_slug, path, updated_at
-     FROM prompt_search_documents
-     WHERE visibility = 'public'
-     ORDER BY project_slug COLLATE NOCASE ASC, path COLLATE NOCASE ASC
-     LIMIT ?`,
-  )
-    .bind(fileLimit)
-    .all<D1AiSearchFileRow>();
-
-  const xml = buildAiSearchSitemap(
-    new URL(context.req.url).origin,
-    projects.results.map((project) => ({
-      slug: project.slug,
-      updatedAt: project.updated_at,
-    })),
-    files.results.map((file) => ({
-      projectSlug: file.project_slug,
-      path: file.path,
-      updatedAt: file.updated_at,
-    })),
-  );
-
-  return context.body(xml, 200, {
-    'Content-Type': 'application/xml; charset=utf-8',
-    'Cache-Control': 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400',
-    'X-Content-Type-Options': 'nosniff',
-  });
-}
-
-function serveAiSearchRobots(context: AppContext) {
-  return context.body(buildAiSearchRobotsTxt(new URL(context.req.url).origin), 200, {
-    'Content-Type': 'text/plain; charset=utf-8',
-    'Cache-Control': 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400',
-    'X-Content-Type-Options': 'nosniff',
-  });
-}
-
 async function serveRawFile(context: AppContext, identifier: string) {
   const normalizedIdentifier = identifier.normalize('NFKC').trim();
   if (!normalizedIdentifier) {
     return context.json({ error: 'Missing Markdown file identifier.' }, 400);
   }
-
   const access = resolveAccessContext(context.req.raw, context.env.MCP_BEARER_TOKEN);
   const repository = new PromptRepository(context.env);
   const file = await repository.get(normalizedIdentifier, access);
@@ -330,15 +289,11 @@ async function serveRawFile(context: AppContext, identifier: string) {
 
 async function serveAiSafeFile(context: AppContext, identifier: string) {
   const normalizedIdentifier = identifier.normalize('NFKC').trim();
-  if (!normalizedIdentifier) {
-    return context.json({ error: 'Missing file identifier.' }, 400);
-  }
-
+  if (!normalizedIdentifier) return context.json({ error: 'Missing file identifier.' }, 400);
   const access = resolveAccessContext(context.req.raw, context.env.MCP_BEARER_TOKEN);
   const repository = new PromptRepository(context.env);
   const file = await repository.get(normalizedIdentifier, access);
   if (!file) return context.json({ error: 'Prompt file not found.' }, 404);
-
   return aiSafeJson(
     context,
     { schemaVersion: '1.0', type: 'file', ...file },
@@ -354,7 +309,6 @@ async function serveAiSafeResource(
 ) {
   const project = projectIdentifier.normalize('NFKC').trim();
   if (!project) return aiSafeJson(context, { error: 'Missing project identifier.' }, 400);
-
   const path = (requestedPath ?? '')
     .normalize('NFKC')
     .trim()
@@ -374,20 +328,12 @@ async function serveAiSafeResource(
       );
     }
   }
-
   const directoryPath = path ? `/${path}` : '/';
   const listing = await repository.listDirectory(project, directoryPath, access);
-  if (!listing) {
-    return aiSafeJson(context, { error: 'File or directory not found.' }, 404);
-  }
-
+  if (!listing) return aiSafeJson(context, { error: 'File or directory not found.' }, 404);
   return aiSafeJson(
     context,
-    {
-      schemaVersion: '1.0',
-      type: 'directory',
-      ...listing,
-    },
+    { schemaVersion: '1.0', type: 'directory', ...listing },
     200,
     getFileCacheControl(listing.project.visibility),
   );
@@ -398,7 +344,6 @@ async function readLimitedJson(request: Request): Promise<unknown> {
   if (Number.isFinite(declaredLength) && declaredLength > MAX_CONTENT_SYNC_BODY_BYTES) {
     throw new RangeError('Content sync request exceeds the 8 MB limit.');
   }
-
   const body = await request.text();
   if (new TextEncoder().encode(body).byteLength > MAX_CONTENT_SYNC_BODY_BYTES) {
     throw new RangeError('Content sync request exceeds the 8 MB limit.');
@@ -406,21 +351,13 @@ async function readLimitedJson(request: Request): Promise<unknown> {
   return JSON.parse(body) as unknown;
 }
 
-app.get('/robots.txt', serveAiSearchRobots);
-app.get('/sitemap.xml', serveAiSearchSitemap);
-app.get('/', (context) =>
-  context.env.ASSETS.fetch(new URL('/index.html', context.req.url)),
-);
-app.get('/p', (context) =>
-  context.env.ASSETS.fetch(new URL('/index.html', context.req.url)),
-);
-app.get('/p/*', (context) =>
-  context.env.ASSETS.fetch(new URL('/index.html', context.req.url)),
-);
+app.get('/', (context) => context.env.ASSETS.fetch(new URL('/index.html', context.req.url)));
+app.get('/p', (context) => context.env.ASSETS.fetch(new URL('/index.html', context.req.url)));
+app.get('/p/*', (context) => context.env.ASSETS.fetch(new URL('/index.html', context.req.url)));
 app.get('/api/info', (context) => context.json(getServiceInfo()));
 
 app.get('/health', async (context) => {
-  const [database, projectCount, bootstrapManifest, latestContentSync] = await Promise.all([
+  const [database, projectCount, bootstrapManifest, latestContentSync, aiSearch] = await Promise.all([
     context.env.DB.prepare('SELECT 1 AS ok').first<{ ok: number }>(),
     context.env.DB.prepare(
       'SELECT COUNT(*) AS count FROM projects WHERE deleted_at IS NULL',
@@ -438,6 +375,7 @@ app.get('/health', async (context) => {
       started_at: string;
       finished_at: string | null;
     }>(),
+    getAiSearchIndexStatus(context.env),
   ]);
 
   return context.json({
@@ -454,17 +392,20 @@ app.get('/health', async (context) => {
           finishedAt: latestContentSync.finished_at,
         }
       : null,
+    aiSearch: {
+      projects: aiSearch.projects,
+      items: aiSearch.items,
+      jobs: aiSearch.jobs,
+    },
     environment: context.env.ENVIRONMENT ?? 'unknown',
   });
 });
 
 app.get('/api/projects', serveProjects);
 app.get('/api/v1/projects', serveProjects);
-
 app.get('/api/tree', async (context) => {
   const project = context.req.query('project');
   if (!project) return context.json({ error: 'Missing project query parameter.' }, 400);
-
   const access = resolveAccessContext(context.req.raw, context.env.MCP_BEARER_TOKEN);
   const repository = new PromptRepository(context.env);
   const listing = await repository.listDirectory(project, context.req.query('path'), access);
@@ -475,41 +416,28 @@ app.get('/api/files', serveAiFilesRoot);
 app.get('/api/files/search', (context) => serveSearch(context, parseSearchOptions(context)));
 app.get('/api/v1/search', (context) => serveSearch(context, parseSearchOptions(context)));
 app.post('/api/v1/search', async (context) => {
-  let body: unknown;
   try {
-    body = await context.req.json();
+    return serveSearch(context, parseSearchBody(await context.req.json()));
   } catch {
     return aiSafeJson(context, { error: 'Request body must be valid JSON.' }, 400);
   }
-  return serveSearch(context, parseSearchBody(body));
 });
-
 app.get('/api/files/fetch', async (context) => {
   const identifier = context.req.query('identifier');
   if (!identifier) return context.json({ error: 'Missing identifier query parameter.' }, 400);
   return serveAiSafeFile(context, identifier);
 });
-
 app.get('/api/files/:project', (context) =>
   serveAiSafeResource(context, context.req.param('project')),
 );
 app.get('/api/files/:project/:path{.+}', (context) =>
-  serveAiSafeResource(
-    context,
-    context.req.param('project'),
-    context.req.param('path'),
-  ),
+  serveAiSafeResource(context, context.req.param('project'), context.req.param('path')),
 );
-
 app.get('/api/v1/projects/:project/contents', (context) =>
   serveAiSafeResource(context, context.req.param('project')),
 );
 app.get('/api/v1/projects/:project/contents/:path{.+}', (context) =>
-  serveAiSafeResource(
-    context,
-    context.req.param('project'),
-    context.req.param('path'),
-  ),
+  serveAiSafeResource(context, context.req.param('project'), context.req.param('path')),
 );
 
 app.get('/raw', async (context) => {
@@ -517,12 +445,9 @@ app.get('/raw', async (context) => {
   if (!identifier) return context.json({ error: 'Missing identifier query parameter.' }, 400);
   return serveRawFile(context, identifier);
 });
-
-app.get('/raw/:project/:path{.+}', async (context) => {
-  const project = context.req.param('project');
-  const path = context.req.param('path');
-  return serveRawFile(context, `prompt://${project}/${path}`);
-});
+app.get('/raw/:project/:path{.+}', (context) =>
+  serveRawFile(context, `prompt://${context.req.param('project')}/${context.req.param('path')}`),
+);
 
 app.get('/api/bootstrap/:client/:profile', async (context) => {
   const repository = new PromptRepository(context.env);
@@ -534,48 +459,46 @@ app.get('/api/bootstrap/:client/:profile', async (context) => {
 });
 
 app.get('/api/admin/library/snapshot', async (context) => {
-  if (!context.env.CONTENT_SYNC_TOKEN) {
-    return context.json({ error: 'Content sync is not configured.' }, 503);
-  }
-  if (!hasValidBearerToken(context.req.raw, context.env.CONTENT_SYNC_TOKEN)) {
-    return context.json({ error: 'Unauthorized.' }, 401);
-  }
-
-  const service = new ContentSyncService(context.env);
-  return context.json(await service.snapshot());
+  const authorizationError = contentSyncAuthorizationError(context);
+  if (authorizationError) return authorizationError;
+  return context.json(await new ContentSyncService(context.env).snapshot());
 });
 
 app.post('/api/admin/library/sync', async (context) => {
-  if (!context.env.CONTENT_SYNC_TOKEN) {
-    return context.json({ error: 'Content sync is not configured.' }, 503);
-  }
-  if (!hasValidBearerToken(context.req.raw, context.env.CONTENT_SYNC_TOKEN)) {
-    return context.json({ error: 'Unauthorized.' }, 401);
-  }
-
+  const authorizationError = contentSyncAuthorizationError(context);
+  if (authorizationError) return authorizationError;
   try {
     const payload = contentSyncRequestSchema.safeParse(await readLimitedJson(context.req.raw));
     if (!payload.success) {
       return context.json(
-        {
-          error: 'Invalid content manifest.',
-          details: payload.error.flatten(),
-        },
+        { error: 'Invalid content manifest.', details: payload.error.flatten() },
         400,
       );
     }
-
-    const service = new ContentSyncService(context.env);
-    return context.json(await service.sync(payload.data));
+    const result = await new ContentSyncService(context.env).sync(payload.data);
+    context.executionCtx.waitUntil(runAiSearchMaintenance(context.env, 3));
+    return context.json(result);
   } catch (error) {
-    if (error instanceof RangeError) {
-      return context.json({ error: error.message }, 413);
-    }
+    if (error instanceof RangeError) return context.json({ error: error.message }, 413);
     if (error instanceof SyntaxError) {
       return context.json({ error: 'Request body must be valid JSON.' }, 400);
     }
     throw error;
   }
+});
+
+app.get('/api/admin/ai-search/status', async (context) => {
+  const authorizationError = contentSyncAuthorizationError(context);
+  if (authorizationError) return authorizationError;
+  return context.json(await getAiSearchIndexStatus(context.env));
+});
+
+app.post('/api/admin/ai-search/process', async (context) => {
+  const authorizationError = contentSyncAuthorizationError(context);
+  if (authorizationError) return authorizationError;
+  const requestedLimit = Number(context.req.query('limit') ?? 3);
+  await reconcileAiSearchJobs(context.env);
+  return context.json(await processAiSearchJobs(context.env, requestedLimit));
 });
 
 // Compatibility routes for clients using the original flat prompt API.
@@ -584,17 +507,13 @@ app.get('/api/prompts/search', (context) => {
   options.project = options.project ?? context.req.query('category');
   return serveSearch(context, options);
 });
-
-app.get('/api/prompts/:identifier', async (context) => {
-  const identifier = context.req.param('identifier');
-  return serveAiSafeFile(context, identifier);
-});
+app.get('/api/prompts/:identifier', (context) =>
+  serveAiSafeFile(context, context.req.param('identifier')),
+);
 
 app.all('/mcp', async (context) => {
   const access = resolveAccessContext(context.req.raw, context.env.MCP_BEARER_TOKEN);
-  const handler = createMcpHandler(createPromptMcpServer(context.env, access), {
-    route: '/mcp',
-  });
+  const handler = createMcpHandler(createPromptMcpServer(context.env, access), { route: '/mcp' });
   return handler(
     context.req.raw,
     context.env,
@@ -611,5 +530,8 @@ app.onError((error, context) => {
 export default {
   fetch(request, env, executionContext) {
     return app.fetch(normalizeTrailingSlashRequest(request), env, executionContext);
+  },
+  scheduled(_controller, env, executionContext) {
+    executionContext.waitUntil(runAiSearchMaintenance(env, 3));
   },
 } satisfies ExportedHandler<Env>;
