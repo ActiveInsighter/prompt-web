@@ -1,7 +1,39 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { spawnSync } from 'node:child_process';
 
 const workflow = await readFile(new URL('../.github/workflows/deploy-worker.yml', import.meta.url), 'utf8');
+
+function extractRunScript(stepName) {
+  const lines = workflow.split('\n');
+  const stepIndex = lines.findIndex((line) => line === `      - name: ${stepName}`);
+  assert.notEqual(stepIndex, -1, `missing workflow step: ${stepName}`);
+
+  const runIndex = lines.findIndex(
+    (line, index) => index > stepIndex && line === '        run: |',
+  );
+  assert.notEqual(runIndex, -1, `missing run block for workflow step: ${stepName}`);
+
+  const body = [];
+  for (let index = runIndex + 1; index < lines.length; index += 1) {
+    const line = lines[index];
+    if (line.startsWith('      - name: ')) break;
+    body.push(line.startsWith('          ') ? line.slice(10) : line);
+  }
+  return `${body.join('\n')}\n`;
+}
+
+function assertValidBash(stepName) {
+  const result = spawnSync('bash', ['-n'], {
+    input: extractRunScript(stepName),
+    encoding: 'utf8',
+  });
+  assert.equal(
+    result.status,
+    0,
+    `${stepName} shell syntax must be valid:\n${result.stderr || result.stdout}`,
+  );
+}
 
 assert.equal(
   workflow.includes('/ai-index'),
@@ -33,5 +65,8 @@ assert.equal(
   true,
   'deployment must execute a real semantic search after priming the index',
 );
+
+assertValidBash('Prime AI Search index');
+assertValidBash('Smoke test deployed Worker');
 
 console.log('deployment workflow contract tests passed');

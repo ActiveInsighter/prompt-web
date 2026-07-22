@@ -153,17 +153,7 @@ jobs:
             echo "ai_search_process=$process_json"
             echo "ai_search_status=$status_json"
 
-            state="$(AI_SEARCH_STATUS_JSON="$status_json" node --input-type=module <<'NODE'
-            const status = JSON.parse(process.env.AI_SEARCH_STATUS_JSON ?? '{}');
-            const failed = Number(status.jobs?.failed ?? 0);
-            const readyProjects = Number(status.projects?.ready ?? 0);
-            const indexedItems = Number(status.items?.indexed ?? 0);
-
-            if (failed > 0) console.log('failed');
-            else if (readyProjects > 0 && indexedItems > 0) console.log('ready');
-            else console.log('pending');
-            NODE
-            )"
+            state="$(AI_SEARCH_STATUS_JSON="$status_json" node --input-type=module -e 'const status = JSON.parse(process.env.AI_SEARCH_STATUS_JSON ?? "{}"); const failed = Number(status.jobs?.failed ?? 0); const readyProjects = Number(status.projects?.ready ?? 0); const indexedItems = Number(status.items?.indexed ?? 0); console.log(failed > 0 ? "failed" : readyProjects > 0 && indexedItems > 0 ? "ready" : "pending");')"
 
             case "$state" in
               ready)
@@ -221,11 +211,7 @@ jobs:
           ai_search_json='{"count":0,"results":[]}'
           for attempt in $(seq 1 6); do
             ai_search_json="$(request_body "$base_url/api/ai-search?q=documentation&limit=3&threshold=0")"
-            if AI_SEARCH_JSON="$ai_search_json" node --input-type=module <<'NODE'
-            const response = JSON.parse(process.env.AI_SEARCH_JSON ?? '{}');
-            process.exit(Number(response.count ?? 0) > 0 && Array.isArray(response.results) ? 0 : 1);
-            NODE
-            then
+            if AI_SEARCH_JSON="$ai_search_json" node --input-type=module -e 'const response = JSON.parse(process.env.AI_SEARCH_JSON ?? "{}"); process.exit(Number(response.count ?? 0) > 0 && Array.isArray(response.results) ? 0 : 1);'; then
               break
             fi
             sleep 2
