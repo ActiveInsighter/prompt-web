@@ -40,7 +40,7 @@ The Worker creates deterministic instance IDs at runtime. Project slugs may chan
 - `ai_search_items`: active file-to-item mapping, indexed revision, item ID, and error state.
 - `ai_search_jobs`: transactional outbox with leases, attempts, retry time, and terminal state.
 
-Migration `0005_create_ai_search_storage.sql` also installs triggers on `content_sync_entries`. A successful content sync therefore commits its indexing intent in the same D1 operation sequence as the source data.
+Migration `0005_create_ai_search_storage.sql` installs triggers on `content_sync_entries`. A successful content sync therefore commits its indexing intent in the same D1 operation sequence as the source data. Migration `0006_preserve_ai_search_terminal_failures.sql` prevents scheduled reconciliation from silently reactivating the same terminally failed revision.
 
 ## Instance and item lifecycle
 
@@ -81,7 +81,7 @@ The scheduled handler runs every minute. Before claiming work it reconciles D1 a
 - create delete jobs for indexed items whose D1 document no longer exists;
 - reclaim expired processing leases.
 
-This makes the pipeline self-repairing after deployment interruption, transient Cloudflare errors, or an earlier failed job.
+This makes the pipeline self-repairing after deployment interruption and transient Cloudflare errors. Jobs that exhaust their retry budget remain `failed` for their exact dedupe key until an administrator explicitly resets them; a new source revision naturally receives a different key and can proceed independently.
 
 ## Search isolation and permissions
 
@@ -119,14 +119,15 @@ Supported parameters:
 
 ## Administrative endpoints
 
-Both endpoints require the `CONTENT_SYNC_TOKEN` Bearer token.
+All endpoints require the `CONTENT_SYNC_TOKEN` Bearer token.
 
 ```text
 GET  /api/admin/ai-search/status
 POST /api/admin/ai-search/process?limit=3
+POST /api/admin/ai-search/retry-failed?limit=20
 ```
 
-The status endpoint reports project mappings, item states, job states, and the latest errors. The process endpoint first reconciles and then processes a bounded batch. Normal operation uses the scheduled handler and the post-sync `waitUntil` task.
+The status endpoint reports project mappings, item states, job states, and the latest errors. The process endpoint first reconciles and then processes a bounded batch. `retry-failed` is the only application-level path that resets terminal jobs, and moves a bounded oldest-first batch back to `retry`. Normal operation uses the scheduled handler and the post-sync `waitUntil` task.
 
 ## Deployment sequence
 
