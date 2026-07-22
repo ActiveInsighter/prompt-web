@@ -1,4 +1,5 @@
 import type { Hono } from 'hono';
+import { resolveAccessContext } from '../auth';
 import {
   AiSearchServiceError,
   searchAiDocuments,
@@ -26,9 +27,11 @@ function jsonResponse(value: unknown, status: JsonStatus = 200): Response {
 
 function discoveryResponse(): Response {
   return jsonResponse({
-    schemaVersion: '1.1',
+    schemaVersion: '2.0',
     service: 'cloudflare-ai-search',
     engine: 'Cloudflare AI Search',
+    storage: 'built-in-items',
+    isolation: 'one-instance-per-project',
     endpoints: {
       allProjects: '/api/ai-search?q=<query>',
       oneProject: '/api/ai-search/<project>?q=<query>',
@@ -37,10 +40,9 @@ function discoveryResponse(): Response {
     },
     parameters: {
       q: 'Required search text. Alias: query.',
-      project: 'Optional public project slug.',
+      project: 'Optional accessible project slug.',
       limit: '1-20. Defaults to 10.',
-      mode:
-        'Accepted values: auto, hybrid, vector, or keyword. Defaults to auto. Explicit modes that are disabled on the current index return retrieval_mode_unavailable.',
+      mode: 'auto, hybrid, vector, or keyword. auto resolves to vector.',
       group: 'files or chunks. Defaults to files.',
       threshold: '0-1. Defaults to 0.4.',
       context: '0-3 surrounding chunks. Defaults to 0.',
@@ -50,7 +52,7 @@ function discoveryResponse(): Response {
       query: 'Normalized search text.',
       project: 'Project slug or null.',
       count: 'Number of results.',
-      results: 'score, title, text, project, path, uri, and raw URL.',
+      results: 'score, title, text, project, path, prompt URI, and raw URL.',
       meta: 'Resolved retrieval mode, grouping, and duration_ms.',
     },
     errors: {
@@ -104,7 +106,8 @@ async function handleAiSearch(
 ): Promise<Response> {
   try {
     const options = parseAiSearchRequest(request.url, routeProject);
-    return jsonResponse(await searchAiDocuments(env, options, request.url));
+    const access = resolveAccessContext(request, env.MCP_BEARER_TOKEN);
+    return jsonResponse(await searchAiDocuments(env, access, options, request.url));
   } catch (error) {
     if (error instanceof AiSearchRequestError) {
       return jsonResponse(structuredError(error.code, error.message), 400);
