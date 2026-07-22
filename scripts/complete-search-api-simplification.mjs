@@ -19,10 +19,10 @@ assert.match(aiSearchInput, /query:/u);
 assert.match(aiSearchInput, /project:/u);
 assert.match(aiSearchInput, /limit:/u);
 for (const removedParameter of ['mode', 'group', 'threshold', 'context', 'rerank']) {
-  assert.doesNotMatch(aiSearchInput, new RegExp(\\`\\\\b\\${removedParameter}\\\\s*:\\`, 'u'));
+  assert.doesNotMatch(aiSearchInput, new RegExp('\\\\b' + removedParameter + '\\\\s*:', 'u'));
 }
 for (const removedFilter of ['directory', 'recursive', 'language', 'tags', 'visibility', 'promptRole']) {
-  assert.doesNotMatch(fileSearchInput, new RegExp(\\`\\\\b\\${removedFilter}\\\\s*:\\`, 'u'));
+  assert.doesNotMatch(fileSearchInput, new RegExp('\\\\b' + removedFilter + '\\\\s*:', 'u'));
 }
 assert.match(source, /mode:\\s*z\\.literal\\('vector'\\)/u);
 assert.match(source, /group:\\s*z\\.literal\\('files'\\)/u);`;
