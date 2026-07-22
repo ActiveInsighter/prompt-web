@@ -6,9 +6,7 @@ export interface Env {
   ASSETS: Fetcher;
   DB: D1Database;
   PROMPT_KV: KVNamespace;
-  PROMPT_AI_SEARCH: AiSearchInstance;
-  AI_SEARCH_FOLDER_ROOT?: string;
-  AI_SEARCH_PROJECT_SCOPE_MODE?: string;
+  PROMPT_AI_SEARCH: AiSearchNamespace;
   ENVIRONMENT?: string;
   MCP_BEARER_TOKEN?: string;
   CONTENT_SYNC_TOKEN?: string;

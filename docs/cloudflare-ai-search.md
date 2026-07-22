@@ -1,153 +1,136 @@
 # Cloudflare AI Search
 
-Prompt Web exposes a dedicated crawl-only document tree under `/ai-index`, a dynamic XML sitemap, and Worker APIs that query the bound Cloudflare AI Search instance.
+Prompt Web uses Cloudflare AI Search built-in storage as a derived semantic index. D1 remains the authoritative source for projects, paths, metadata, permissions, complete content, and version history.
 
-## Public indexing endpoints
-
-```text
-https://prompt.2212148739lbw.workers.dev/ai-index
-https://prompt.2212148739lbw.workers.dev/robots.txt
-https://prompt.2212148739lbw.workers.dev/sitemap.xml
-```
-
-The `/ai-index` root is an HTML directory page that links to every public project. Project and folder pages continue the crawl with normal HTML links. Document URLs return `text/plain; charset=utf-8` and selectively escape markup tag delimiters so JSX/MDX tags remain visible to the indexer without changing mathematical comparison operators.
-
-Example document URL:
+## Architecture
 
 ```text
-https://prompt.2212148739lbw.workers.dev/ai-index/shadcn-ui-docs/components/button.md
+content/
+  -> manifest
+  -> D1 content sync
+  -> transactional ai_search_jobs outbox
+  -> scheduled Worker processor
+  -> one AI Search instance per project
+  -> Items API upload of prompt_files.content
 ```
 
-The sitemap contains every public document as `/ai-index/<project>/<path>` with D1-backed `<lastmod>` values. Private projects and private files are never listed for anonymous crawlers.
+There is no crawler, sitemap, HTML rendering layer, or public indexing tree. Markdown, MDX-like tags, formulas, and code are uploaded from the D1 `content` field without transformation.
 
-## AI Search dashboard configuration
+## Binding
 
-Create or edit the Website data source with this crawl root:
-
-```text
-Website URL:
-https://prompt.2212148739lbw.workers.dev/ai-index
-
-Specific sitemap:
-https://prompt.2212148739lbw.workers.dev/sitemap.xml
-
-Include paths:
-**/ai-index
-**/ai-index/**
-
-Exclude paths:
-None required inside /ai-index
-
-Rendering mode:
-Static sites
-```
-
-After saving the settings, trigger a manual sync. The crawler user agent is `Cloudflare-AI-Search`; `/robots.txt` permits `/ai-index/`, blocks the raw/API routes for that crawler, and advertises the sitemap.
-
-The Worker binds directly to the latest `ai-search-prompt` instance through `PROMPT_AI_SEARCH`. Local `wrangler dev` uses the remote instance because the binding has `remote: true`.
-
-## Search API
-
-Discovery and parameter documentation:
-
-```text
-GET /api/ai-search/info
-```
-
-Search all indexed public projects:
-
-```text
-GET /api/ai-search?q=button
-GET /api/v1/ai-search?q=button
-```
-
-Search one public project:
-
-```text
-GET /api/ai-search/shadcn-ui-docs?q=button
-GET /api/v1/projects/shadcn-ui-docs/ai-search?q=button
-```
-
-The all-project endpoint also accepts `project=<slug>`:
-
-```text
-GET /api/ai-search?q=button&project=shadcn-ui-docs
-```
-
-Supported query parameters:
-
-| Parameter | Default | Description |
-| --- | --- | --- |
-| `q` | required | Search text. `query` is accepted as an alias. |
-| `project` | all public projects | Project slug for all-project routes. |
-| `limit` | `10` | Number of returned results, from 1 to 20. |
-| `mode` | `auto` | `auto`, `hybrid`, `vector`, or `keyword`. |
-| `group` | `files` | `files` deduplicates chunks by source file; `chunks` returns raw chunks. |
-| `threshold` | `0.4` | Minimum match score from 0 to 1. |
-| `context` | `0` | Surrounding chunks from 0 to 3. |
-| `rerank` | `false` | Enable or disable reranking. |
-
-The Worker reads the instance capabilities dynamically. The default `auto` mode selects the best retrieval mode enabled by `ai-search-prompt`; explicitly requesting an unavailable mode returns a structured `retrieval_mode_unavailable` response. Instance capabilities are cached in each Worker isolate for five minutes.
-
-## Project scoping
-
-Every project-scoped request first verifies in D1 that the project exists and is public. Returned chunks are then strictly validated by parsing their indexed source URL:
-
-```text
-https://prompt.2212148739lbw.workers.dev/ai-index/<project>/<path>
-```
-
-A result is returned only when the parsed project exactly matches the requested project.
-
-The scoping strategy is controlled by `AI_SEARCH_PROJECT_SCOPE_MODE`:
-
-| Value | Behavior |
-| --- | --- |
-| `source` | Production default. Retrieve a broad candidate set and strictly filter by the project segment in each source URL. |
-| `metadata` | Apply a Cloudflare `folder` metadata range filter before retrieval. |
-| `auto` | Try metadata filtering first and fall back to strict source URL filtering. |
-
-For hard pre-retrieval tenant isolation, upload items with an explicit `project` metadata field through the Items API, or use a separate AI Search instance per isolated project.
-
-## Compact response
-
-The public response intentionally omits internal IDs, retrieval diagnostics, capabilities, metadata, duplicate counts, and detailed scoring data. It keeps only the information needed to use a result and open the complete Markdown source:
+`wrangler.jsonc` binds one namespace rather than one fixed instance:
 
 ```json
 {
-  "query": "padding",
-  "project": "tailwindcss-docs",
-  "count": 1,
-  "results": [
+  "ai_search_namespaces": [
     {
-      "score": 0.91,
-      "text": "# padding\n\nRelevant Markdown snippet...",
-      "project": "tailwindcss-docs",
-      "path": "/spacing/padding.md",
-      "url": "https://prompt.2212148739lbw.workers.dev/raw/tailwindcss-docs/spacing/padding.md"
+      "binding": "PROMPT_AI_SEARCH",
+      "namespace": "prompt-projects",
+      "remote": true
     }
   ]
 }
 ```
 
-`text` is the matching search chunk, not necessarily the entire file. `url` points to the complete raw Markdown document. Crawl-safe `\\u003c` and `\\u003e` sequences from `/ai-index` are restored before JSON encoding, so a normal JSON parser receives the original `<` and `>` characters without an extra backslash layer.
+The Worker creates deterministic instance IDs at runtime. Project slugs may change without moving the project to another instance because the stable project ID participates in the generated identifier and the final mapping is persisted in D1.
 
-## Configuration
+## D1 tables
+
+- `ai_search_projects`: stable project-to-instance mapping and provisioning state.
+- `ai_search_items`: active file-to-item mapping, indexed revision, item ID, and error state.
+- `ai_search_jobs`: transactional outbox with leases, attempts, retry time, and terminal state.
+
+Migration `0005_create_ai_search_storage.sql` installs triggers on `content_sync_entries`. A successful content sync therefore commits its indexing intent in the same D1 operation sequence as the source data. Migration `0006_preserve_ai_search_terminal_failures.sql` prevents scheduled reconciliation from silently reactivating the same terminally failed revision.
+
+## Instance and item lifecycle
+
+A project instance is created with vector and keyword indexing enabled and three custom metadata fields:
 
 ```text
-AI_SEARCH_FOLDER_ROOT=https://prompt.2212148739lbw.workers.dev/ai-index
-AI_SEARCH_PROJECT_SCOPE_MODE=source
+file_id
+content_hash
+visibility
 ```
 
-`AI_SEARCH_FOLDER_ROOT` is used by metadata mode and result validation. When omitted, the Worker derives `/ai-index` from the incoming request origin.
+Each file is uploaded with a versioned key and its exact D1 content:
 
-## Limits
+```ts
+await instance.items.uploadAndPoll(itemKey, file.content, {
+  metadata: {
+    file_id: file.id,
+    content_hash: file.contentHash,
+    visibility: file.visibility,
+  },
+});
+```
 
-The generated sitemap follows the standard maximum of 50,000 URLs. Cloudflare AI Search accepts individual files up to 4 MB; files exceeding that limit appear in indexing error logs. The HTTP API limits queries to 1,000 characters and at most 20 returned results.
+Updates follow this order:
 
-## Cloudflare documentation
+1. Upload and finish indexing the new item.
+2. Delete the previous item when its ID differs.
+3. Commit the new active mapping to D1.
 
-- https://developers.cloudflare.com/ai-search/api/search/workers-binding/
-- https://developers.cloudflare.com/ai-search/configuration/retrieval/filtering/
-- https://developers.cloudflare.com/ai-search/configuration/indexing/metadata/
-- https://developers.cloudflare.com/ai-search/configuration/data-source/website/
+A failed upload leaves the previous searchable item and mapping intact. Jobs retry with exponential backoff. Documents larger than 4 MiB fail permanently with an explicit job error instead of repeatedly consuming retries.
+
+## Reconciliation
+
+The scheduled handler runs every minute. Before claiming work it reconciles D1 and the outbox:
+
+- create jobs for projects without a ready instance;
+- create jobs for missing or stale file revisions;
+- create delete jobs for indexed items whose D1 document no longer exists;
+- reclaim expired processing leases.
+
+This makes the pipeline self-repairing after deployment interruption and transient Cloudflare errors. Jobs that exhaust their retry budget remain `failed` for their exact dedupe key until an administrator explicitly resets them; a new source revision naturally receives a different key and can proceed independently.
+
+## Search isolation and permissions
+
+Project-scoped search resolves exactly one mapped instance. All-project search batches accessible instance IDs in groups of at most ten and merges the returned chunks.
+
+Anonymous requests apply this metadata filter before retrieval:
+
+```ts
+filters: { visibility: "public" }
+```
+
+Every returned chunk must also contain a known `file_id`. The Worker then reads `prompt_search_documents` using the caller's D1 visibility rules and discards any chunk that cannot be authorized and hydrated. AI Search metadata is never trusted as the source of project, title, path, or URL.
+
+## Public search API
+
+```text
+GET /api/ai-search?q=button
+GET /api/ai-search/shadcn-ui-docs?q=button
+GET /api/v1/ai-search?q=button
+GET /api/v1/projects/shadcn-ui-docs/ai-search?q=button
+```
+
+Supported parameters:
+
+| Parameter | Default | Description |
+| --- | --- | --- |
+| `q` | required | Search text; `query` is an alias. |
+| `project` | accessible projects | Project slug or ID. |
+| `limit` | `10` | Returned results, from 1 to 20. |
+| `mode` | `auto` | `auto`, `vector`, `keyword`, or `hybrid`; `auto` resolves to vector. |
+| `group` | `files` | Deduplicate by file or return chunks. |
+| `threshold` | `0.4` | Retrieval threshold from 0 to 1. |
+| `context` | `0` | Surrounding chunks from 0 to 3. |
+| `rerank` | `false` | Enable reranking. |
+
+## Administrative endpoints
+
+All endpoints require the `CONTENT_SYNC_TOKEN` Bearer token.
+
+```text
+GET  /api/admin/ai-search/status
+POST /api/admin/ai-search/process?limit=3
+POST /api/admin/ai-search/retry-failed?limit=20
+```
+
+The status endpoint reports project mappings, item states, job states, and the latest errors. The process endpoint first reconciles and then processes a bounded batch. `retry-failed` is the only application-level path that resets terminal jobs, and moves a bounded oldest-first batch back to `retry`. Normal operation uses the scheduled handler and the post-sync `waitUntil` task.
+
+## Deployment sequence
+
+Production must apply D1 migrations before deploying the Worker code. The existing deployment workflow already follows that order. Migration `0005` seeds jobs for all current active projects and files, so the first scheduled executions backfill the new project instances without changing source content.
+
+The previous fixed `ai-search-prompt` crawler instance is intentionally not deleted by application code. Remove it from the Cloudflare dashboard only after the new project mappings report ready and the expected item counts are indexed.
