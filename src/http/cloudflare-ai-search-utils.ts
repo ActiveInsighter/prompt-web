@@ -93,53 +93,7 @@ function parseInteger(
   return parsed;
 }
 
-function parseNumber(
-  value: string | null,
-  name: string,
-  fallback: number,
-  minimum: number,
-  maximum: number,
-): number {
-  if (value === null || value.trim() === '') return fallback;
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed) || parsed < minimum || parsed > maximum) {
-    throw new AiSearchRequestError(
-      `${name} must be between ${minimum} and ${maximum}.`,
-      `invalid_${name}`,
-    );
-  }
-  return parsed;
-}
 
-function parseBoolean(value: string | null, name: string, fallback: boolean): boolean {
-  if (value === null || value.trim() === '') return fallback;
-  const normalized = value.trim().toLowerCase();
-  if (['1', 'true', 'yes', 'on'].includes(normalized)) return true;
-  if (['0', 'false', 'no', 'off'].includes(normalized)) return false;
-  throw new AiSearchRequestError(`${name} must be true or false.`, `invalid_${name}`);
-}
-
-function parseRetrievalType(value: string | null): AiSearchRequestedRetrievalType {
-  const normalized = value?.trim().toLowerCase() || 'auto';
-  if (
-    normalized === 'auto' ||
-    normalized === 'hybrid' ||
-    normalized === 'keyword' ||
-    normalized === 'vector'
-  ) {
-    return normalized;
-  }
-  throw new AiSearchRequestError(
-    'mode must be one of auto, hybrid, keyword, or vector.',
-    'invalid_mode',
-  );
-}
-
-function parseGrouping(value: string | null): AiSearchGrouping {
-  const normalized = value?.trim().toLowerCase() || 'files';
-  if (normalized === 'files' || normalized === 'chunks') return normalized;
-  throw new AiSearchRequestError('group must be either files or chunks.', 'invalid_group');
-}
 
 export function parseAiSearchProjectScopeMode(
   value: string | undefined,
@@ -163,7 +117,7 @@ export function parseAiSearchRequest(
   routeProject?: string,
 ): AiSearchRequestOptions {
   const url = new URL(requestUrl);
-  const query = normalizeOptionalText(url.searchParams.get('q') ?? url.searchParams.get('query'));
+  const query = normalizeOptionalText(url.searchParams.get('q'));
   if (!query) {
     throw new AiSearchRequestError('Missing q query parameter.', 'missing_query');
   }
@@ -188,8 +142,6 @@ export function parseAiSearchRequest(
       'project_conflict',
     );
   }
-
-  const grouping = parseGrouping(url.searchParams.get('group'));
   const limit = parseInteger(
     url.searchParams.get('limit'),
     'limit',
@@ -201,25 +153,13 @@ export function parseAiSearchRequest(
   return {
     query,
     project: routeProjectValue ?? queryProjectValue,
-    requestedRetrievalType: parseRetrievalType(url.searchParams.get('mode')),
-    grouping,
+    requestedRetrievalType: 'vector',
+    grouping: 'files',
     limit,
-    retrievalLimit: grouping === 'files' ? Math.min(50, limit * 3) : limit,
-    matchThreshold: parseNumber(
-      url.searchParams.get('threshold'),
-      'threshold',
-      DEFAULT_AI_SEARCH_THRESHOLD,
-      0,
-      1,
-    ),
-    contextExpansion: parseInteger(
-      url.searchParams.get('context'),
-      'context',
-      DEFAULT_CONTEXT_EXPANSION,
-      0,
-      3,
-    ),
-    reranking: parseBoolean(url.searchParams.get('rerank'), 'rerank', false),
+    retrievalLimit: Math.min(50, limit * 3),
+    matchThreshold: DEFAULT_AI_SEARCH_THRESHOLD,
+    contextExpansion: DEFAULT_CONTEXT_EXPANSION,
+    reranking: false,
   };
 }
 
