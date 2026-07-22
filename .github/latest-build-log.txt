@@ -1,11 +1,11 @@
 repository=ActiveInsighter/prompt-web
 workflow=Prompt Web CI
-run_id=29848996209
+run_id=29921476226
 run_attempt=1
-head_sha=5e2f0e757562f494f4ee4538cc6114202d0c731f
-started_at=2026-07-21T16:31:56Z
+head_sha=29ca349c5af55c15b5c586bc9dcbdc9879d48711
+started_at=2026-07-22T12:53:06Z
 
-added 212 packages in 21s
+added 212 packages in 22s
 npm warn allow-scripts 4 packages have install scripts not yet covered by allowScripts:
 npm warn allow-scripts   esbuild@0.28.1 (postinstall: node install.js)
 npm warn allow-scripts   core-js-pure@3.49.0 (postinstall: node -e "try{require('./postinstall')}catch(e){}")
@@ -20,36 +20,36 @@ Collecting beautifulsoup4<5,>=4.15.0 (from -r scripts/requirements.txt (line 2))
 Collecting markdownify<2,>=1.2.3 (from -r scripts/requirements.txt (line 3))
   Downloading markdownify-1.2.3-py3-none-any.whl.metadata (9.9 kB)
 Collecting soupsieve>=1.6.1 (from beautifulsoup4<5,>=4.15.0->-r scripts/requirements.txt (line 2))
-  Downloading soupsieve-2.9-py3-none-any.whl.metadata (4.6 kB)
+  Downloading soupsieve-2.9.1-py3-none-any.whl.metadata (4.6 kB)
 Collecting typing-extensions>=4.0.0 (from beautifulsoup4<5,>=4.15.0->-r scripts/requirements.txt (line 2))
   Downloading typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
 Collecting six<2,>=1.15 (from markdownify<2,>=1.2.3->-r scripts/requirements.txt (line 3))
   Downloading six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
 Downloading pyyaml-6.0.3-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (801 kB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 801.6/801.6 kB 98.5 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 801.6/801.6 kB 61.5 MB/s  0:00:00
 Downloading beautifulsoup4-4.15.0-py3-none-any.whl (109 kB)
 Downloading markdownify-1.2.3-py3-none-any.whl (15 kB)
 Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
-Downloading soupsieve-2.9-py3-none-any.whl (37 kB)
+Downloading soupsieve-2.9.1-py3-none-any.whl (37 kB)
 Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
 Installing collected packages: typing-extensions, soupsieve, six, PyYAML, beautifulsoup4, markdownify
 
-Successfully installed PyYAML-6.0.3 beautifulsoup4-4.15.0 markdownify-1.2.3 six-1.17.0 soupsieve-2.9 typing-extensions-4.16.0
+Successfully installed PyYAML-6.0.3 beautifulsoup4-4.15.0 markdownify-1.2.3 six-1.17.0 soupsieve-2.9.1 typing-extensions-4.16.0
 
 ## Project CI
 command=npm run project:ci
-started_at=2026-07-21T16:32:18.946Z
+started_at=2026-07-22T12:53:34.322Z
 
 
-> prompt-web@0.8.0 project:ci
+> prompt-web@0.9.0 project:ci
 > npm run typecheck && npm run db:migrate:local && npm run content:validate && npm run content:build && npm run content:test && npm test && npm run worker:dry-run
 
 
-> prompt-web@0.8.0 typecheck
+> prompt-web@0.9.0 typecheck
 > tsc --noEmit
 
 
-> prompt-web@0.8.0 db:migrate:local
+> prompt-web@0.9.0 db:migrate:local
 > wrangler d1 migrations apply DB --local
 
 
@@ -60,156 +60,210 @@ Resource location: local
 Use --remote if you want to access the remote instance.
 
 Migrations to be applied:
-┌───────────────────────────────────┐
-│ name                              │
-├───────────────────────────────────┤
-│ 0001_create_prompts.sql           │
-├───────────────────────────────────┤
-│ 0002_create_project_file_tree.sql │
-├───────────────────────────────────┤
-│ 0003_create_content_sync.sql      │
-├───────────────────────────────────┤
-│ 0004_optimize_content_sync.sql    │
-└───────────────────────────────────┘
-? About to apply 4 migration(s)
+┌───────────────────────────────────────────────┐
+│ name                                          │
+├───────────────────────────────────────────────┤
+│ 0001_create_prompts.sql                       │
+├───────────────────────────────────────────────┤
+│ 0002_create_project_file_tree.sql             │
+├───────────────────────────────────────────────┤
+│ 0003_create_content_sync.sql                  │
+├───────────────────────────────────────────────┤
+│ 0004_optimize_content_sync.sql                │
+├───────────────────────────────────────────────┤
+│ 0005_create_ai_search_storage.sql             │
+├───────────────────────────────────────────────┤
+│ 0006_preserve_ai_search_terminal_failures.sql │
+└───────────────────────────────────────────────┘
+? About to apply 6 migration(s)
 Your database may not be available to serve requests during the migration, continue?
 🤖 Using fallback value in non-interactive context: yes
 🌀 Executing on local database DB (00000000-0000-0000-0000-000000000000) from .wrangler/state/v3/d1:
 🌀 To execute on your remote database, add a --remote flag to your wrangler command.
 🚣 12 commands executed successfully.
-┌───────────────────────────────────┬────────┐
-│ name                              │ status │
-├───────────────────────────────────┼────────┤
-│ 0001_create_prompts.sql           │ ✅     │
-├───────────────────────────────────┼────────┤
-│ 0002_create_project_file_tree.sql │ 🕒️    │
-├───────────────────────────────────┼────────┤
-│ 0003_create_content_sync.sql      │ 🕒️    │
-├───────────────────────────────────┼────────┤
-│ 0004_optimize_content_sync.sql    │ 🕒️    │
-└───────────────────────────────────┴────────┘
+┌───────────────────────────────────────────────┬────────┐
+│ name                                          │ status │
+├───────────────────────────────────────────────┼────────┤
+│ 0001_create_prompts.sql                       │ ✅     │
+├───────────────────────────────────────────────┼────────┤
+│ 0002_create_project_file_tree.sql             │ 🕒️    │
+├───────────────────────────────────────────────┼────────┤
+│ 0003_create_content_sync.sql                  │ 🕒️    │
+├───────────────────────────────────────────────┼────────┤
+│ 0004_optimize_content_sync.sql                │ 🕒️    │
+├───────────────────────────────────────────────┼────────┤
+│ 0005_create_ai_search_storage.sql             │ 🕒️    │
+├───────────────────────────────────────────────┼────────┤
+│ 0006_preserve_ai_search_terminal_failures.sql │ 🕒️    │
+└───────────────────────────────────────────────┴────────┘
 🌀 Executing on local database DB (00000000-0000-0000-0000-000000000000) from .wrangler/state/v3/d1:
 🌀 To execute on your remote database, add a --remote flag to your wrangler command.
 🚣 29 commands executed successfully.
-┌───────────────────────────────────┬────────┐
-│ name                              │ status │
-├───────────────────────────────────┼────────┤
-│ 0001_create_prompts.sql           │ ✅     │
-├───────────────────────────────────┼────────┤
-│ 0002_create_project_file_tree.sql │ ✅     │
-├───────────────────────────────────┼────────┤
-│ 0003_create_content_sync.sql      │ 🕒️    │
-├───────────────────────────────────┼────────┤
-│ 0004_optimize_content_sync.sql    │ 🕒️    │
-└───────────────────────────────────┴────────┘
+┌───────────────────────────────────────────────┬────────┐
+│ name                                          │ status │
+├───────────────────────────────────────────────┼────────┤
+│ 0001_create_prompts.sql                       │ ✅     │
+├───────────────────────────────────────────────┼────────┤
+│ 0002_create_project_file_tree.sql             │ ✅     │
+├───────────────────────────────────────────────┼────────┤
+│ 0003_create_content_sync.sql                  │ 🕒️    │
+├───────────────────────────────────────────────┼────────┤
+│ 0004_optimize_content_sync.sql                │ 🕒️    │
+├───────────────────────────────────────────────┼────────┤
+│ 0005_create_ai_search_storage.sql             │ 🕒️    │
+├───────────────────────────────────────────────┼────────┤
+│ 0006_preserve_ai_search_terminal_failures.sql │ 🕒️    │
+└───────────────────────────────────────────────┴────────┘
 🌀 Executing on local database DB (00000000-0000-0000-0000-000000000000) from .wrangler/state/v3/d1:
 🌀 To execute on your remote database, add a --remote flag to your wrangler command.
 🚣 7 commands executed successfully.
-┌───────────────────────────────────┬────────┐
-│ name                              │ status │
-├───────────────────────────────────┼────────┤
-│ 0001_create_prompts.sql           │ ✅     │
-├───────────────────────────────────┼────────┤
-│ 0002_create_project_file_tree.sql │ ✅     │
-├───────────────────────────────────┼────────┤
-│ 0003_create_content_sync.sql      │ ✅     │
-├───────────────────────────────────┼────────┤
-│ 0004_optimize_content_sync.sql    │ 🕒️    │
-└───────────────────────────────────┴────────┘
+┌───────────────────────────────────────────────┬────────┐
+│ name                                          │ status │
+├───────────────────────────────────────────────┼────────┤
+│ 0001_create_prompts.sql                       │ ✅     │
+├───────────────────────────────────────────────┼────────┤
+│ 0002_create_project_file_tree.sql             │ ✅     │
+├───────────────────────────────────────────────┼────────┤
+│ 0003_create_content_sync.sql                  │ ✅     │
+├───────────────────────────────────────────────┼────────┤
+│ 0004_optimize_content_sync.sql                │ 🕒️    │
+├───────────────────────────────────────────────┼────────┤
+│ 0005_create_ai_search_storage.sql             │ 🕒️    │
+├───────────────────────────────────────────────┼────────┤
+│ 0006_preserve_ai_search_terminal_failures.sql │ 🕒️    │
+└───────────────────────────────────────────────┴────────┘
 🌀 Executing on local database DB (00000000-0000-0000-0000-000000000000) from .wrangler/state/v3/d1:
 🌀 To execute on your remote database, add a --remote flag to your wrangler command.
 🚣 10 commands executed successfully.
-┌───────────────────────────────────┬────────┐
-│ name                              │ status │
-├───────────────────────────────────┼────────┤
-│ 0001_create_prompts.sql           │ ✅     │
-├───────────────────────────────────┼────────┤
-│ 0002_create_project_file_tree.sql │ ✅     │
-├───────────────────────────────────┼────────┤
-│ 0003_create_content_sync.sql      │ ✅     │
-├───────────────────────────────────┼────────┤
-│ 0004_optimize_content_sync.sql    │ ✅     │
-└───────────────────────────────────┴────────┘
+┌───────────────────────────────────────────────┬────────┐
+│ name                                          │ status │
+├───────────────────────────────────────────────┼────────┤
+│ 0001_create_prompts.sql                       │ ✅     │
+├───────────────────────────────────────────────┼────────┤
+│ 0002_create_project_file_tree.sql             │ ✅     │
+├───────────────────────────────────────────────┼────────┤
+│ 0003_create_content_sync.sql                  │ ✅     │
+├───────────────────────────────────────────────┼────────┤
+│ 0004_optimize_content_sync.sql                │ ✅     │
+├───────────────────────────────────────────────┼────────┤
+│ 0005_create_ai_search_storage.sql             │ 🕒️    │
+├───────────────────────────────────────────────┼────────┤
+│ 0006_preserve_ai_search_terminal_failures.sql │ 🕒️    │
+└───────────────────────────────────────────────┴────────┘
+🌀 Executing on local database DB (00000000-0000-0000-0000-000000000000) from .wrangler/state/v3/d1:
+🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+🚣 17 commands executed successfully.
+┌───────────────────────────────────────────────┬────────┐
+│ name                                          │ status │
+├───────────────────────────────────────────────┼────────┤
+│ 0001_create_prompts.sql                       │ ✅     │
+├───────────────────────────────────────────────┼────────┤
+│ 0002_create_project_file_tree.sql             │ ✅     │
+├───────────────────────────────────────────────┼────────┤
+│ 0003_create_content_sync.sql                  │ ✅     │
+├───────────────────────────────────────────────┼────────┤
+│ 0004_optimize_content_sync.sql                │ ✅     │
+├───────────────────────────────────────────────┼────────┤
+│ 0005_create_ai_search_storage.sql             │ ✅     │
+├───────────────────────────────────────────────┼────────┤
+│ 0006_preserve_ai_search_terminal_failures.sql │ 🕒️    │
+└───────────────────────────────────────────────┴────────┘
+🌀 Executing on local database DB (00000000-0000-0000-0000-000000000000) from .wrangler/state/v3/d1:
+🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+🚣 5 commands executed successfully.
+┌───────────────────────────────────────────────┬────────┐
+│ name                                          │ status │
+├───────────────────────────────────────────────┼────────┤
+│ 0001_create_prompts.sql                       │ ✅     │
+├───────────────────────────────────────────────┼────────┤
+│ 0002_create_project_file_tree.sql             │ ✅     │
+├───────────────────────────────────────────────┼────────┤
+│ 0003_create_content_sync.sql                  │ ✅     │
+├───────────────────────────────────────────────┼────────┤
+│ 0004_optimize_content_sync.sql                │ ✅     │
+├───────────────────────────────────────────────┼────────┤
+│ 0005_create_ai_search_storage.sql             │ ✅     │
+├───────────────────────────────────────────────┼────────┤
+│ 0006_preserve_ai_search_terminal_failures.sql │ ✅     │
+└───────────────────────────────────────────────┴────────┘
 
-> prompt-web@0.8.0 content:validate
+> prompt-web@0.9.0 content:validate
 > python -m scripts.cli validate
 
 Content validation succeeded: projects=4 folders=39 files=348 manifest=sha256:78a7f1039495407a5253176edfb390e7954cf58689e861202789108a3718802e
 
-> prompt-web@0.8.0 content:build
+> prompt-web@0.9.0 content:build
 > python -m scripts.cli build
 
 Wrote /home/runner/work/prompt-web/prompt-web/.prompt-sync/manifest.json: projects=4 folders=39 files=348 manifest=sha256:78a7f1039495407a5253176edfb390e7954cf58689e861202789108a3718802e
 
-> prompt-web@0.8.0 content:test
+> prompt-web@0.9.0 content:test
 > python -m unittest discover -s scripts/tests -p "test_*.py"
 
 ..................
 ----------------------------------------------------------------------
-Ran 18 tests in 0.079s
+Ran 18 tests in 0.071s
 
 OK
 
-> prompt-web@0.8.0 test
-> npm run test:run-state && npm run test:viewer && npm run test:ai-safe-json && npm run test:ai-search-index && npm run test:cloudflare-ai-search && npm run test:mcp-contracts && npm run test:content-sync
+> prompt-web@0.9.0 test
+> npm run test:run-state && npm run test:viewer && npm run test:ai-safe-json && npm run test:cloudflare-ai-search && npm run test:ai-search-storage && npm run test:mcp-contracts && npm run test:content-sync
 
 
-> prompt-web@0.8.0 test:run-state
+> prompt-web@0.9.0 test:run-state
 > node scripts/test-run-state.mjs
 
 Run-state self test passed.
 
-> prompt-web@0.8.0 test:viewer
+> prompt-web@0.9.0 test:viewer
 > node scripts/test-markdown-viewer.mjs
 
 Markdown viewer URL tests passed.
 
-> prompt-web@0.8.0 test:ai-safe-json
+> prompt-web@0.9.0 test:ai-safe-json
 > node --experimental-strip-types scripts/test-ai-safe-json.mjs
 
-AI-safe JSON serialization tests passed.
+AI-safe JSON serialization tests passed
 
-> prompt-web@0.8.0 test:ai-search-index
-> node --experimental-strip-types scripts/test-ai-search-index.mjs
-
-AI Search indexing and trailing-slash tests passed.
-
-> prompt-web@0.8.0 test:cloudflare-ai-search
+> prompt-web@0.9.0 test:cloudflare-ai-search
 > node --experimental-strip-types scripts/test-cloudflare-ai-search.mjs
 
-Cloudflare AI Search API tests passed.
+Cloudflare AI Search API tests passed
 
-> prompt-web@0.8.0 test:mcp-contracts
+> prompt-web@0.9.0 test:ai-search-storage
+> node --experimental-strip-types scripts/test-ai-search-storage.mjs
+
+AI Search storage tests passed
+
+> prompt-web@0.9.0 test:mcp-contracts
 > node scripts/test-mcp-contracts.mjs
 
 MCP structured output contract tests passed.
 
-> prompt-web@0.8.0 test:content-sync
+> prompt-web@0.9.0 test:content-sync
 > node scripts/test-content-sync-planning.mjs
 
 content sync planning tests passed
 
-> prompt-web@0.8.0 worker:dry-run
+> prompt-web@0.9.0 worker:dry-run
 > wrangler deploy --dry-run --outdir .wrangler/dry-run
 
 
- ⛅️ wrangler 4.109.0 (update available 4.112.0)
+ ⛅️ wrangler 4.109.0 (update available 4.113.0)
 ───────────────────────────────────────────────
 
 Cloudflare collects anonymous telemetry about your usage of Wrangler. Learn more at https://github.com/cloudflare/workers-sdk/tree/main/packages/wrangler/telemetry.md
 ✨ Read 4 files from the assets directory /home/runner/work/prompt-web/prompt-web/public
-Total Upload: 2264.91 KiB / gzip: 413.42 KiB
+Total Upload: 2260.13 KiB / gzip: 412.30 KiB
 Your Worker has access to the following bindings:
-Binding                                                                            Resource                  
-env.PROMPT_KV (00000000000000000000000000000000)                                   KV Namespace              
-env.DB (prompt-web-db)                                                             D1 Database               
-env.PROMPT_AI_SEARCH (ai-search-prompt)                                            AI Search Instance        
-env.ASSETS                                                                         Assets                    
-env.ENVIRONMENT ("development")                                                    Environment Variable      
-env.AI_SEARCH_FOLDER_ROOT ("https://prompt.2212148739lbw.workers....")             Environment Variable      
-env.AI_SEARCH_PROJECT_SCOPE_MODE ("source")                                        Environment Variable      
+Binding                                                      Resource                  
+env.PROMPT_KV (00000000000000000000000000000000)             KV Namespace              
+env.DB (prompt-web-db)                                       D1 Database               
+env.PROMPT_AI_SEARCH (prompt-projects)                       AI Search Namespace       
+env.ASSETS                                                   Assets                    
+env.ENVIRONMENT ("development")                              Environment Variable      
 
 --dry-run: exiting now.
 
-finished_at=2026-07-21T16:32:31.604Z
+finished_at=2026-07-22T12:53:47.242Z
 exit_code=0
