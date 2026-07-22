@@ -46,9 +46,14 @@ assert.equal(
   'deployment smoke tests must validate the current service version',
 );
 assert.equal(
-  workflow.includes('/api/admin/ai-search/process?limit=10'),
+  workflow.includes('/api/admin/ai-search/process?limit=3'),
   true,
-  'deployment must prime a bounded AI Search batch after content synchronization',
+  'deployment must prime small bounded batches that finish within one Worker request',
+);
+assert.equal(
+  workflow.includes('/api/admin/ai-search/process?limit=10'),
+  false,
+  'deployment must not wait for ten uploadAndPoll operations in one request',
 );
 assert.equal(
   workflow.includes('/api/admin/ai-search/status'),
