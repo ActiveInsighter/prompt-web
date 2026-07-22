@@ -1,5 +1,6 @@
 import type { Hono } from 'hono';
-import { resolveAccessContext } from '../auth';
+import { hasValidBearerToken, resolveAccessContext } from '../auth';
+import { retryFailedAiSearchJobs } from '../services/ai-search-admin-service';
 import {
   AiSearchServiceError,
   searchAiDocuments,
@@ -128,4 +129,15 @@ export function registerCloudflareAiSearchRoutes(app: PromptApp): void {
   app.get('/api/v1/projects/:project/ai-search', (context) =>
     handleAiSearch(context.req.raw, context.env, context.req.param('project')),
   );
+
+  app.post('/api/admin/ai-search/retry-failed', async (context) => {
+    if (!context.env.CONTENT_SYNC_TOKEN) {
+      return context.json({ error: 'Content sync is not configured.' }, 503);
+    }
+    if (!hasValidBearerToken(context.req.raw, context.env.CONTENT_SYNC_TOKEN)) {
+      return context.json({ error: 'Unauthorized.' }, 401);
+    }
+    const requestedLimit = Number(context.req.query('limit') ?? 20);
+    return context.json(await retryFailedAiSearchJobs(context.env, requestedLimit));
+  });
 }
