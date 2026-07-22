@@ -82,7 +82,7 @@ Supported query parameters:
 | `project` | all public projects | Project slug for all-project routes. |
 | `limit` | `10` | Number of returned results, from 1 to 20. |
 
-Retrieval is fixed to `vector`. Results are grouped by source file with a match threshold of `0.4`, no context expansion, and reranking disabled. These are internal defaults and are not request parameters.
+The public API has no retrieval-mode or tuning parameters. Every request uses `vector` retrieval, groups results by source file, applies a `0.4` match threshold, disables context expansion, and disables reranking.
 
 ## Project scoping
 
