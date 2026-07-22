@@ -14,10 +14,6 @@
       "/p/*",
       "/api/*",
       "/health",
-      "/robots.txt",
-      "/sitemap.xml",
-      "/ai-index",
-      "/ai-index/*",
       "/raw",
       "/raw/*",
       "/mcp",
@@ -25,9 +21,7 @@
     ]
   },
   "vars": {
-    "ENVIRONMENT": "development",
-    "AI_SEARCH_FOLDER_ROOT": "https://prompt.2212148739lbw.workers.dev/ai-index",
-    "AI_SEARCH_PROJECT_SCOPE_MODE": "source"
+    "ENVIRONMENT": "development"
   },
   "d1_databases": [
     {
@@ -43,13 +37,16 @@
       "id": "00000000000000000000000000000000"
     }
   ],
-  "ai_search": [
+  "ai_search_namespaces": [
     {
       "binding": "PROMPT_AI_SEARCH",
-      "instance_name": "ai-search-prompt",
+      "namespace": "prompt-projects",
       "remote": true
     }
   ],
+  "triggers": {
+    "crons": ["* * * * *"]
+  },
   "observability": {
     "enabled": true
   }
