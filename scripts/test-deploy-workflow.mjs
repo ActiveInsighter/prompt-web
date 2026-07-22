@@ -65,6 +65,21 @@ assert.equal(
   true,
   'deployment must execute a real semantic search after priming the index',
 );
+assert.equal(
+  workflow.includes('authenticated_json()'),
+  true,
+  'protected post-deploy requests must use a propagation-aware helper',
+);
+assert.equal(
+  workflow.includes("--write-out '%{http_code}'"),
+  true,
+  'protected post-deploy requests must inspect HTTP status without aborting on a transient 401',
+);
+assert.equal(
+  workflow.includes('Authenticated request attempt'),
+  true,
+  'protected post-deploy retries must leave actionable diagnostics',
+);
 
 assertValidBash('Prime AI Search index');
 assertValidBash('Smoke test deployed Worker');
