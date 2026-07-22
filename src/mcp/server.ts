@@ -191,7 +191,7 @@ export function createPromptMcpServer(env: Env, access: AccessContext): McpServe
   const repository = new PromptRepository(env);
   const server = new McpServer({
     name: 'prompt-library',
-    version: '0.8.0',
+    version: '0.9.0',
   });
 
   server.registerTool(
@@ -200,9 +200,7 @@ export function createPromptMcpServer(env: Env, access: AccessContext): McpServe
       title: 'List prompt projects',
       description: 'List projects visible to the caller. Use when the project is unknown.',
       inputSchema: {},
-      outputSchema: {
-        projects: z.array(projectSummarySchema),
-      },
+      outputSchema: { projects: z.array(projectSummarySchema) },
     },
     async () =>
       structuredResult({
@@ -264,7 +262,7 @@ export function createPromptMcpServer(env: Env, access: AccessContext): McpServe
     {
       title: 'Semantic AI search',
       description:
-        'Search public indexed documentation with the same capability-aware Cloudflare AI Search logic as the web API. auto selects an available mode; explicit hybrid or keyword requests return a structured retrieval_mode_unavailable error when the index does not support them. Returns ranked Markdown snippets plus titles, prompt:// identifiers, raw URLs, and measured duration. Use fetch_file to read a complete result.',
+        'Search project-isolated Cloudflare AI Search indexes visible to the caller. Each project has its own instance and documents are uploaded directly from D1 content. Returns ranked snippets plus titles, prompt:// identifiers, raw URLs, and measured duration. Use fetch_file to read a complete result.',
       inputSchema: aiSearchInputSchema,
       outputSchema: {
         query: z.string(),
@@ -280,7 +278,7 @@ export function createPromptMcpServer(env: Env, access: AccessContext): McpServe
     },
     async (input) => {
       try {
-        return structuredResult(await searchAiDocumentsFromInput(env, input));
+        return structuredResult(await searchAiDocumentsFromInput(env, access, input));
       } catch (error) {
         if (error instanceof AiSearchServiceError) {
           return errorResult(error.code, error.message, {
@@ -306,9 +304,7 @@ export function createPromptMcpServer(env: Env, access: AccessContext): McpServe
       title: 'Read a complete file',
       description:
         'Read one complete file by file id, prompt:// URI, project:/path identifier, or legacy path.',
-      inputSchema: {
-        identifier: z.string().trim().min(1).max(800),
-      },
+      inputSchema: { identifier: z.string().trim().min(1).max(800) },
       outputSchema: fileContentSchema.shape,
     },
     async ({ identifier }) => {
@@ -423,9 +419,7 @@ export function createPromptMcpServer(env: Env, access: AccessContext): McpServe
       title: 'Get a common public prompt',
       description:
         'Read one public versioned prompt from KV by an exact common:* key. Use list_common_prompts first when the key is unknown.',
-      inputSchema: {
-        key: z.string().trim().min(1).max(200),
-      },
+      inputSchema: { key: z.string().trim().min(1).max(200) },
       outputSchema: {
         key: z.string(),
         title: z.string(),
