@@ -3,43 +3,37 @@ import {
   type CompactAiSearchResponse,
 } from '../http/ai-safe-json';
 import {
-  MAX_AI_SEARCH_QUERY_LENGTH,
-  buildProjectFolderFilter,
-  formatAiSearchResults,
-  parseAiSearchProjectScopeMode,
   parseAiSearchRequest,
-  resolveAiSearchFolderRoot,
   type AiSearchChunkLike,
   type AiSearchGrouping,
-  type AiSearchProjectScopeMode,
   type AiSearchRequestOptions,
   type AiSearchRequestedRetrievalType,
   type AiSearchResult,
   type AiSearchRetrievalType,
 } from '../http/cloudflare-ai-search-utils';
-import type { Env } from '../types';
+import { createPromptUri } from '../lib/prompt-utils';
+import type { AccessContext, Env, PromptVisibility } from '../types';
 
-type AiSearchBindingResult = Awaited<ReturnType<AiSearchInstance['search']>>;
-
-interface PublicProjectRow {
+interface VisibleProjectRow {
+  id: string;
   slug: string;
   name: string;
+  instance_id: string;
 }
 
-interface AiSearchCapabilities {
-  vector: boolean;
-  keyword: boolean;
+interface SearchDocumentRow {
+  file_id: string;
+  project_id: string;
+  project_slug: string;
+  path: string;
+  title: string;
+  visibility: PromptVisibility;
 }
 
-interface CachedCapabilities {
-  value: AiSearchCapabilities;
-  expiresAt: number;
-}
-
-interface SearchOutcome {
-  searchResult: AiSearchBindingResult;
+interface SearchResponseLike {
+  search_query?: string;
   chunks: AiSearchChunkLike[];
-  formatted: ReturnType<typeof formatAiSearchResults>;
+  errors?: Array<{ instance_id?: string; message?: string }>;
 }
 
 export interface AiSearchInput {
@@ -65,19 +59,6 @@ export class AiSearchServiceError extends Error {
   }
 }
 
-const CAPABILITIES_CACHE_TTL_MS = 5 * 60 * 1_000;
-const MAX_PROJECT_SCOPE_RETRIEVAL_RESULTS = 50;
-const GENERIC_DOCUMENT_NAMES = new Set([
-  'changelog',
-  'components',
-  'component',
-  'index',
-  'overview',
-  'readme',
-  'sections',
-]);
-let cachedCapabilities: CachedCapabilities | undefined;
-
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -86,16 +67,221 @@ function optionalString(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim() ? value : undefined;
 }
 
-function resolveMcpRequestUrl(env: Env): string {
-  const configuredRoot = env.AI_SEARCH_FOLDER_ROOT?.normalize('NFKC').trim();
-  if (configuredRoot) {
-    try {
-      return new URL('/api/ai-search', configuredRoot).toString();
-    } catch {
-      // Relative folder roots are valid; the placeholder origin is only used as a parser base.
-    }
+function upstreamDetails(error: unknown): Record<string, unknown> {
+  if (!isRecord(error)) {
+    return error instanceof Error ? { upstreamMessage: error.message } : {};
   }
-  return 'https://prompt.local/api/ai-search';
+  const statusCandidates = [error.status, error.statusCode, error.httpStatus, error.responseStatus];
+  const upstreamStatus = statusCandidates.find(
+    (value): value is number => typeof value === 'number' && Number.isFinite(value),
+  );
+  return {
+    ...(upstreamStatus !== undefined ? { upstreamStatus } : {}),
+    ...(optionalString(error.code) ? { upstreamCode: optionalString(error.code) } : {}),
+    ...(optionalString(error.message) ? { upstreamMessage: optionalString(error.message) } : {}),
+  };
+}
+
+function placeholders(length: number): string {
+  return Array.from({ length }, () => '?').join(', ');
+}
+
+function resolveRetrievalType(requested: AiSearchRequestedRetrievalType): AiSearchRetrievalType {
+  // All managed instances are created with vector and keyword indexes enabled.
+  // Keep auto deterministic and inexpensive rather than invoking query rewriting.
+  return requested === 'auto' ? 'vector' : requested;
+}
+
+function buildSearchRequest(
+  options: AiSearchRequestOptions,
+  retrievalType: AiSearchRetrievalType,
+  access: AccessContext,
+) {
+  return {
+    query: options.query,
+    ai_search_options: {
+      retrieval: {
+        retrieval_type: retrievalType,
+        max_num_results: options.retrievalLimit,
+        match_threshold: options.matchThreshold,
+        return_on_failure: true,
+        ...(options.contextExpansion > 0
+          ? { context_expansion: options.contextExpansion }
+          : {}),
+        ...(!access.authenticated ? { filters: { visibility: 'public' } } : {}),
+      },
+      ...(options.reranking ? { reranking: { enabled: true } } : {}),
+    },
+  };
+}
+
+async function resolveVisibleProjects(
+  env: Env,
+  access: AccessContext,
+  identifier?: string,
+): Promise<VisibleProjectRow[]> {
+  const visibilityPlaceholders = placeholders(access.allowedVisibilities.length);
+  const params: unknown[] = [...access.allowedVisibilities];
+  const identifierClause = identifier
+    ? 'AND (lower(p.slug) = lower(?) OR lower(p.id) = lower(?))'
+    : '';
+  if (identifier) params.push(identifier, identifier);
+
+  const result = await env.DB.prepare(
+    `SELECT p.id, p.slug, p.name, mapping.instance_id
+     FROM projects p
+     JOIN ai_search_projects mapping ON mapping.project_id = p.id
+     WHERE p.deleted_at IS NULL
+       AND p.visibility IN (${visibilityPlaceholders})
+       AND mapping.status = 'ready'
+       ${identifierClause}
+     ORDER BY p.slug COLLATE NOCASE ASC`,
+  )
+    .bind(...params)
+    .all<VisibleProjectRow>();
+  return result.results;
+}
+
+function splitIntoGroups<T>(values: T[], size: number): T[][] {
+  const groups: T[][] = [];
+  for (let index = 0; index < values.length; index += size) {
+    groups.push(values.slice(index, index + size));
+  }
+  return groups;
+}
+
+async function runSearches(
+  env: Env,
+  projects: VisibleProjectRow[],
+  options: AiSearchRequestOptions,
+  retrievalType: AiSearchRetrievalType,
+  access: AccessContext,
+): Promise<{ searchQuery: string; chunks: AiSearchChunkLike[]; partialErrors: unknown[] }> {
+  const request = buildSearchRequest(options, retrievalType, access);
+  if (projects.length === 1) {
+    const response = (await env.PROMPT_AI_SEARCH
+      .get(projects[0].instance_id)
+      .search(request)) as SearchResponseLike;
+    return {
+      searchQuery: response.search_query ?? options.query,
+      chunks: response.chunks ?? [],
+      partialErrors: response.errors ?? [],
+    };
+  }
+
+  const groups = splitIntoGroups(projects.map((project) => project.instance_id), 10);
+  const settled = await Promise.allSettled(
+    groups.map(async (instanceIds) =>
+      (await env.PROMPT_AI_SEARCH.search({
+        ...request,
+        ai_search_options: {
+          ...request.ai_search_options,
+          instance_ids: instanceIds,
+        },
+      })) as SearchResponseLike,
+    ),
+  );
+  const successful = settled.flatMap((result) =>
+    result.status === 'fulfilled' ? [result.value] : [],
+  );
+  const failed = settled.flatMap((result) =>
+    result.status === 'rejected' ? [result.reason] : [],
+  );
+  if (successful.length === 0 && failed.length > 0) throw failed[0];
+  return {
+    searchQuery: successful[0]?.search_query ?? options.query,
+    chunks: successful.flatMap((response) => response.chunks ?? []),
+    partialErrors: [
+      ...failed,
+      ...successful.flatMap((response) => response.errors ?? []),
+    ],
+  };
+}
+
+function metadataFileId(chunk: AiSearchChunkLike): string | null {
+  const value = chunk.item.metadata?.file_id;
+  return typeof value === 'string' && value.trim() ? value : null;
+}
+
+function encodePath(path: string): string {
+  return path
+    .replace(/^\/+/, '')
+    .split('/')
+    .map((segment) => encodeURIComponent(segment))
+    .join('/');
+}
+
+async function hydrateResults(
+  env: Env,
+  chunks: AiSearchChunkLike[],
+  projects: VisibleProjectRow[],
+  options: AiSearchRequestOptions,
+  access: AccessContext,
+  requestUrl: string,
+): Promise<AiSearchResult[]> {
+  const fileIds = [
+    ...new Set(chunks.map(metadataFileId).filter((value): value is string => value !== null)),
+  ];
+  if (fileIds.length === 0) return [];
+
+  const projectIds = projects.map((project) => project.id);
+  const rows = await env.DB.prepare(
+    `SELECT file_id, project_id, project_slug, path, title, visibility
+     FROM prompt_search_documents
+     WHERE file_id IN (${placeholders(fileIds.length)})
+       AND project_id IN (${placeholders(projectIds.length)})
+       AND visibility IN (${placeholders(access.allowedVisibilities.length)})`,
+  )
+    .bind(...fileIds, ...projectIds, ...access.allowedVisibilities)
+    .all<SearchDocumentRow>();
+  const documents = new Map(rows.results.map((row) => [row.file_id, row]));
+  const origin = new URL(requestUrl).origin;
+
+  const mapped = chunks.flatMap((chunk): AiSearchResult[] => {
+    const fileId = metadataFileId(chunk);
+    const document = fileId ? documents.get(fileId) : undefined;
+    if (!document) return [];
+    const encodedProject = encodeURIComponent(document.project_slug);
+    const encodedDocumentPath = encodePath(document.path);
+    const rawPath = `/raw/${encodedProject}/${encodedDocumentPath}`;
+    const apiPath = `/api/files/${encodedProject}/${encodedDocumentPath}`;
+    const viewerPath = `/p/${encodedProject}/${encodedDocumentPath}`;
+    return [
+      {
+        id: chunk.id,
+        type: chunk.type ?? 'text',
+        score: Number.isFinite(chunk.score) ? chunk.score : 0,
+        text: chunk.text,
+        source: {
+          key: chunk.item.key,
+          url: new URL(rawPath, origin).toString(),
+          project: document.project_slug,
+          path: document.path,
+          apiPath,
+          viewerPath,
+          rawPath,
+          title: document.title,
+          timestamp: chunk.item.timestamp ?? null,
+          metadata: chunk.item.metadata ?? {},
+        },
+        scoringDetails: chunk.scoring_details ?? null,
+      },
+    ];
+  });
+
+  mapped.sort((left, right) => right.score - left.score);
+  if (options.grouping === 'chunks') return mapped.slice(0, options.limit);
+
+  const seen = new Set<string>();
+  const deduplicated: AiSearchResult[] = [];
+  for (const result of mapped) {
+    const fileId = optionalString(result.source.metadata.file_id) ?? result.source.key;
+    if (seen.has(fileId)) continue;
+    seen.add(fileId);
+    deduplicated.push(result);
+    if (deduplicated.length >= options.limit) break;
+  }
+  return deduplicated;
 }
 
 export function createAiSearchRequestOptions(input: AiSearchInput): AiSearchRequestOptions {
@@ -111,417 +297,98 @@ export function createAiSearchRequestOptions(input: AiSearchInput): AiSearchRequ
   return parseAiSearchRequest(url.toString());
 }
 
-async function getAiSearchCapabilities(env: Env): Promise<AiSearchCapabilities> {
-  const now = Date.now();
-  if (cachedCapabilities && cachedCapabilities.expiresAt > now) {
-    return cachedCapabilities.value;
-  }
-
-  try {
-    const info = await env.PROMPT_AI_SEARCH.info();
-    const infoRecord: Record<string, unknown> = isRecord(info) ? info : {};
-    const indexMethodValue = infoRecord.index_method ?? infoRecord.indexMethod;
-    const indexMethod = isRecord(indexMethodValue) ? indexMethodValue : {};
-    const capabilities: AiSearchCapabilities = {
-      vector: indexMethod.vector !== false,
-      keyword: indexMethod.keyword === true,
-    };
-    cachedCapabilities = {
-      value: capabilities,
-      expiresAt: now + CAPABILITIES_CACHE_TTL_MS,
-    };
-    return capabilities;
-  } catch (error) {
-    console.warn('cloudflare_ai_search_info_failed', error);
-    const fallback: AiSearchCapabilities = { vector: true, keyword: false };
-    cachedCapabilities = {
-      value: fallback,
-      expiresAt: now + 30_000,
-    };
-    return fallback;
-  }
-}
-
-function resolveRetrievalType(
-  options: AiSearchRequestOptions,
-  capabilities: AiSearchCapabilities,
-): AiSearchRetrievalType | null {
-  const requested = options.requestedRetrievalType;
-  if (requested === 'auto') {
-    return capabilities.vector ? 'vector' : null;
-  }
-  if (requested === 'hybrid') {
-    return capabilities.vector && capabilities.keyword ? 'hybrid' : null;
-  }
-  if (requested === 'keyword') {
-    return capabilities.keyword ? 'keyword' : null;
-  }
-  return capabilities.vector ? 'vector' : null;
-}
-
-async function resolvePublicProject(env: Env, identifier: string): Promise<PublicProjectRow | null> {
-  return env.DB.prepare(
-    `SELECT slug, name
-     FROM projects
-     WHERE deleted_at IS NULL
-       AND visibility = 'public'
-       AND (lower(slug) = lower(?) OR lower(id) = lower(?))
-     LIMIT 1`,
-  )
-    .bind(identifier, identifier)
-    .first<PublicProjectRow>();
-}
-
-function buildSearchRequest(
-  options: AiSearchRequestOptions,
-  retrievalType: AiSearchRetrievalType,
-  project: PublicProjectRow | null,
-  folderRoot: string,
-  queryText = options.query,
-) {
-  return {
-    // The query primitive bypasses conversational query rewriting and is more
-    // predictable for exact document retrieval, including CJK input.
-    query: queryText,
-    ai_search_options: {
-      retrieval: {
-        retrieval_type: retrievalType,
-        max_num_results: options.retrievalLimit,
-        match_threshold: options.matchThreshold,
-        return_on_failure: true,
-        ...(options.contextExpansion > 0
-          ? { context_expansion: options.contextExpansion }
-          : {}),
-        ...(project ? { filters: buildProjectFolderFilter(project.slug, folderRoot) } : {}),
-      },
-      ...(options.reranking
-        ? {
-            reranking: {
-              enabled: true,
-            },
-          }
-        : {}),
-    },
-  };
-}
-
-async function runSearch(
-  env: Env,
-  options: AiSearchRequestOptions,
-  retrievalType: AiSearchRetrievalType,
-  project: PublicProjectRow | null,
-  folderRoot: string,
-  queryText = options.query,
-): Promise<AiSearchBindingResult> {
-  return env.PROMPT_AI_SEARCH.search(
-    buildSearchRequest(options, retrievalType, project, folderRoot, queryText),
-  );
-}
-
-function normalizeRankText(value: string): string {
-  return value
-    .normalize('NFKC')
-    .toLocaleLowerCase()
-    .replace(/\.[a-z0-9]+$/u, '')
-    .replace(/[^\p{L}\p{N}]+/gu, ' ')
-    .trim();
-}
-
-function sourceTitle(result: AiSearchResult): string {
-  const metadata = result.source.metadata;
-  return (
-    optionalString(metadata.title) ??
-    optionalString(metadata.display_title) ??
-    optionalString(metadata.name) ??
-    ''
-  );
-}
-
-function sourceStem(result: AiSearchResult): string {
-  const fileName = result.source.path?.split('/').filter(Boolean).at(-1) ?? '';
-  return fileName.replace(/\.[^.]+$/u, '');
-}
-
-function scoreResult(result: AiSearchResult, query: string): number {
-  const normalizedQuery = normalizeRankText(query);
-  if (!normalizedQuery) return result.score;
-
-  const normalizedTitle = normalizeRankText(sourceTitle(result));
-  const normalizedStem = normalizeRankText(sourceStem(result));
-  const normalizedPath = normalizeRankText(result.source.path ?? '');
-  const terms = normalizedQuery.split(/\s+/u).filter(Boolean);
-  let adjustment = 0;
-
-  if (normalizedStem === normalizedQuery) adjustment += 0.3;
-  if (normalizedTitle === normalizedQuery) adjustment += 0.28;
-  if (normalizedPath.includes(normalizedQuery)) adjustment += 0.1;
-  if (
-    terms.length > 1 &&
-    terms.every((term) => normalizedTitle.includes(term) || normalizedPath.includes(term))
-  ) {
-    adjustment += 0.06;
-  }
-
-  if (GENERIC_DOCUMENT_NAMES.has(normalizedStem)) adjustment -= 0.14;
-  if (result.source.path?.toLocaleLowerCase().includes('/sections/')) adjustment -= 0.08;
-  if (result.source.path?.toLocaleLowerCase().endsWith('/changelog.md')) adjustment -= 0.12;
-
-  return Math.max(0, Math.min(1, Number((result.score + adjustment).toFixed(6))));
-}
-
-function rankResults(results: AiSearchResult[], query: string, limit: number): AiSearchResult[] {
-  return results
-    .map((result, index) => ({
-      result: { ...result, score: scoreResult(result, query) },
-      originalScore: result.score,
-      index,
-    }))
-    .sort(
-      (left, right) =>
-        right.result.score - left.result.score ||
-        right.originalScore - left.originalScore ||
-        left.index - right.index,
-    )
-    .slice(0, limit)
-    .map(({ result }) => result);
-}
-
-function createOutcome(
-  searchResult: AiSearchBindingResult,
-  options: AiSearchRequestOptions,
-  folderRoot: string,
-): SearchOutcome {
-  const chunks = searchResult.chunks as unknown as AiSearchChunkLike[];
-  const candidateLimit = options.grouping === 'files' ? options.retrievalLimit : options.limit;
-  const formatted = formatAiSearchResults(
-    chunks,
-    { ...options, limit: candidateLimit },
-    folderRoot,
-  );
-  return {
-    searchResult,
-    chunks,
-    formatted: {
-      ...formatted,
-      results: rankResults(formatted.results, options.query, options.limit),
-    },
-  };
-}
-
-function buildProjectHintedQuery(query: string, project: PublicProjectRow): string {
-  const suffix = `\nProject: ${project.name}\nProject slug: ${project.slug}`;
-  const availableLength = Math.max(1, MAX_AI_SEARCH_QUERY_LENGTH - suffix.length);
-  return `${query.slice(0, availableLength)}${suffix}`;
-}
-
-function broadProjectOptions(options: AiSearchRequestOptions): AiSearchRequestOptions {
-  return {
-    ...options,
-    retrievalLimit: MAX_PROJECT_SCOPE_RETRIEVAL_RESULTS,
-  };
-}
-
-async function runSourceScopedSearch(
-  env: Env,
-  options: AiSearchRequestOptions,
-  retrievalType: AiSearchRetrievalType,
-  project: PublicProjectRow,
-  folderRoot: string,
-): Promise<SearchOutcome> {
-  const broadOptions = broadProjectOptions(options);
-  const firstResult = await runSearch(env, broadOptions, retrievalType, null, folderRoot);
-  const firstOutcome = createOutcome(firstResult, options, folderRoot);
-  if (firstOutcome.formatted.results.length > 0) return firstOutcome;
-
-  const hintedResult = await runSearch(
-    env,
-    broadOptions,
-    retrievalType,
-    null,
-    folderRoot,
-    buildProjectHintedQuery(options.query, project),
-  );
-  return createOutcome(hintedResult, options, folderRoot);
-}
-
-async function runScopedSearch(
-  env: Env,
-  options: AiSearchRequestOptions,
-  retrievalType: AiSearchRetrievalType,
-  project: PublicProjectRow | null,
-  folderRoot: string,
-  scopeMode: AiSearchProjectScopeMode,
-): Promise<SearchOutcome> {
-  if (!project) {
-    return createOutcome(
-      await runSearch(env, options, retrievalType, null, folderRoot),
-      options,
-      folderRoot,
-    );
-  }
-
-  if (scopeMode === 'source') {
-    return runSourceScopedSearch(env, options, retrievalType, project, folderRoot);
-  }
-
-  try {
-    const metadataOutcome = createOutcome(
-      await runSearch(env, options, retrievalType, project, folderRoot),
-      options,
-      folderRoot,
-    );
-    if (scopeMode === 'metadata' || metadataOutcome.formatted.results.length > 0) {
-      return metadataOutcome;
-    }
-    return runSourceScopedSearch(env, options, retrievalType, project, folderRoot);
-  } catch (error) {
-    if (scopeMode === 'metadata') throw error;
-    console.warn('cloudflare_ai_search_metadata_scope_fallback', {
-      project: project.slug,
-      error,
-    });
-    return runSourceScopedSearch(env, options, retrievalType, project, folderRoot);
-  }
-}
-
-function availableModes(capabilities: AiSearchCapabilities): string[] {
-  return [
-    ...(capabilities.vector ? ['vector'] : []),
-    ...(capabilities.keyword ? ['keyword'] : []),
-    ...(capabilities.vector && capabilities.keyword ? ['hybrid'] : []),
-  ];
-}
-
-function upstreamErrorDetails(error: unknown): Record<string, unknown> {
-  if (!isRecord(error)) {
-    return error instanceof Error ? { upstreamMessage: error.message } : {};
-  }
-
-  const statusCandidates = [error.status, error.statusCode, error.httpStatus, error.responseStatus];
-  const upstreamStatus = statusCandidates.find(
-    (value): value is number => typeof value === 'number' && Number.isFinite(value),
-  );
-  const upstreamCode = optionalString(error.code) ?? optionalString(error.name);
-  const upstreamMessage = optionalString(error.message);
-
-  return {
-    ...(upstreamStatus !== undefined ? { upstreamStatus } : {}),
-    ...(upstreamCode ? { upstreamCode } : {}),
-    ...(upstreamMessage ? { upstreamMessage } : {}),
-  };
-}
-
-function safeRetryOptions(options: AiSearchRequestOptions): AiSearchRequestOptions {
-  return {
-    ...options,
-    requestedRetrievalType: 'vector',
-    contextExpansion: 0,
-    reranking: false,
-  };
-}
-
 export async function searchAiDocuments(
   env: Env,
+  access: AccessContext,
   options: AiSearchRequestOptions,
   requestUrl: string,
 ): Promise<CompactAiSearchResponse> {
   const startedAt = Date.now();
-  if (!env.PROMPT_AI_SEARCH) {
+  const projects = await resolveVisibleProjects(env, access, options.project);
+  if (options.project && projects.length === 0) {
+    const visibleWithoutReadyMapping = await env.DB.prepare(
+      `SELECT 1 AS found
+       FROM projects
+       WHERE deleted_at IS NULL
+         AND visibility IN (${placeholders(access.allowedVisibilities.length)})
+         AND (lower(slug) = lower(?) OR lower(id) = lower(?))
+       LIMIT 1`,
+    )
+      .bind(...access.allowedVisibilities, options.project, options.project)
+      .first<{ found: number }>();
+    if (!visibleWithoutReadyMapping) {
+      throw new AiSearchServiceError('project_not_found', 'Project not found or not accessible.', 404);
+    }
     throw new AiSearchServiceError(
-      'ai_search_unavailable',
-      'Cloudflare AI Search is not configured for this Worker.',
+      'ai_search_index_not_ready',
+      'The project AI Search index is still being prepared.',
+      503,
+      { project: options.project },
+    );
+  }
+  if (projects.length === 0) {
+    throw new AiSearchServiceError(
+      'ai_search_index_not_ready',
+      'No accessible AI Search project indexes are ready.',
       503,
     );
   }
 
-  const project = options.project ? await resolvePublicProject(env, options.project) : null;
-  if (options.project && !project) {
-    throw new AiSearchServiceError('project_not_found', 'Public project not found.', 404);
-  }
-
-  const canonicalOptions: AiSearchRequestOptions = {
-    ...options,
-    project: project?.slug,
-  };
-  const capabilities = await getAiSearchCapabilities(env);
-  const retrievalType = resolveRetrievalType(canonicalOptions, capabilities);
-  if (!retrievalType) {
-    throw new AiSearchServiceError(
-      'retrieval_mode_unavailable',
-      `The requested ${canonicalOptions.requestedRetrievalType} retrieval mode is not enabled for this AI Search instance.`,
-      400,
-      { availableModes: availableModes(capabilities) },
-    );
-  }
-
-  const folderRoot = resolveAiSearchFolderRoot(env.AI_SEARCH_FOLDER_ROOT, requestUrl);
-  const projectScopeMode = parseAiSearchProjectScopeMode(env.AI_SEARCH_PROJECT_SCOPE_MODE);
-  let effectiveRetrievalType = retrievalType;
-  let firstError: unknown;
-
+  const retrievalType = resolveRetrievalType(options.requestedRetrievalType);
   try {
-    let outcome: SearchOutcome;
-    try {
-      outcome = await runScopedSearch(
-        env,
-        canonicalOptions,
-        effectiveRetrievalType,
-        project,
-        folderRoot,
-        projectScopeMode,
-      );
-    } catch (error) {
-      firstError = error;
-      const canRetryVector =
-        capabilities.vector &&
-        (canonicalOptions.requestedRetrievalType === 'auto' ||
-          canonicalOptions.requestedRetrievalType === 'vector');
-      if (!canRetryVector) throw error;
-
-      console.warn('cloudflare_ai_search_safe_vector_retry', {
-        project: project?.slug ?? null,
-        requestedMode: canonicalOptions.requestedRetrievalType,
-        error,
+    const outcome = await runSearches(env, projects, options, retrievalType, access);
+    const results = await hydrateResults(
+      env,
+      outcome.chunks,
+      projects,
+      options,
+      access,
+      requestUrl,
+    );
+    if (outcome.partialErrors.length > 0) {
+      console.warn('cloudflare_ai_search_partial_failure', {
+        projects: projects.map((project) => project.slug),
+        errors: outcome.partialErrors,
       });
-      effectiveRetrievalType = 'vector';
-      outcome = await runScopedSearch(
-        env,
-        safeRetryOptions(canonicalOptions),
-        effectiveRetrievalType,
-        project,
-        folderRoot,
-        'source',
-      );
     }
 
     return compactAiSearchPayload({
       engine: 'cloudflare-ai-search',
-      searchQuery: outcome.searchResult.search_query,
+      searchQuery: outcome.searchQuery,
       query: {
-        text: canonicalOptions.query,
-        project: project ? { slug: project.slug, name: project.name } : null,
+        text: options.query,
+        project: options.project
+          ? { slug: projects[0].slug, name: projects[0].name }
+          : null,
       },
-      results: outcome.formatted.results,
+      results,
       meta: {
-        mode: effectiveRetrievalType,
-        group: canonicalOptions.grouping,
+        mode: retrievalType,
+        group: options.grouping,
         duration_ms: Date.now() - startedAt,
       },
     }) as CompactAiSearchResponse;
   } catch (error) {
     if (error instanceof AiSearchServiceError) throw error;
     const details = {
-      project: project?.slug ?? null,
-      requestedMode: canonicalOptions.requestedRetrievalType,
-      resolvedMode: effectiveRetrievalType,
-      projectScopeMode,
-      ...upstreamErrorDetails(error),
-      ...(firstError ? { firstAttempt: upstreamErrorDetails(firstError) } : {}),
+      projects: projects.map((project) => project.slug),
+      requestedMode: options.requestedRetrievalType,
+      resolvedMode: retrievalType,
+      ...upstreamDetails(error),
     };
+    const message = optionalString(details.upstreamMessage) ?? '';
+    if (/retrieval|keyword|hybrid|index method/iu.test(message)) {
+      throw new AiSearchServiceError(
+        'retrieval_mode_unavailable',
+        `The requested ${options.requestedRetrievalType} retrieval mode is unavailable.`,
+        400,
+        details,
+      );
+    }
     console.error('cloudflare_ai_search_failed', { ...details, error });
     throw new AiSearchServiceError(
       'ai_search_failed',
-      'Cloudflare AI Search request failed after a safe vector retry.',
+      'Cloudflare AI Search request failed.',
       502,
       details,
     );
@@ -530,8 +397,9 @@ export async function searchAiDocuments(
 
 export async function searchAiDocumentsFromInput(
   env: Env,
+  access: AccessContext,
   input: AiSearchInput,
 ): Promise<CompactAiSearchResponse> {
   const options = createAiSearchRequestOptions(input);
-  return searchAiDocuments(env, options, resolveMcpRequestUrl(env));
+  return searchAiDocuments(env, access, options, 'https://prompt.local/api/ai-search');
 }
