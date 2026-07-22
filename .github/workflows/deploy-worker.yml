@@ -173,8 +173,10 @@ jobs:
             return 1
           }
 
+          # Keep each request below the Worker wall-time envelope. The first
+          # batches provision project instances; a following batch uploads files.
           for attempt in $(seq 1 8); do
-            process_json="$(authenticated_json POST "$base_url/api/admin/ai-search/process?limit=10" 300)"
+            process_json="$(authenticated_json POST "$base_url/api/admin/ai-search/process?limit=3" 180)"
             status_json="$(authenticated_json GET "$base_url/api/admin/ai-search/status" 30)"
 
             echo "ai_search_process=$process_json"
