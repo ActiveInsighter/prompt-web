@@ -156,7 +156,7 @@ Supported parameters:
 | `q` | required | Search text; `query` is an alias. |
 | `project` | accessible projects | Project slug or ID. |
 | `limit` | `10` | Returned results, from 1 to 20. |
-| `mode` | `auto` | `auto`, `vector`, `keyword`, or `hybrid`; `auto` resolves to vector. |
+| `mode` | `auto` | `auto`, `vector`, `keyword`, or `hybrid`; `auto` leaves `retrieval_type` unset so the instance configuration decides. |
 | `group` | `files` | Deduplicate by file or return chunks. |
 | `threshold` | `0.4` | Retrieval threshold from 0 to 1. |
 | `context` | `0` | Surrounding chunks from 0 to 3. |
