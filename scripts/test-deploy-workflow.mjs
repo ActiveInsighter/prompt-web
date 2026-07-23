@@ -3,6 +3,10 @@ import { readFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 
 const workflow = await readFile(new URL('../.github/workflows/deploy-worker.yml', import.meta.url), 'utf8');
+const productionVerificationWorkflow = await readFile(
+  new URL('../.github/workflows/verify-unified-production-api.yml', import.meta.url),
+  'utf8',
+);
 
 function extractRunScript(stepName) {
   const lines = workflow.split('\n');
@@ -86,7 +90,47 @@ assert.equal(
   'protected post-deploy retries must leave actionable diagnostics',
 );
 
+assert.equal(
+  productionVerificationWorkflow.includes('/ai-index'),
+  false,
+  'production verification must not probe the removed crawler index routes',
+);
+assert.equal(
+  productionVerificationWorkflow.includes('User-agent: Cloudflare-AI-Search'),
+  false,
+  'production verification must not depend on crawler-specific robots rules',
+);
+assert.equal(
+  productionVerificationWorkflow.includes('/sitemap.xml'),
+  false,
+  'production verification must not depend on the removed crawler sitemap',
+);
+assert.equal(
+  productionVerificationWorkflow.includes('/api/ai-search/info'),
+  true,
+  'production verification must validate built-in AI Search discovery',
+);
+assert.equal(
+  productionVerificationWorkflow.includes(
+    '/api/ai-search/shadcn-ui-docs?q=progress&limit=5&threshold=0',
+  ),
+  true,
+  'production verification must execute a real project-isolated semantic search',
+);
+assert.equal(
+  productionVerificationWorkflow.includes("aiSearchInfo.storage !== 'built-in-items'"),
+  true,
+  'production verification must assert built-in Items storage',
+);
+assert.equal(
+  productionVerificationWorkflow.includes(
+    "aiSearchInfo.isolation !== 'one-instance-per-project'",
+  ),
+  true,
+  'production verification must assert per-project AI Search isolation',
+);
+
 assertValidBash('Prime AI Search index');
 assertValidBash('Smoke test deployed Worker');
 
-console.log('deployment workflow contract tests passed');
+console.log('deployment and production verification workflow contract tests passed');
