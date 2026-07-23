@@ -82,3 +82,44 @@ export interface PromptSearchOptions {
   promptRole?: PromptRole;
   limit?: number;
 }
+
+export interface PromptSearchResult extends Omit<PromptFileRecord, 'content'> {
+  score?: number;
+}
+
+export interface DirectoryListing {
+  project: ProjectRecord;
+  path: string;
+  entries: LibraryNodeRecord[];
+}
+
+export interface KvCommonPrompt {
+  key: string;
+  title: string;
+  description: string;
+  content: string;
+  language: string;
+  variables: string[];
+  metadata: Record<string, unknown>;
+  version: number;
+  updatedAt: string;
+}
+
+export interface BootstrapManifest {
+  version: number;
+  bundleKey: string;
+}
+
+export interface BootstrapBundle {
+  version: number;
+  title: string;
+  content: string;
+  items: string[];
+  updatedAt: string;
+}
+
+export interface BootstrapContext extends BootstrapBundle {
+  client: string;
+  profile: string;
+  sourceKey: string;
+}
