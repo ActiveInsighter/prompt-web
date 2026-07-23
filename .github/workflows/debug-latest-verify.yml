@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
-      - name: Print Verify Unified Production API run 138 logs
+      - name: Print Verify Unified Production API run 138 error tail
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -38,7 +38,7 @@ jobs:
           jq -r '.jobs[] | [.id, .name, .status, .conclusion] | @tsv' <<<"$jobs_json"
 
           while IFS=$'\t' read -r job_id job_name; do
-            echo "===== JOB: $job_name ($job_id) ====="
+            echo "===== LAST 100 LINES: $job_name ($job_id) ====="
             gh api "/repos/$repo/actions/jobs/$job_id/logs" > "job-$job_id.log"
-            cat "job-$job_id.log"
+            tail -n 100 "job-$job_id.log"
           done < <(jq -r '.jobs[] | [.id, .name] | @tsv' <<<"$jobs_json")
