@@ -120,6 +120,7 @@ export async function reconcileAiSearchJobs(env: Env): Promise<number> {
     env.DB.prepare(
       `SELECT p.id, p.slug, COALESCE(sync.content_hash, '') AS config_hash,
               mapping.instance_id AS mapped_instance_id,
+              mapping.replacement_instance_id,
               mapping.status AS mapping_status
        FROM projects p
        LEFT JOIN content_sync_entries sync
@@ -156,7 +157,10 @@ export async function reconcileAiSearchJobs(env: Env): Promise<number> {
   const statements: D1PreparedStatement[] = [];
   for (const project of projects.results) {
     const desiredInstanceId = buildProjectAiSearchInstanceId(project.slug);
-    if (project.mapped_instance_id !== desiredInstanceId || project.mapping_status !== 'ready') {
+    const desiredExists =
+      project.mapped_instance_id === desiredInstanceId ||
+      project.replacement_instance_id === desiredInstanceId;
+    if (!desiredExists || project.mapping_status !== 'ready') {
       statements.push(enqueueEnsureStatement(env, project.id, project.slug, project.config_hash));
     }
   }
