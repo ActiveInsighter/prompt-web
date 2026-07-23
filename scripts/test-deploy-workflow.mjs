@@ -84,15 +84,32 @@ assert.equal(
   'deployment must wait for every expected source document',
 );
 assert.equal(
-  workflow.includes("activeJobs === 0"),
+  workflow.includes('activeJobs === 0'),
   true,
   'deployment must wait for the outbox to drain',
 );
 assert.equal(
-  workflow.includes("pendingCleanup === 0"),
+  workflow.includes('pendingCleanup === 0'),
   true,
   'deployment must wait until legacy hashed instances are removed',
 );
+
+for (const readableContract of [
+  'Verify readable AI Search remote layout',
+  "expected_instances=\"$(jq -c '[.projects[].slug] | sort'",
+  "actual_instances=\"$(jq -c '[.result[].id] | sort'",
+  "(.path | sub(\"^/\"; \"\"))",
+  'items?per_page=50&page=$page',
+  'select(.status != "completed")',
+  'startswith("documents/file-")',
+  'AI Search item total does not match the source manifest',
+]) {
+  assert.equal(
+    workflow.includes(readableContract),
+    true,
+    `deployment must enforce readable remote layout contract: ${readableContract}`,
+  );
+}
 assert.equal(
   workflow.includes('/api/ai-search/info'),
   true,
@@ -160,6 +177,7 @@ assert.equal(
 );
 
 assertValidBash('Prime AI Search index');
+assertValidBash('Verify readable AI Search remote layout');
 assertValidBash('Smoke test deployed Worker');
 
 console.log('deployment and production verification workflow contract tests passed');
