@@ -196,8 +196,8 @@ function contentSyncAuthorizationError(context: AppContext): Response | null {
 }
 
 async function runAiSearchMaintenance(env: Env, limit = 3) {
-  await reconcileAiSearchJobs(env);
-  return processAiSearchJobs(env, limit);
+  const recovered = await reconcileAiSearchJobs(env);
+  return { recovered, ...(await processAiSearchJobs(env, limit)) };
 }
 
 async function serveProjects(context: AppContext) {
@@ -497,8 +497,7 @@ app.post('/api/admin/ai-search/process', async (context) => {
   const authorizationError = contentSyncAuthorizationError(context);
   if (authorizationError) return authorizationError;
   const requestedLimit = Number(context.req.query('limit') ?? 3);
-  await reconcileAiSearchJobs(context.env);
-  return context.json(await processAiSearchJobs(context.env, requestedLimit));
+  return context.json(await runAiSearchMaintenance(context.env, requestedLimit));
 });
 
 // Compatibility routes for clients using the original flat prompt API.
