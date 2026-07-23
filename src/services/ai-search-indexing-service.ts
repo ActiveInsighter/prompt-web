@@ -234,19 +234,31 @@ export async function reconcileAiSearchJobs(env: Env): Promise<number> {
   // Jobs created by the former uploadAndPoll implementation can be left in
   // terminal failure. Reset only timeout failures; validation failures such as
   // oversized files remain terminal and visible to operators.
-  const recovery = await env.DB.prepare(
-    `UPDATE ai_search_jobs
-     SET status = 'pending',
-         attempts = 0,
-         next_attempt_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'),
-         lease_expires_at = NULL,
-         last_error = NULL,
-         updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'),
-         completed_at = NULL
-     WHERE operation = 'upsert_file'
-       AND status = 'failed'
-       AND instr(lower(COALESCE(last_error, '')), 'timeout') > 0`,
-  ).run();
+  const failedUpserts = await env.DB.prepare(
+    `SELECT id, last_error
+     FROM ai_search_jobs
+     WHERE operation = 'upsert_file' AND status = 'failed'`,
+  ).all<{ id: string; last_error: string | null }>();
+  const recoverableTimeoutJobs = failedUpserts.results.filter((job) =>
+    (job.last_error ?? '').toLowerCase().includes('timeout'),
+  );
+  for (let offset = 0; offset < recoverableTimeoutJobs.length; offset += 80) {
+    await env.DB.batch(
+      recoverableTimeoutJobs.slice(offset, offset + 80).map((job) =>
+        env.DB.prepare(
+          `UPDATE ai_search_jobs
+           SET status = 'pending',
+               attempts = 0,
+               next_attempt_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'),
+               lease_expires_at = NULL,
+               last_error = NULL,
+               updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'),
+               completed_at = NULL
+           WHERE id = ? AND status = 'failed'`,
+        ).bind(job.id),
+      ),
+    );
+  }
 
   const [projects, files, obsoleteItems] = await Promise.all([
     env.DB.prepare(
@@ -305,7 +317,7 @@ export async function reconcileAiSearchJobs(env: Env): Promise<number> {
   for (let offset = 0; offset < statements.length; offset += 80) {
     await env.DB.batch(statements.slice(offset, offset + 80));
   }
-  return Number(recovery.meta.changes ?? 0);
+  return recoverableTimeoutJobs.length;
 }
 
 async function loadProject(env: Env, projectId: string): Promise<ProjectRow | null> {
