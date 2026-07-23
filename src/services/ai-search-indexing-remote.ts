@@ -197,6 +197,17 @@ export async function upsertFile(
     },
   });
 
+  // Uploading the same readable key may update an item in place. Never retain
+  // that same remote item as its own predecessor, or completion cleanup would
+  // delete the newly indexed document.
+  if (
+    previousInstanceId === provisioned.instanceId &&
+    previousItemId === uploaded.id
+  ) {
+    previousInstanceId = null;
+    previousItemId = null;
+  }
+
   await env.DB.prepare(
     `INSERT INTO ai_search_items(
        file_id, project_id, instance_id, item_id, item_key, index_hash,
@@ -252,7 +263,11 @@ export async function deleteFile(
   if (job.expected_hash && job.expected_hash !== item.item_id) return 'skipped';
 
   await deleteIndexedItem(env.PROMPT_AI_SEARCH.get(item.instance_id), item.item_id);
-  if (item.previous_instance_id && item.previous_item_id) {
+  if (
+    item.previous_instance_id &&
+    item.previous_item_id &&
+    (item.previous_instance_id !== item.instance_id || item.previous_item_id !== item.item_id)
+  ) {
     await deleteIndexedItem(
       env.PROMPT_AI_SEARCH.get(item.previous_instance_id),
       item.previous_item_id,
@@ -314,7 +329,12 @@ export async function verifyPendingRemoteItems(
         const chunksCount = typeof info.chunks_count === 'number' ? info.chunks_count : null;
 
         if (remoteStatus === 'completed') {
-          if (item.previous_instance_id && item.previous_item_id) {
+          if (
+            item.previous_instance_id &&
+            item.previous_item_id &&
+            (item.previous_instance_id !== item.instance_id ||
+              item.previous_item_id !== item.item_id)
+          ) {
             await deleteIndexedItem(
               env.PROMPT_AI_SEARCH.get(item.previous_instance_id),
               item.previous_item_id,
