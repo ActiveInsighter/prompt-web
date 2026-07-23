@@ -247,7 +247,7 @@ export async function reconcileAiSearchJobs(env: Env): Promise<number> {
       recoverableTimeoutJobs.slice(offset, offset + 80).map((job) =>
         env.DB.prepare(
           `UPDATE ai_search_jobs
-           SET status = 'pending',
+           SET status = 'retry',
                attempts = 0,
                next_attempt_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'),
                lease_expires_at = NULL,
