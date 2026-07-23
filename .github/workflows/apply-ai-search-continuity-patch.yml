@@ -25,6 +25,8 @@ jobs:
           python - <<'PY'
           from pathlib import Path
 
+          # Keep the replacement focused so the large indexing module is not
+          # rewritten by hand through the repository API.
           remote_path = Path('src/services/ai-search-indexing-remote.ts')
           remote = remote_path.read_text(encoding='utf-8')
           marker = "if (remoteStatus === 'completed') {"
