@@ -1,0 +1,51 @@
+name: Probe readable AI Search production
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      TARGET_SHA: 5453a9ad9b7a0b561ca186c4c8f01ae1d4c695ab
+    steps:
+      - name: Probe deployment and remote state
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          repo="$GITHUB_REPOSITORY"
+          runs="$(gh api "/repos/$repo/actions/workflows/deploy-worker.yml/runs?per_page=30")"
+          echo 'TARGET_DEPLOYMENT='
+          jq -c --arg sha "$TARGET_SHA" '[.workflow_runs[] | select(.head_sha == $sha) | {id,run_number,status,conclusion,created_at,updated_at,html_url}]' <<<"$runs"
+          run_id="$(jq -r --arg sha "$TARGET_SHA" '.workflow_runs[] | select(.head_sha == $sha) | .id' <<<"$runs" | head -n 1)"
+          if [[ -n "$run_id" && "$run_id" != 'null' ]]; then
+            echo 'TARGET_JOBS='
+            gh api "/repos/$repo/actions/runs/$run_id/jobs?filter=latest&per_page=100" \
+              --jq '[.jobs[] | {id,name,status,conclusion,steps:[.steps[]|{name,status,conclusion}]}]'
+          fi
+
+          api="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/ai-search/namespaces/prompt-projects"
+          auth="Authorization: Bearer $CLOUDFLARE_API_TOKEN"
+          instances="$(curl --fail --silent --show-error --header "$auth" "$api/instances?per_page=100")"
+          echo 'REMOTE_INSTANCES='
+          jq -c '[.result[] | {id,status,modified_at}] | sort_by(.id)' <<<"$instances"
+          echo 'REMOTE_COUNTS='
+          while IFS= read -r id; do
+            first="$(curl --fail --silent --show-error --header "$auth" "$api/instances/$id/items?per_page=1")"
+            jq -nc \
+              --arg id "$id" \
+              --argjson count "$(jq '.result_info.total_count // (.result|length)' <<<"$first")" \
+              --argjson sample "$(jq '[.result[]? | {key,status}]' <<<"$first")" \
+              '{instance_id:$id,item_count:$count,sample:$sample}'
+          done < <(jq -r '.result[].id' <<<"$instances" | sort)
