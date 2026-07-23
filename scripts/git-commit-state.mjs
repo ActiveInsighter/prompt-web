@@ -5,6 +5,7 @@ const message = process.argv.slice(2).join(' ') || 'Record workflow state [skip 
 const stateFiles = [
   '.github/latest-run-id.txt',
   '.github/latest-run-url.txt',
+  '.github/recent-run-ids.txt',
   '.github/latest-run.json',
   '.github/build-history.json',
   '.github/latest-build-log.txt',
