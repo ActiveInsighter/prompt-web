@@ -1,797 +1,825 @@
 ===== JOB: build (success) =====
-2026-07-23T04:53:40.3660764Z Current runner version: '2.335.1'
-2026-07-23T04:53:40.3697119Z ##[group]Runner Image Provisioner
-2026-07-23T04:53:40.3698524Z Hosted Compute Agent
-2026-07-23T04:53:40.3699729Z Version: 20260707.563
-2026-07-23T04:53:40.3700831Z Commit: 02667638d2b423fbc733a8e32a88b44996a3ba6e
-2026-07-23T04:53:40.3702587Z Build Date: 2026-07-07T19:33:50Z
-2026-07-23T04:53:40.3703857Z Worker ID: {61cf24a3-b422-4e6a-87c4-4b8e4a88fc09}
-2026-07-23T04:53:40.3705191Z Azure Region: northcentralus
-2026-07-23T04:53:40.3706794Z ##[endgroup]
-2026-07-23T04:53:40.3709026Z ##[group]Operating System
-2026-07-23T04:53:40.3710099Z Ubuntu
-2026-07-23T04:53:40.3711121Z 24.04.4
-2026-07-23T04:53:40.3712033Z LTS
-2026-07-23T04:53:40.3713019Z ##[endgroup]
-2026-07-23T04:53:40.3714038Z ##[group]Runner Image
-2026-07-23T04:53:40.3715102Z Image: ubuntu-24.04
-2026-07-23T04:53:40.3716183Z Version: 20260714.240.1
-2026-07-23T04:53:40.3718801Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260714.240/images/ubuntu/Ubuntu2404-Readme.md
-2026-07-23T04:53:40.3721711Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260714.240
-2026-07-23T04:53:40.3723512Z ##[endgroup]
-2026-07-23T04:53:40.3725632Z ##[group]GITHUB_TOKEN Permissions
-2026-07-23T04:53:40.3728917Z Actions: read
-2026-07-23T04:53:40.3730062Z Contents: write
-2026-07-23T04:53:40.3731068Z Metadata: read
-2026-07-23T04:53:40.3731995Z ##[endgroup]
-2026-07-23T04:53:40.3735422Z Secret source: Actions
-2026-07-23T04:53:40.3737336Z Prepare workflow directory
-2026-07-23T04:53:40.4215056Z Prepare all required actions
-2026-07-23T04:53:40.4271642Z Getting action download info
-2026-07-23T04:53:40.6564431Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
-2026-07-23T04:53:40.9768572Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
-2026-07-23T04:53:41.0723396Z Download action repository 'actions/setup-python@v5' (SHA:a26af69be951a213d495a4c3e4e4022e16d87065)
-2026-07-23T04:53:41.1588166Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
-2026-07-23T04:53:41.3980532Z Complete job name: build
-2026-07-23T04:53:41.4878268Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
-2026-07-23T04:53:41.4893813Z ##[group]Run actions/checkout@v4
-2026-07-23T04:53:41.4895187Z with:
-2026-07-23T04:53:41.4895995Z   fetch-depth: 0
-2026-07-23T04:53:41.4897198Z   repository: ActiveInsighter/prompt-web
-2026-07-23T04:53:41.4905195Z   token: ***
-2026-07-23T04:53:41.4905701Z   ssh-strict: true
-2026-07-23T04:53:41.4906162Z   ssh-user: git
-2026-07-23T04:53:41.4906996Z   persist-credentials: true
-2026-07-23T04:53:41.4907543Z   clean: true
-2026-07-23T04:53:41.4908017Z   sparse-checkout-cone-mode: true
-2026-07-23T04:53:41.4908602Z   fetch-tags: false
-2026-07-23T04:53:41.4909073Z   show-progress: true
-2026-07-23T04:53:41.4909565Z   lfs: false
-2026-07-23T04:53:41.4910063Z   submodules: false
-2026-07-23T04:53:41.4910546Z   set-safe-directory: true
-2026-07-23T04:53:41.4911083Z   allow-unsafe-pr-checkout: false
-2026-07-23T04:53:41.4912070Z ##[endgroup]
-2026-07-23T04:53:41.6163287Z Syncing repository: ActiveInsighter/prompt-web
-2026-07-23T04:53:41.6166761Z ##[group]Getting Git version info
-2026-07-23T04:53:41.6170774Z Working directory is '/home/runner/work/prompt-web/prompt-web'
-2026-07-23T04:53:41.6173015Z [command]/usr/bin/git version
-2026-07-23T04:53:42.0299656Z git version 2.54.0
-2026-07-23T04:53:42.0324069Z ##[endgroup]
-2026-07-23T04:53:42.0332600Z Temporarily overriding HOME='/home/runner/work/_temp/8b35d25c-c864-4495-8e90-5597abcdf94a' before making global git config changes
-2026-07-23T04:53:42.0335116Z Adding repository directory to the temporary git global config as a safe directory
-2026-07-23T04:53:42.0338589Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/prompt-web/prompt-web
-2026-07-23T04:53:42.0878696Z Deleting the contents of '/home/runner/work/prompt-web/prompt-web'
-2026-07-23T04:53:42.0882152Z ##[group]Initializing the repository
-2026-07-23T04:53:42.0884602Z [command]/usr/bin/git init /home/runner/work/prompt-web/prompt-web
-2026-07-23T04:53:42.0985704Z hint: Using 'master' as the name for the initial branch. This default branch name
-2026-07-23T04:53:42.0998586Z hint: will change to "main" in Git 3.0. To configure the initial branch name
-2026-07-23T04:53:42.1002490Z hint: to use in all of your new repositories, which will suppress this warning,
-2026-07-23T04:53:42.1048409Z hint: call:
-2026-07-23T04:53:42.1050180Z hint:
-2026-07-23T04:53:42.1052998Z hint: 	git config --global init.defaultBranch <name>
-2026-07-23T04:53:42.1055918Z hint:
-2026-07-23T04:53:42.1059374Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
-2026-07-23T04:53:42.1062651Z hint: 'development'. The just-created branch can be renamed via this command:
-2026-07-23T04:53:42.1065154Z hint:
-2026-07-23T04:53:42.1067028Z hint: 	git branch -m <name>
-2026-07-23T04:53:42.1068835Z hint:
-2026-07-23T04:53:42.1071066Z hint: Disable this message with "git config set advice.defaultBranchName false"
-2026-07-23T04:53:42.1074316Z Initialized empty Git repository in /home/runner/work/prompt-web/prompt-web/.git/
-2026-07-23T04:53:42.1080394Z [command]/usr/bin/git remote add origin https://github.com/ActiveInsighter/prompt-web
-2026-07-23T04:53:42.1301816Z ##[endgroup]
-2026-07-23T04:53:42.1304807Z ##[group]Disabling automatic garbage collection
-2026-07-23T04:53:42.1313935Z [command]/usr/bin/git config --local gc.auto 0
-2026-07-23T04:53:42.1391571Z ##[endgroup]
-2026-07-23T04:53:42.1394837Z ##[group]Setting up auth
-2026-07-23T04:53:42.1398728Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-2026-07-23T04:53:42.1458712Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-2026-07-23T04:53:42.4199294Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-2026-07-23T04:53:42.4209367Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-2026-07-23T04:53:42.4399080Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-2026-07-23T04:53:42.4406697Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-2026-07-23T04:53:42.5336623Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
-2026-07-23T04:53:42.5342943Z ##[endgroup]
-2026-07-23T04:53:42.5345430Z ##[group]Fetching the repository
-2026-07-23T04:53:42.5349433Z [command]/usr/bin/git -c protocol.version=2 fetch --prune --no-recurse-submodules origin +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/*
-2026-07-23T04:53:43.8358599Z From https://github.com/ActiveInsighter/prompt-web
-2026-07-23T04:53:43.8362350Z  * [new branch]      agent/ci-run-state-bootstrap -> origin/agent/ci-run-state-bootstrap
-2026-07-23T04:53:43.8367561Z  * [new branch]      chore/capture-deploy-logs -> origin/chore/capture-deploy-logs
-2026-07-23T04:53:43.8375965Z  * [new branch]      ci/deployment-smoke-test -> origin/ci/deployment-smoke-test
-2026-07-23T04:53:43.8379642Z  * [new branch]      ci/run-ai-file-smoke-on-pr-20260720 -> origin/ci/run-ai-file-smoke-on-pr-20260720
-2026-07-23T04:53:43.8388524Z  * [new branch]      ci/verify-ai-file-api-20260720 -> origin/ci/verify-ai-file-api-20260720
-2026-07-23T04:53:43.8397701Z  * [new branch]      ci/verify-live-unified-api-on-pr-20260720 -> origin/ci/verify-live-unified-api-on-pr-20260720
-2026-07-23T04:53:43.8407633Z  * [new branch]      diagnose/ai-search-metadata-filter -> origin/diagnose/ai-search-metadata-filter
-2026-07-23T04:53:43.8409283Z  * [new branch]      diagnostic/live-ai-search-postfix -> origin/diagnostic/live-ai-search-postfix
-2026-07-23T04:53:43.8410451Z  * [new branch]      feat/ai-index-escaped-markdown -> origin/feat/ai-index-escaped-markdown
-2026-07-23T04:53:43.8411770Z  * [new branch]      feat/ai-safe-file-api-20260720 -> origin/feat/ai-safe-file-api-20260720
-2026-07-23T04:53:43.8412984Z  * [new branch]      feat/ai-search-project-storage -> origin/feat/ai-search-project-storage
-2026-07-23T04:53:43.8414284Z  * [new branch]      feat/ai-search-project-storage-check -> origin/feat/ai-search-project-storage-check
-2026-07-23T04:53:43.8415524Z  * [new branch]      feat/ai-search-project-storage-ci -> origin/feat/ai-search-project-storage-ci
-2026-07-23T04:53:43.8417136Z  * [new branch]      feat/ai-search-sitemap-trailing-slash-20260720 -> origin/feat/ai-search-sitemap-trailing-slash-20260720
-2026-07-23T04:53:43.8418736Z  * [new branch]      feat/cloudflare-ai-search-api -> origin/feat/cloudflare-ai-search-api
-2026-07-23T04:53:43.8419819Z  * [new branch]      feat/cloudflare-prompt-mcp -> origin/feat/cloudflare-prompt-mcp
-2026-07-23T04:53:43.8420803Z  * [new branch]      feat/content-library-sync -> origin/feat/content-library-sync
-2026-07-23T04:53:43.8421811Z  * [new branch]      feat/content-sync-pipeline -> origin/feat/content-sync-pipeline
-2026-07-23T04:53:43.8422971Z  * [new branch]      feat/markdown-source-viewer-20260720 -> origin/feat/markdown-source-viewer-20260720
-2026-07-23T04:53:43.8424084Z  * [new branch]      feat/project-file-library -> origin/feat/project-file-library
-2026-07-23T04:53:43.8425128Z  * [new branch]      feat/unified-content-api-20260720 -> origin/feat/unified-content-api-20260720
-2026-07-23T04:53:43.8426248Z  * [new branch]      feature/mcp-ai-search-alignment -> origin/feature/mcp-ai-search-alignment
-2026-07-23T04:53:43.8447915Z  * [new branch]      feature/tailwindcss-docs-collector -> origin/feature/tailwindcss-docs-collector
-2026-07-23T04:53:43.8449152Z  * [new branch]      fix/ai-index-tag-boundaries -> origin/fix/ai-index-tag-boundaries
-2026-07-23T04:53:43.8450434Z  * [new branch]      fix/ai-search-async-upload -> origin/fix/ai-search-async-upload
-2026-07-23T04:53:43.8451578Z  * [new branch]      fix/ai-search-contract-alignment -> origin/fix/ai-search-contract-alignment
-2026-07-23T04:53:43.8452889Z  * [new branch]      fix/ai-search-d1-primary-session -> origin/fix/ai-search-d1-primary-session
-2026-07-23T04:53:43.8453948Z  * [new branch]      fix/ai-search-deploy-shell -> origin/fix/ai-search-deploy-shell
-2026-07-23T04:53:43.8455046Z  * [new branch]      fix/ai-search-deploy-smoke -> origin/fix/ai-search-deploy-smoke
-2026-07-23T04:53:43.8456130Z  * [new branch]      fix/ai-search-double-escaping -> origin/fix/ai-search-double-escaping
-2026-07-23T04:53:43.8457515Z  * [new branch]      fix/ai-search-index-root -> origin/fix/ai-search-index-root
-2026-07-23T04:53:43.8458604Z  * [new branch]      fix/ai-search-legacy-job-migration -> origin/fix/ai-search-legacy-job-migration
-2026-07-23T04:53:43.8459935Z  * [new branch]      fix/ai-search-project-scope-fallback -> origin/fix/ai-search-project-scope-fallback
-2026-07-23T04:53:43.8461060Z  * [new branch]      fix/ai-search-raw-index -> origin/fix/ai-search-raw-index
-2026-07-23T04:53:43.8462096Z  * [new branch]      fix/ai-search-recover-by-id -> origin/fix/ai-search-recover-by-id
-2026-07-23T04:53:43.8463242Z  * [new branch]      fix/ai-search-recovery-observable -> origin/fix/ai-search-recovery-observable
-2026-07-23T04:53:43.8464401Z  * [new branch]      fix/ai-search-requeue-timeouts -> origin/fix/ai-search-requeue-timeouts
-2026-07-23T04:53:43.8465625Z  * [new branch]      fix/ai-search-retry-legacy-transients -> origin/fix/ai-search-retry-legacy-transients
-2026-07-23T04:53:43.8467230Z  * [new branch]      fix/ai-search-retry-terminal-timeouts -> origin/fix/ai-search-retry-terminal-timeouts
-2026-07-23T04:53:43.8468562Z  * [new branch]      fix/ai-search-runtime-compatibility -> origin/fix/ai-search-runtime-compatibility
-2026-07-23T04:53:43.8470046Z  * [new branch]      fix/ai-search-upload-timeouts -> origin/fix/ai-search-upload-timeouts
-2026-07-23T04:53:43.8471159Z  * [new branch]      fix/atomic-content-sync-deploy -> origin/fix/atomic-content-sync-deploy
-2026-07-23T04:53:43.8472231Z  * [new branch]      fix/content-sync-user-agent -> origin/fix/content-sync-user-agent
-2026-07-23T04:53:43.8473244Z  * [new branch]      fix/deploy-auth-propagation -> origin/fix/deploy-auth-propagation
-2026-07-23T04:53:43.8474205Z  * [new branch]      fix/deploy-index-batch  -> origin/fix/deploy-index-batch
-2026-07-23T04:53:43.8475108Z  * [new branch]      fix/incremental-d1-sync -> origin/fix/incremental-d1-sync
-2026-07-23T04:53:43.8476305Z  * [new branch]      fix/markdown-viewer-asset-routing-20260720 -> origin/fix/markdown-viewer-asset-routing-20260720
-2026-07-23T04:53:43.8478174Z  * [new branch]      fix/markdown-viewer-index-shell-20260720 -> origin/fix/markdown-viewer-index-shell-20260720
-2026-07-23T04:53:43.8479418Z  * [new branch]      fix/mcp-ai-search-contracts -> origin/fix/mcp-ai-search-contracts
-2026-07-23T04:53:43.8480726Z  * [new branch]      fix/recent-run-history-and-api-verification -> origin/fix/recent-run-history-and-api-verification
-2026-07-23T04:53:43.8481931Z  * [new branch]      fix/remote-kv-seed      -> origin/fix/remote-kv-seed
-2026-07-23T04:53:43.8482997Z  * [new branch]      fix/restore-ai-search-angle-brackets -> origin/fix/restore-ai-search-angle-brackets
-2026-07-23T04:53:43.8484315Z  * [new branch]      fix/restore-ai-search-markdown-escapes -> origin/fix/restore-ai-search-markdown-escapes
-2026-07-23T04:53:43.8485527Z  * [new branch]      fix/service-version-contract -> origin/fix/service-version-contract
-2026-07-23T04:53:43.8487105Z  * [new branch]      fix/unified-api-routing-smoke-20260720 -> origin/fix/unified-api-routing-smoke-20260720
-2026-07-23T04:53:43.8488560Z  * [new branch]      fix/use-ai-search-prompt-and-slim-response -> origin/fix/use-ai-search-prompt-and-slim-response
-2026-07-23T04:53:43.8489889Z  * [new branch]      fix/verify-ai-index-production -> origin/fix/verify-ai-index-production
-2026-07-23T04:53:43.8491280Z  * [new branch]      fix/verify-production-api-followup -> origin/fix/verify-production-api-followup
-2026-07-23T04:53:43.8492481Z  * [new branch]      fix/wait-content-sync-secret -> origin/fix/wait-content-sync-secret
-2026-07-23T04:53:43.8493338Z  * [new branch]      main                    -> origin/main
-2026-07-23T04:53:43.8494222Z  * [new branch]      simplify-search-api-vector-only -> origin/simplify-search-api-vector-only
-2026-07-23T04:53:43.8495292Z  * [new branch]      test/ai-index-deploy-smoke -> origin/test/ai-index-deploy-smoke
-2026-07-23T04:53:43.8496239Z  * [new branch]      test/https-read-markdown -> origin/test/https-read-markdown
-2026-07-23T04:53:43.8497641Z  * [new branch]      verify/ai-search-production -> origin/verify/ai-search-production
-2026-07-23T04:53:43.8498776Z  * [new branch]      verify/ai-search-production-final -> origin/verify/ai-search-production-final
-2026-07-23T04:53:43.8500156Z  * [new branch]      verify/ai-search-project-scope-production -> origin/verify/ai-search-project-scope-production
-2026-07-23T04:53:43.8568924Z [command]/usr/bin/git branch --list --remote origin/main
-2026-07-23T04:53:43.8606231Z   origin/main
-2026-07-23T04:53:43.8628236Z [command]/usr/bin/git rev-parse refs/remotes/origin/main
-2026-07-23T04:53:43.8659515Z c1e368a147d6877b0b93ebee15b6ba3a08ea8737
-2026-07-23T04:53:43.8669264Z ##[endgroup]
-2026-07-23T04:53:43.8670354Z ##[group]Determining the checkout info
-2026-07-23T04:53:43.8671432Z ##[endgroup]
-2026-07-23T04:53:43.8677199Z [command]/usr/bin/git sparse-checkout disable
-2026-07-23T04:53:43.8727772Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
-2026-07-23T04:53:43.8770546Z ##[group]Checking out the ref
-2026-07-23T04:53:43.8774452Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
-2026-07-23T04:53:43.9136058Z Switched to a new branch 'main'
-2026-07-23T04:53:43.9147368Z branch 'main' set up to track 'origin/main'.
-2026-07-23T04:53:43.9149659Z ##[endgroup]
-2026-07-23T04:53:43.9196985Z [command]/usr/bin/git log -1 --format=%H
-2026-07-23T04:53:43.9229416Z c1e368a147d6877b0b93ebee15b6ba3a08ea8737
-2026-07-23T04:53:43.9488309Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
-2026-07-23T04:53:43.9491206Z ##[group]Run actions/setup-node@v4
-2026-07-23T04:53:43.9491547Z with:
-2026-07-23T04:53:43.9491751Z   node-version: 24
-2026-07-23T04:53:43.9491962Z   always-auth: false
-2026-07-23T04:53:43.9492172Z   check-latest: false
-2026-07-23T04:53:43.9494504Z   token: ***
-2026-07-23T04:53:43.9494705Z ##[endgroup]
-2026-07-23T04:53:44.0991237Z Found in cache @ /opt/hostedtoolcache/node/24.18.0/x64
-2026-07-23T04:53:44.0994063Z (node:2029) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-2026-07-23T04:53:44.0995720Z (Use `node --trace-deprecation ...` to show where the warning was created)
-2026-07-23T04:53:44.0998082Z ##[group]Environment details
-2026-07-23T04:53:44.6629352Z node: v24.18.0
-2026-07-23T04:53:44.6638658Z npm: 11.16.0
-2026-07-23T04:53:44.6639382Z yarn: 1.22.22
-2026-07-23T04:53:44.6640907Z ##[endgroup]
-2026-07-23T04:53:44.6794285Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
-2026-07-23T04:53:44.6795559Z ##[group]Run actions/setup-python@v5
-2026-07-23T04:53:44.6795815Z with:
-2026-07-23T04:53:44.6796003Z   python-version: 3.13
-2026-07-23T04:53:44.6796249Z   check-latest: false
-2026-07-23T04:53:44.6799345Z   token: ***
-2026-07-23T04:53:44.6799573Z   update-environment: true
-2026-07-23T04:53:44.6799813Z   allow-prereleases: false
-2026-07-23T04:53:44.6800039Z   freethreaded: false
-2026-07-23T04:53:44.6800249Z ##[endgroup]
-2026-07-23T04:53:44.8267269Z ##[group]Installed versions
-2026-07-23T04:53:44.8340282Z (node:2060) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-2026-07-23T04:53:44.8341693Z Successfully set up CPython (3.13.14)
-2026-07-23T04:53:44.8342874Z (Use `node --trace-deprecation ...` to show where the warning was created)
-2026-07-23T04:53:44.8344443Z ##[endgroup]
-2026-07-23T04:53:44.8553347Z ##[group]Run node scripts/record-run-state.mjs start
-2026-07-23T04:53:44.8554031Z [36;1mnode scripts/record-run-state.mjs start[0m
-2026-07-23T04:53:44.8678420Z shell: /usr/bin/bash -e {0}
-2026-07-23T04:53:44.8678833Z env:
-2026-07-23T04:53:44.8679250Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:53:44.8680006Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
-2026-07-23T04:53:44.8680746Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:53:44.8681402Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:53:44.8682045Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:53:44.8682690Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
-2026-07-23T04:53:44.8683222Z ##[endgroup]
-2026-07-23T04:53:44.9326389Z Recorded run 29980698441: running; retained 10 run id(s).
-2026-07-23T04:53:44.9416005Z ##[group]Run node scripts/git-commit-state.mjs "Record workflow start [skip ci]"
-2026-07-23T04:53:44.9417035Z [36;1mnode scripts/git-commit-state.mjs "Record workflow start [skip ci]"[0m
-2026-07-23T04:53:44.9480162Z shell: /usr/bin/bash -e {0}
-2026-07-23T04:53:44.9480414Z env:
-2026-07-23T04:53:44.9480675Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:53:44.9481284Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
-2026-07-23T04:53:44.9481704Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:53:44.9482103Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:53:44.9482485Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:53:44.9482869Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
-2026-07-23T04:53:44.9483194Z ##[endgroup]
-2026-07-23T04:53:45.0200776Z [main 27ebc07] Record workflow start [skip ci]
-2026-07-23T04:53:45.0205759Z  5 files changed, 36 insertions(+), 52 deletions(-)
-2026-07-23T04:53:45.9940337Z To https://github.com/ActiveInsighter/prompt-web
-2026-07-23T04:53:45.9941399Z    c1e368a..27ebc07  HEAD -> main
-2026-07-23T04:53:46.0040085Z ##[group]Run mkdir -p .github
-2026-07-23T04:53:46.0040395Z [36;1mmkdir -p .github[0m
-2026-07-23T04:53:46.0040647Z [36;1m: > .github/latest-build-log.txt[0m
-2026-07-23T04:53:46.0040912Z [36;1m{[0m
-2026-07-23T04:53:46.0041145Z [36;1m  echo "repository=$GITHUB_REPOSITORY"[0m
-2026-07-23T04:53:46.0041449Z [36;1m  echo "workflow=$GITHUB_WORKFLOW"[0m
-2026-07-23T04:53:46.0041729Z [36;1m  echo "run_id=$GITHUB_RUN_ID"[0m
-2026-07-23T04:53:46.0042014Z [36;1m  echo "run_attempt=$GITHUB_RUN_ATTEMPT"[0m
-2026-07-23T04:53:46.0042306Z [36;1m  echo "head_sha=$GITHUB_SHA"[0m
-2026-07-23T04:53:46.0042612Z [36;1m  echo "started_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"[0m
-2026-07-23T04:53:46.0042951Z [36;1m} | tee -a .github/latest-build-log.txt[0m
-2026-07-23T04:53:46.0105703Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
-2026-07-23T04:53:46.0106046Z env:
-2026-07-23T04:53:46.0106305Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:53:46.0107112Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
-2026-07-23T04:53:46.0107551Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:53:46.0107935Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:53:46.0108335Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:53:46.0108716Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
-2026-07-23T04:53:46.0109033Z ##[endgroup]
-2026-07-23T04:53:46.0222917Z repository=ActiveInsighter/prompt-web
-2026-07-23T04:53:46.0224103Z workflow=Prompt Web CI
-2026-07-23T04:53:46.0224874Z run_id=29980698441
-2026-07-23T04:53:46.0225451Z run_attempt=1
-2026-07-23T04:53:46.0226191Z head_sha=c1e368a147d6877b0b93ebee15b6ba3a08ea8737
-2026-07-23T04:53:46.0227452Z started_at=2026-07-23T04:53:46Z
-2026-07-23T04:53:46.0277513Z ##[group]Run set -o pipefail
-2026-07-23T04:53:46.0277818Z [36;1mset -o pipefail[0m
-2026-07-23T04:53:46.0278077Z [36;1mif [[ -f package-lock.json ]]; then[0m
-2026-07-23T04:53:46.0278520Z [36;1m  npm ci --no-audit --no-fund 2>&1 | tee -a .github/latest-build-log.txt[0m
-2026-07-23T04:53:46.0278942Z [36;1melif [[ -f package.json ]]; then[0m
-2026-07-23T04:53:46.0279427Z [36;1m  npm install --no-package-lock --no-audit --no-fund 2>&1 | tee -a .github/latest-build-log.txt[0m
-2026-07-23T04:53:46.0279899Z [36;1melse[0m
-2026-07-23T04:53:46.0280302Z [36;1m  echo "No package.json; dependency installation skipped." | tee -a .github/latest-build-log.txt[0m
-2026-07-23T04:53:46.0280757Z [36;1mfi[0m
-2026-07-23T04:53:46.0281320Z [36;1mpython -m pip install --disable-pip-version-check -r scripts/requirements.txt 2>&1 \[0m
-2026-07-23T04:53:46.0281805Z [36;1m  | tee -a .github/latest-build-log.txt[0m
-2026-07-23T04:53:46.0336891Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
-2026-07-23T04:53:46.0337236Z env:
-2026-07-23T04:53:46.0337492Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:53:46.0337911Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
-2026-07-23T04:53:46.0338321Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:53:46.0338685Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:53:46.0339060Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:53:46.0339611Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
-2026-07-23T04:53:46.0339926Z ##[endgroup]
-2026-07-23T04:54:06.8772718Z 
-2026-07-23T04:54:06.8773659Z added 212 packages in 21s
-2026-07-23T04:54:06.8789300Z npm warn allow-scripts 4 packages have install scripts not yet covered by allowScripts:
-2026-07-23T04:54:06.8790995Z npm warn allow-scripts   esbuild@0.28.1 (postinstall: node install.js)
-2026-07-23T04:54:06.8792822Z npm warn allow-scripts   core-js-pure@3.49.0 (postinstall: node -e "try{require('./postinstall')}catch(e){}")
-2026-07-23T04:54:06.8794635Z npm warn allow-scripts   workerd@1.20260708.1 (postinstall: node install.js)
-2026-07-23T04:54:06.8796151Z npm warn allow-scripts   sharp@0.34.5 (install: node install/check.js || npm run build)
-2026-07-23T04:54:06.8803136Z npm warn allow-scripts
-2026-07-23T04:54:06.8804699Z npm warn allow-scripts Run `npm approve-scripts --allow-scripts-pending` to review, or `npm approve-scripts <pkg>` to allow.
-2026-07-23T04:54:07.7197520Z Collecting PyYAML<7,>=6.0.2 (from -r scripts/requirements.txt (line 1))
-2026-07-23T04:54:07.7862114Z   Downloading pyyaml-6.0.3-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.4 kB)
-2026-07-23T04:54:07.8040476Z Collecting beautifulsoup4<5,>=4.15.0 (from -r scripts/requirements.txt (line 2))
-2026-07-23T04:54:07.8072765Z   Downloading beautifulsoup4-4.15.0-py3-none-any.whl.metadata (3.8 kB)
-2026-07-23T04:54:07.8217454Z Collecting markdownify<2,>=1.2.3 (from -r scripts/requirements.txt (line 3))
-2026-07-23T04:54:07.8248835Z   Downloading markdownify-1.2.3-py3-none-any.whl.metadata (9.9 kB)
-2026-07-23T04:54:07.8421581Z Collecting soupsieve>=1.6.1 (from beautifulsoup4<5,>=4.15.0->-r scripts/requirements.txt (line 2))
-2026-07-23T04:54:07.8454616Z   Downloading soupsieve-2.9.1-py3-none-any.whl.metadata (4.6 kB)
-2026-07-23T04:54:07.8617346Z Collecting typing-extensions>=4.0.0 (from beautifulsoup4<5,>=4.15.0->-r scripts/requirements.txt (line 2))
-2026-07-23T04:54:07.8648690Z   Downloading typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
-2026-07-23T04:54:07.8776301Z Collecting six<2,>=1.15 (from markdownify<2,>=1.2.3->-r scripts/requirements.txt (line 3))
-2026-07-23T04:54:07.8809370Z   Downloading six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
-2026-07-23T04:54:07.8882507Z Downloading pyyaml-6.0.3-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (801 kB)
-2026-07-23T04:54:07.9163093Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 801.6/801.6 kB 46.2 MB/s  0:00:00
-2026-07-23T04:54:07.9196175Z Downloading beautifulsoup4-4.15.0-py3-none-any.whl (109 kB)
-2026-07-23T04:54:07.9263331Z Downloading markdownify-1.2.3-py3-none-any.whl (15 kB)
-2026-07-23T04:54:07.9327180Z Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
-2026-07-23T04:54:07.9373791Z Downloading soupsieve-2.9.1-py3-none-any.whl (37 kB)
-2026-07-23T04:54:07.9426372Z Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
-2026-07-23T04:54:07.9682982Z Installing collected packages: typing-extensions, soupsieve, six, PyYAML, beautifulsoup4, markdownify
-2026-07-23T04:54:08.1697611Z 
-2026-07-23T04:54:08.1728274Z Successfully installed PyYAML-6.0.3 beautifulsoup4-4.15.0 markdownify-1.2.3 six-1.17.0 soupsieve-2.9.1 typing-extensions-4.16.0
-2026-07-23T04:54:08.2234578Z ##[group]Run node scripts/run-ci-with-log.mjs
-2026-07-23T04:54:08.2234955Z [36;1mnode scripts/run-ci-with-log.mjs[0m
-2026-07-23T04:54:08.2293636Z shell: /usr/bin/bash -e {0}
-2026-07-23T04:54:08.2293881Z env:
-2026-07-23T04:54:08.2294141Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:54:08.2294592Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
-2026-07-23T04:54:08.2295057Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:54:08.2295455Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:54:08.2295831Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:54:08.2296626Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
-2026-07-23T04:54:08.2296994Z ##[endgroup]
-2026-07-23T04:54:08.2707203Z 
-2026-07-23T04:54:08.2707878Z ## Project CI
-2026-07-23T04:54:08.2708348Z command=npm run project:ci
-2026-07-23T04:54:08.2708714Z started_at=2026-07-23T04:54:08.269Z
-2026-07-23T04:54:08.2708968Z 
-2026-07-23T04:54:08.3831068Z 
-2026-07-23T04:54:08.3831599Z > prompt-web@0.9.0 project:ci
-2026-07-23T04:54:08.3833143Z > npm run typecheck && npm run db:migrate:local && npm run content:validate && npm run content:build && npm run content:test && npm test && npm run worker:dry-run
-2026-07-23T04:54:08.3834146Z 
-2026-07-23T04:54:08.4907552Z 
-2026-07-23T04:54:08.4908956Z > prompt-web@0.9.0 typecheck
-2026-07-23T04:54:08.4909733Z > tsc --noEmit
-2026-07-23T04:54:08.4910231Z 
-2026-07-23T04:54:10.9831522Z 
-2026-07-23T04:54:10.9837753Z > prompt-web@0.9.0 db:migrate:local
-2026-07-23T04:54:10.9857544Z > wrangler d1 migrations apply DB --local
-2026-07-23T04:54:10.9864669Z 
-2026-07-23T04:54:12.0467358Z 
-2026-07-23T04:54:12.0478054Z  ⛅️ wrangler 4.109.0
-2026-07-23T04:54:12.0488161Z ────────────────────
-2026-07-23T04:54:12.0489068Z Resource location: local 
-2026-07-23T04:54:12.0514812Z 
-2026-07-23T04:54:12.0515294Z Use --remote if you want to access the remote instance.
-2026-07-23T04:54:12.0515804Z 
-2026-07-23T04:54:12.8717585Z Migrations to be applied:
-2026-07-23T04:54:12.8767985Z ┌───────────────────────────────────────────────┐
-2026-07-23T04:54:12.8778399Z │ name                                          │
-2026-07-23T04:54:12.8779383Z ├───────────────────────────────────────────────┤
-2026-07-23T04:54:12.8780347Z │ 0001_create_prompts.sql                       │
-2026-07-23T04:54:12.8782710Z ├───────────────────────────────────────────────┤
-2026-07-23T04:54:12.8783612Z │ 0002_create_project_file_tree.sql             │
-2026-07-23T04:54:12.8784523Z ├───────────────────────────────────────────────┤
-2026-07-23T04:54:12.8785398Z │ 0003_create_content_sync.sql                  │
-2026-07-23T04:54:12.8787010Z ├───────────────────────────────────────────────┤
-2026-07-23T04:54:12.8788015Z │ 0004_optimize_content_sync.sql                │
-2026-07-23T04:54:12.8788984Z ├───────────────────────────────────────────────┤
-2026-07-23T04:54:12.8789955Z │ 0005_create_ai_search_storage.sql             │
-2026-07-23T04:54:12.8792710Z ├───────────────────────────────────────────────┤
-2026-07-23T04:54:12.8793977Z │ 0006_preserve_ai_search_terminal_failures.sql │
-2026-07-23T04:54:12.8795127Z ├───────────────────────────────────────────────┤
-2026-07-23T04:54:12.8796022Z │ 0006_requeue_legacy_ai_search_jobs.sql        │
-2026-07-23T04:54:12.8797209Z ├───────────────────────────────────────────────┤
-2026-07-23T04:54:12.8798159Z │ 0007_retry_legacy_ai_search_timeouts.sql      │
-2026-07-23T04:54:12.8799166Z ├───────────────────────────────────────────────┤
-2026-07-23T04:54:12.8800121Z │ 0008_retry_legacy_ai_search_transients.sql    │
-2026-07-23T04:54:12.8801146Z └───────────────────────────────────────────────┘
-2026-07-23T04:54:12.8802347Z ? About to apply 9 migration(s)
-2026-07-23T04:54:12.8803385Z Your database may not be available to serve requests during the migration, continue?
-2026-07-23T04:54:12.8804583Z 🤖 Using fallback value in non-interactive context: yes
-2026-07-23T04:54:12.8806305Z 🌀 Executing on local database DB (00000000-0000-0000-0000-000000000000) from .wrangler/state/v3/d1:
-2026-07-23T04:54:12.8808308Z 🌀 To execute on your remote database, add a --remote flag to your wrangler command.
-2026-07-23T04:54:13.1667844Z 🚣 12 commands executed successfully.
-2026-07-23T04:54:13.1685607Z ┌───────────────────────────────────────────────┬────────┐
-2026-07-23T04:54:13.1690350Z │ name                                          │ status │
-2026-07-23T04:54:13.1692851Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:13.1693886Z │ 0001_create_prompts.sql                       │ ✅     │
-2026-07-23T04:54:13.1694879Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:13.1699552Z │ 0002_create_project_file_tree.sql             │ 🕒️    │
-2026-07-23T04:54:13.1700680Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:13.1701753Z │ 0003_create_content_sync.sql                  │ 🕒️    │
-2026-07-23T04:54:13.1704401Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:13.1705822Z │ 0004_optimize_content_sync.sql                │ 🕒️    │
-2026-07-23T04:54:13.1707531Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:13.1708841Z │ 0005_create_ai_search_storage.sql             │ 🕒️    │
-2026-07-23T04:54:13.1710816Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:13.1711853Z │ 0006_preserve_ai_search_terminal_failures.sql │ 🕒️    │
-2026-07-23T04:54:13.1712932Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:13.1713932Z │ 0006_requeue_legacy_ai_search_jobs.sql        │ 🕒️    │
-2026-07-23T04:54:13.1715000Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:13.1717734Z │ 0007_retry_legacy_ai_search_timeouts.sql      │ 🕒️    │
-2026-07-23T04:54:13.1720150Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:13.1723153Z │ 0008_retry_legacy_ai_search_transients.sql    │ 🕒️    │
-2026-07-23T04:54:13.1728830Z └───────────────────────────────────────────────┴────────┘
-2026-07-23T04:54:13.1730342Z 🌀 Executing on local database DB (00000000-0000-0000-0000-000000000000) from .wrangler/state/v3/d1:
-2026-07-23T04:54:13.1740773Z 🌀 To execute on your remote database, add a --remote flag to your wrangler command.
-2026-07-23T04:54:13.5023675Z 🚣 29 commands executed successfully.
-2026-07-23T04:54:13.5042190Z ┌───────────────────────────────────────────────┬────────┐
-2026-07-23T04:54:13.5045586Z │ name                                          │ status │
-2026-07-23T04:54:13.5054922Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:13.5056098Z │ 0001_create_prompts.sql                       │ ✅     │
-2026-07-23T04:54:13.5058041Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:13.5059366Z │ 0002_create_project_file_tree.sql             │ ✅     │
-2026-07-23T04:54:13.5060753Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:13.5062370Z │ 0003_create_content_sync.sql                  │ 🕒️    │
-2026-07-23T04:54:13.5064369Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:13.5065878Z │ 0004_optimize_content_sync.sql                │ 🕒️    │
-2026-07-23T04:54:13.5070350Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:13.5072246Z │ 0005_create_ai_search_storage.sql             │ 🕒️    │
-2026-07-23T04:54:13.5073947Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:13.5075216Z │ 0006_preserve_ai_search_terminal_failures.sql │ 🕒️    │
-2026-07-23T04:54:13.5077332Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:13.5078580Z │ 0006_requeue_legacy_ai_search_jobs.sql        │ 🕒️    │
-2026-07-23T04:54:13.5080362Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:13.5081477Z │ 0007_retry_legacy_ai_search_timeouts.sql      │ 🕒️    │
-2026-07-23T04:54:13.5082526Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:13.5083595Z │ 0008_retry_legacy_ai_search_transients.sql    │ 🕒️    │
-2026-07-23T04:54:13.5084638Z └───────────────────────────────────────────────┴────────┘
-2026-07-23T04:54:13.5086091Z 🌀 Executing on local database DB (00000000-0000-0000-0000-000000000000) from .wrangler/state/v3/d1:
-2026-07-23T04:54:13.5088089Z 🌀 To execute on your remote database, add a --remote flag to your wrangler command.
-2026-07-23T04:54:13.7738327Z 🚣 7 commands executed successfully.
-2026-07-23T04:54:13.7757454Z ┌───────────────────────────────────────────────┬────────┐
-2026-07-23T04:54:13.7767769Z │ name                                          │ status │
-2026-07-23T04:54:13.7774038Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:13.7775538Z │ 0001_create_prompts.sql                       │ ✅     │
-2026-07-23T04:54:13.7777222Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:13.7778421Z │ 0002_create_project_file_tree.sql             │ ✅     │
-2026-07-23T04:54:13.7779905Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:13.7781081Z │ 0003_create_content_sync.sql                  │ ✅     │
-2026-07-23T04:54:13.7782260Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:13.7783386Z │ 0004_optimize_content_sync.sql                │ 🕒️    │
-2026-07-23T04:54:13.7784535Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:13.7785683Z │ 0005_create_ai_search_storage.sql             │ 🕒️    │
-2026-07-23T04:54:13.7793284Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:13.7795559Z │ 0006_preserve_ai_search_terminal_failures.sql │ 🕒️    │
-2026-07-23T04:54:13.7797094Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:13.7798326Z │ 0006_requeue_legacy_ai_search_jobs.sql        │ 🕒️    │
-2026-07-23T04:54:13.7799568Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:13.7800713Z │ 0007_retry_legacy_ai_search_timeouts.sql      │ 🕒️    │
-2026-07-23T04:54:13.7802033Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:13.7812005Z │ 0008_retry_legacy_ai_search_transients.sql    │ 🕒️    │
-2026-07-23T04:54:13.7813209Z └───────────────────────────────────────────────┴────────┘
-2026-07-23T04:54:13.7817163Z 🌀 Executing on local database DB (00000000-0000-0000-0000-000000000000) from .wrangler/state/v3/d1:
-2026-07-23T04:54:13.7818875Z 🌀 To execute on your remote database, add a --remote flag to your wrangler command.
-2026-07-23T04:54:14.0597897Z 🚣 10 commands executed successfully.
-2026-07-23T04:54:14.0619086Z ┌───────────────────────────────────────────────┬────────┐
-2026-07-23T04:54:14.0624561Z │ name                                          │ status │
-2026-07-23T04:54:14.0625841Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:14.0627750Z │ 0001_create_prompts.sql                       │ ✅     │
-2026-07-23T04:54:14.0628887Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:14.0630274Z │ 0002_create_project_file_tree.sql             │ ✅     │
-2026-07-23T04:54:14.0632659Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:14.0633878Z │ 0003_create_content_sync.sql                  │ ✅     │
-2026-07-23T04:54:14.0637400Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:14.0638725Z │ 0004_optimize_content_sync.sql                │ ✅     │
-2026-07-23T04:54:14.0640092Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:14.0641397Z │ 0005_create_ai_search_storage.sql             │ 🕒️    │
-2026-07-23T04:54:14.0642716Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:14.0645004Z │ 0006_preserve_ai_search_terminal_failures.sql │ 🕒️    │
-2026-07-23T04:54:14.0646189Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:14.0647664Z │ 0006_requeue_legacy_ai_search_jobs.sql        │ 🕒️    │
-2026-07-23T04:54:14.0648830Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:14.0649989Z │ 0007_retry_legacy_ai_search_timeouts.sql      │ 🕒️    │
-2026-07-23T04:54:14.0651198Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:14.0652493Z │ 0008_retry_legacy_ai_search_transients.sql    │ 🕒️    │
-2026-07-23T04:54:14.0654517Z └───────────────────────────────────────────────┴────────┘
-2026-07-23T04:54:14.0656134Z 🌀 Executing on local database DB (00000000-0000-0000-0000-000000000000) from .wrangler/state/v3/d1:
-2026-07-23T04:54:14.0658786Z 🌀 To execute on your remote database, add a --remote flag to your wrangler command.
-2026-07-23T04:54:14.3837916Z 🚣 17 commands executed successfully.
-2026-07-23T04:54:14.3861051Z ┌───────────────────────────────────────────────┬────────┐
-2026-07-23T04:54:14.3871890Z │ name                                          │ status │
-2026-07-23T04:54:14.3872751Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:14.3873564Z │ 0001_create_prompts.sql                       │ ✅     │
-2026-07-23T04:54:14.3874433Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:14.3875217Z │ 0002_create_project_file_tree.sql             │ ✅     │
-2026-07-23T04:54:14.3876052Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:14.3877251Z │ 0003_create_content_sync.sql                  │ ✅     │
-2026-07-23T04:54:14.3880384Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:14.3881275Z │ 0004_optimize_content_sync.sql                │ ✅     │
-2026-07-23T04:54:14.3882156Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:14.3882994Z │ 0005_create_ai_search_storage.sql             │ ✅     │
-2026-07-23T04:54:14.3884339Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:14.3886393Z │ 0006_preserve_ai_search_terminal_failures.sql │ 🕒️    │
-2026-07-23T04:54:14.3889283Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:14.3890468Z │ 0006_requeue_legacy_ai_search_jobs.sql        │ 🕒️    │
-2026-07-23T04:54:14.3891381Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:14.3892176Z │ 0007_retry_legacy_ai_search_timeouts.sql      │ 🕒️    │
-2026-07-23T04:54:14.3892999Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:14.3893889Z │ 0008_retry_legacy_ai_search_transients.sql    │ 🕒️    │
-2026-07-23T04:54:14.3894824Z └───────────────────────────────────────────────┴────────┘
-2026-07-23T04:54:14.3896045Z 🌀 Executing on local database DB (00000000-0000-0000-0000-000000000000) from .wrangler/state/v3/d1:
-2026-07-23T04:54:14.3904528Z 🌀 To execute on your remote database, add a --remote flag to your wrangler command.
-2026-07-23T04:54:14.6418011Z 🚣 5 commands executed successfully.
-2026-07-23T04:54:14.6428071Z ┌───────────────────────────────────────────────┬────────┐
-2026-07-23T04:54:14.6449761Z │ name                                          │ status │
-2026-07-23T04:54:14.6451136Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:14.6453242Z │ 0001_create_prompts.sql                       │ ✅     │
-2026-07-23T04:54:14.6455123Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:14.6459229Z │ 0002_create_project_file_tree.sql             │ ✅     │
-2026-07-23T04:54:14.6469270Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:14.6471756Z │ 0003_create_content_sync.sql                  │ ✅     │
-2026-07-23T04:54:14.6474946Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:14.6477557Z │ 0004_optimize_content_sync.sql                │ ✅     │
-2026-07-23T04:54:14.6479722Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:14.6480920Z │ 0005_create_ai_search_storage.sql             │ ✅     │
-2026-07-23T04:54:14.6485113Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:14.6486289Z │ 0006_preserve_ai_search_terminal_failures.sql │ ✅     │
-2026-07-23T04:54:14.6488114Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:14.6489274Z │ 0006_requeue_legacy_ai_search_jobs.sql        │ 🕒️    │
-2026-07-23T04:54:14.6490418Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:14.6491527Z │ 0007_retry_legacy_ai_search_timeouts.sql      │ 🕒️    │
-2026-07-23T04:54:14.6492642Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:14.6493721Z │ 0008_retry_legacy_ai_search_transients.sql    │ 🕒️    │
-2026-07-23T04:54:14.6510829Z └───────────────────────────────────────────────┴────────┘
-2026-07-23T04:54:14.6512448Z 🌀 Executing on local database DB (00000000-0000-0000-0000-000000000000) from .wrangler/state/v3/d1:
-2026-07-23T04:54:14.6514459Z 🌀 To execute on your remote database, add a --remote flag to your wrangler command.
-2026-07-23T04:54:14.8981640Z 🚣 2 commands executed successfully.
-2026-07-23T04:54:14.8997681Z ┌───────────────────────────────────────────────┬────────┐
-2026-07-23T04:54:14.9011769Z │ name                                          │ status │
-2026-07-23T04:54:14.9017677Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:14.9018827Z │ 0001_create_prompts.sql                       │ ✅     │
-2026-07-23T04:54:14.9019954Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:14.9021198Z │ 0002_create_project_file_tree.sql             │ ✅     │
-2026-07-23T04:54:14.9022393Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:14.9025664Z │ 0003_create_content_sync.sql                  │ ✅     │
-2026-07-23T04:54:14.9028291Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:14.9030328Z │ 0004_optimize_content_sync.sql                │ ✅     │
-2026-07-23T04:54:14.9031496Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:14.9032565Z │ 0005_create_ai_search_storage.sql             │ ✅     │
-2026-07-23T04:54:14.9033671Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:14.9035046Z │ 0006_preserve_ai_search_terminal_failures.sql │ ✅     │
-2026-07-23T04:54:14.9036231Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:14.9037698Z │ 0006_requeue_legacy_ai_search_jobs.sql        │ ✅     │
-2026-07-23T04:54:14.9038785Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:14.9039860Z │ 0007_retry_legacy_ai_search_timeouts.sql      │ 🕒️    │
-2026-07-23T04:54:14.9040973Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:14.9042019Z │ 0008_retry_legacy_ai_search_transients.sql    │ 🕒️    │
-2026-07-23T04:54:14.9043087Z └───────────────────────────────────────────────┴────────┘
-2026-07-23T04:54:14.9044733Z 🌀 Executing on local database DB (00000000-0000-0000-0000-000000000000) from .wrangler/state/v3/d1:
-2026-07-23T04:54:14.9046234Z 🌀 To execute on your remote database, add a --remote flag to your wrangler command.
-2026-07-23T04:54:15.1449651Z 🚣 2 commands executed successfully.
-2026-07-23T04:54:15.1459320Z ┌───────────────────────────────────────────────┬────────┐
-2026-07-23T04:54:15.1461437Z │ name                                          │ status │
-2026-07-23T04:54:15.1463589Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:15.1464606Z │ 0001_create_prompts.sql                       │ ✅     │
-2026-07-23T04:54:15.1465619Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:15.1467999Z │ 0002_create_project_file_tree.sql             │ ✅     │
-2026-07-23T04:54:15.1469256Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:15.1470298Z │ 0003_create_content_sync.sql                  │ ✅     │
-2026-07-23T04:54:15.1471404Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:15.1472485Z │ 0004_optimize_content_sync.sql                │ ✅     │
-2026-07-23T04:54:15.1473741Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:15.1474949Z │ 0005_create_ai_search_storage.sql             │ ✅     │
-2026-07-23T04:54:15.1476158Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:15.1477653Z │ 0006_preserve_ai_search_terminal_failures.sql │ ✅     │
-2026-07-23T04:54:15.1478617Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:15.1479489Z │ 0006_requeue_legacy_ai_search_jobs.sql        │ ✅     │
-2026-07-23T04:54:15.1481164Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:15.1481989Z │ 0007_retry_legacy_ai_search_timeouts.sql      │ ✅     │
-2026-07-23T04:54:15.1482861Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:15.1483755Z │ 0008_retry_legacy_ai_search_transients.sql    │ 🕒️    │
-2026-07-23T04:54:15.1484746Z └───────────────────────────────────────────────┴────────┘
-2026-07-23T04:54:15.1488823Z 🌀 Executing on local database DB (00000000-0000-0000-0000-000000000000) from .wrangler/state/v3/d1:
-2026-07-23T04:54:15.1493943Z 🌀 To execute on your remote database, add a --remote flag to your wrangler command.
-2026-07-23T04:54:15.3888549Z 🚣 2 commands executed successfully.
-2026-07-23T04:54:15.3891002Z ┌───────────────────────────────────────────────┬────────┐
-2026-07-23T04:54:15.3892049Z │ name                                          │ status │
-2026-07-23T04:54:15.3893095Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:15.3894137Z │ 0001_create_prompts.sql                       │ ✅     │
-2026-07-23T04:54:15.3897647Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:15.3898666Z │ 0002_create_project_file_tree.sql             │ ✅     │
-2026-07-23T04:54:15.3899734Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:15.3901122Z │ 0003_create_content_sync.sql                  │ ✅     │
-2026-07-23T04:54:15.3902241Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:15.3903213Z │ 0004_optimize_content_sync.sql                │ ✅     │
-2026-07-23T04:54:15.3904230Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:15.3905223Z │ 0005_create_ai_search_storage.sql             │ ✅     │
-2026-07-23T04:54:15.3906305Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:15.3908027Z │ 0006_preserve_ai_search_terminal_failures.sql │ ✅     │
-2026-07-23T04:54:15.3909100Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:15.3910083Z │ 0006_requeue_legacy_ai_search_jobs.sql        │ ✅     │
-2026-07-23T04:54:15.3911131Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:15.3912139Z │ 0007_retry_legacy_ai_search_timeouts.sql      │ ✅     │
-2026-07-23T04:54:15.3913439Z ├───────────────────────────────────────────────┼────────┤
-2026-07-23T04:54:15.3914496Z │ 0008_retry_legacy_ai_search_transients.sql    │ ✅     │
-2026-07-23T04:54:15.3915595Z └───────────────────────────────────────────────┴────────┘
-2026-07-23T04:54:15.5450416Z 
-2026-07-23T04:54:15.5451080Z > prompt-web@0.9.0 content:validate
-2026-07-23T04:54:15.5452250Z > python -m scripts.cli validate
-2026-07-23T04:54:15.5457174Z 
-2026-07-23T04:54:16.0488609Z Content validation succeeded: projects=4 folders=39 files=348 manifest=sha256:78a7f1039495407a5253176edfb390e7954cf58689e861202789108a3718802e
-2026-07-23T04:54:16.1709417Z 
-2026-07-23T04:54:16.1710460Z > prompt-web@0.9.0 content:build
-2026-07-23T04:54:16.1711341Z > python -m scripts.cli build
-2026-07-23T04:54:16.1711903Z 
-2026-07-23T04:54:16.6897063Z Wrote /home/runner/work/prompt-web/prompt-web/.prompt-sync/manifest.json: projects=4 folders=39 files=348 manifest=sha256:78a7f1039495407a5253176edfb390e7954cf58689e861202789108a3718802e
-2026-07-23T04:54:16.8084332Z 
-2026-07-23T04:54:16.8089908Z > prompt-web@0.9.0 content:test
-2026-07-23T04:54:16.8091228Z > python -m unittest discover -s scripts/tests -p "test_*.py"
-2026-07-23T04:54:16.8092029Z 
-2026-07-23T04:54:17.2530680Z ..................
-2026-07-23T04:54:17.2531764Z ----------------------------------------------------------------------
-2026-07-23T04:54:17.2532610Z Ran 18 tests in 0.075s
-2026-07-23T04:54:17.2533117Z 
-2026-07-23T04:54:17.2533430Z OK
-2026-07-23T04:54:17.3895711Z 
-2026-07-23T04:54:17.3896824Z > prompt-web@0.9.0 test
-2026-07-23T04:54:17.3899381Z > npm run test:run-state && npm run test:viewer && npm run test:ai-safe-json && npm run test:cloudflare-ai-search && npm run test:ai-search-storage && npm run test:mcp-contracts && npm run test:content-sync && npm run test:deploy-workflow
-2026-07-23T04:54:17.3901234Z 
-2026-07-23T04:54:17.4955214Z 
-2026-07-23T04:54:17.4961782Z > prompt-web@0.9.0 test:run-state
-2026-07-23T04:54:17.4962677Z > node scripts/test-run-state.mjs
-2026-07-23T04:54:17.4963394Z 
-2026-07-23T04:54:18.6147338Z Run-state self test passed.
-2026-07-23T04:54:18.7226220Z 
-2026-07-23T04:54:18.7228591Z > prompt-web@0.9.0 test:viewer
-2026-07-23T04:54:18.7229559Z > node scripts/test-markdown-viewer.mjs
-2026-07-23T04:54:18.7230262Z 
-2026-07-23T04:54:18.7567785Z Markdown viewer URL tests passed.
-2026-07-23T04:54:18.8704335Z 
-2026-07-23T04:54:18.8705457Z > prompt-web@0.9.0 test:ai-safe-json
-2026-07-23T04:54:18.8707025Z > node --experimental-strip-types scripts/test-ai-safe-json.mjs
-2026-07-23T04:54:18.8707857Z 
-2026-07-23T04:54:18.9577914Z AI-safe JSON serialization tests passed
-2026-07-23T04:54:19.0802309Z 
-2026-07-23T04:54:19.0808051Z > prompt-web@0.9.0 test:cloudflare-ai-search
-2026-07-23T04:54:19.0809264Z > node --experimental-strip-types scripts/test-cloudflare-ai-search.mjs
-2026-07-23T04:54:19.0810177Z 
-2026-07-23T04:54:19.1717911Z Cloudflare AI Search API tests passed
-2026-07-23T04:54:19.2951899Z 
-2026-07-23T04:54:19.2954614Z > prompt-web@0.9.0 test:ai-search-storage
-2026-07-23T04:54:19.2960342Z > node --experimental-strip-types scripts/test-ai-search-storage.mjs
-2026-07-23T04:54:19.2961206Z 
-2026-07-23T04:54:19.3948439Z AI Search storage tests passed
-2026-07-23T04:54:19.5139624Z 
-2026-07-23T04:54:19.5144887Z > prompt-web@0.9.0 test:mcp-contracts
-2026-07-23T04:54:19.5145781Z > node scripts/test-mcp-contracts.mjs
-2026-07-23T04:54:19.5146393Z 
-2026-07-23T04:54:19.5471549Z MCP structured output contract tests passed.
-2026-07-23T04:54:19.6577529Z 
-2026-07-23T04:54:19.6578414Z > prompt-web@0.9.0 test:content-sync
-2026-07-23T04:54:19.6579570Z > node scripts/test-content-sync-planning.mjs
-2026-07-23T04:54:19.6580188Z 
-2026-07-23T04:54:20.0686322Z content sync planning tests passed
-2026-07-23T04:54:20.1865339Z 
-2026-07-23T04:54:20.1867813Z > prompt-web@0.9.0 test:deploy-workflow
-2026-07-23T04:54:20.1868918Z > node scripts/test-deploy-workflow.mjs
-2026-07-23T04:54:20.1869548Z 
-2026-07-23T04:54:20.2339310Z deployment and production verification workflow contract tests passed
-2026-07-23T04:54:20.3517245Z 
-2026-07-23T04:54:20.3518487Z > prompt-web@0.9.0 worker:dry-run
-2026-07-23T04:54:20.3519723Z > wrangler deploy --dry-run --outdir .wrangler/dry-run
-2026-07-23T04:54:20.3521640Z 
-2026-07-23T04:54:21.2839524Z 
-2026-07-23T04:54:21.2840951Z  ⛅️ wrangler 4.109.0 (update available 4.113.0)
-2026-07-23T04:54:21.2842685Z ───────────────────────────────────────────────
-2026-07-23T04:54:21.2871451Z 
-2026-07-23T04:54:21.2874985Z Cloudflare collects anonymous telemetry about your usage of Wrangler. Learn more at https://github.com/cloudflare/workers-sdk/tree/main/packages/wrangler/telemetry.md
-2026-07-23T04:54:21.8713035Z ✨ Read 4 files from the assets directory /home/runner/work/prompt-web/prompt-web/public
-2026-07-23T04:54:21.9319724Z Total Upload: 2261.15 KiB / gzip: 412.46 KiB
-2026-07-23T04:54:21.9408218Z Your Worker has access to the following bindings:
-2026-07-23T04:54:21.9422695Z Binding                                                      Resource                  
-2026-07-23T04:54:21.9425176Z env.PROMPT_KV (00000000000000000000000000000000)             KV Namespace              
-2026-07-23T04:54:21.9427120Z env.DB (prompt-web-db)                                       D1 Database               
-2026-07-23T04:54:21.9428417Z env.PROMPT_AI_SEARCH (prompt-projects)                       AI Search Namespace       
-2026-07-23T04:54:21.9429754Z env.ASSETS                                                   Assets                    
-2026-07-23T04:54:21.9431012Z env.ENVIRONMENT ("development")                              Environment Variable      
-2026-07-23T04:54:21.9431698Z 
-2026-07-23T04:54:21.9432023Z --dry-run: exiting now.
-2026-07-23T04:54:21.9969275Z 
-2026-07-23T04:54:21.9969936Z finished_at=2026-07-23T04:54:21.996Z
-2026-07-23T04:54:21.9972194Z exit_code=0
-2026-07-23T04:54:22.0083032Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
-2026-07-23T04:54:22.0084345Z ##[group]Run actions/upload-artifact@v4
-2026-07-23T04:54:22.0084612Z with:
-2026-07-23T04:54:22.0084823Z   name: prompt-web-build-29980698441
-2026-07-23T04:54:22.0085178Z   path: .github/latest-build-log.txt
+2026-07-23T04:54:35.4584532Z Current runner version: '2.336.0'
+2026-07-23T04:54:35.4638838Z ##[group]Runner Image Provisioner
+2026-07-23T04:54:35.4640057Z Hosted Compute Agent
+2026-07-23T04:54:35.4641083Z Version: 20260707.563
+2026-07-23T04:54:35.4642030Z Commit: 02667638d2b423fbc733a8e32a88b44996a3ba6e
+2026-07-23T04:54:35.4643740Z Build Date: 2026-07-07T19:33:50Z
+2026-07-23T04:54:35.4666837Z Worker ID: {79b93b9c-c37f-4821-8af7-625689657a41}
+2026-07-23T04:54:35.4667996Z Azure Region: centralus
+2026-07-23T04:54:35.4669079Z ##[endgroup]
+2026-07-23T04:54:35.4671851Z ##[group]Operating System
+2026-07-23T04:54:35.4672832Z Ubuntu
+2026-07-23T04:54:35.4673738Z 24.04.4
+2026-07-23T04:54:35.4695100Z LTS
+2026-07-23T04:54:35.4696117Z ##[endgroup]
+2026-07-23T04:54:35.4696994Z ##[group]Runner Image
+2026-07-23T04:54:35.4697916Z Image: ubuntu-24.04
+2026-07-23T04:54:35.4698931Z Version: 20260714.240.1
+2026-07-23T04:54:35.4700903Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260714.240/images/ubuntu/Ubuntu2404-Readme.md
+2026-07-23T04:54:35.4703755Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260714.240
+2026-07-23T04:54:35.4705488Z ##[endgroup]
+2026-07-23T04:54:35.4707545Z ##[group]GITHUB_TOKEN Permissions
+2026-07-23T04:54:35.4710676Z Actions: read
+2026-07-23T04:54:35.4711773Z Contents: write
+2026-07-23T04:54:35.4712646Z Metadata: read
+2026-07-23T04:54:35.4713586Z ##[endgroup]
+2026-07-23T04:54:35.4737316Z Secret source: Actions
+2026-07-23T04:54:35.4739199Z Prepare workflow directory
+2026-07-23T04:54:35.5700702Z Prepare all required actions
+2026-07-23T04:54:35.5768595Z Getting action download info
+2026-07-23T04:54:35.8438783Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-07-23T04:54:36.2643920Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+2026-07-23T04:54:36.3620208Z Download action repository 'actions/setup-python@v5' (SHA:a26af69be951a213d495a4c3e4e4022e16d87065)
+2026-07-23T04:54:36.4493392Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2026-07-23T04:54:36.6794938Z Complete job name: build
+2026-07-23T04:54:36.7714644Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-23T04:54:36.7727846Z ##[group]Run actions/checkout@v4
+2026-07-23T04:54:36.7728998Z with:
+2026-07-23T04:54:36.7729638Z   fetch-depth: 0
+2026-07-23T04:54:36.7730363Z   repository: ActiveInsighter/prompt-web
+2026-07-23T04:54:36.7737301Z   token: ***
+2026-07-23T04:54:36.7737978Z   ssh-strict: true
+2026-07-23T04:54:36.7738649Z   ssh-user: git
+2026-07-23T04:54:36.7739330Z   persist-credentials: true
+2026-07-23T04:54:36.7740083Z   clean: true
+2026-07-23T04:54:36.7740760Z   sparse-checkout-cone-mode: true
+2026-07-23T04:54:36.7741594Z   fetch-tags: false
+2026-07-23T04:54:36.7742267Z   show-progress: true
+2026-07-23T04:54:36.7742948Z   lfs: false
+2026-07-23T04:54:36.7743610Z   submodules: false
+2026-07-23T04:54:36.7744444Z   set-safe-directory: true
+2026-07-23T04:54:36.7745226Z   allow-unsafe-pr-checkout: false
+2026-07-23T04:54:36.7746496Z ##[endgroup]
+2026-07-23T04:54:36.8945270Z Syncing repository: ActiveInsighter/prompt-web
+2026-07-23T04:54:36.8948023Z ##[group]Getting Git version info
+2026-07-23T04:54:36.8949581Z Working directory is '/home/runner/work/prompt-web/prompt-web'
+2026-07-23T04:54:36.8959501Z [command]/usr/bin/git version
+2026-07-23T04:54:36.9112175Z git version 2.54.0
+2026-07-23T04:54:36.9115203Z ##[endgroup]
+2026-07-23T04:54:36.9122994Z Temporarily overriding HOME='/home/runner/work/_temp/b0a00944-86de-4558-8cc3-a6106c3a6ca4' before making global git config changes
+2026-07-23T04:54:36.9129920Z Adding repository directory to the temporary git global config as a safe directory
+2026-07-23T04:54:36.9132097Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/prompt-web/prompt-web
+2026-07-23T04:54:36.9213325Z Deleting the contents of '/home/runner/work/prompt-web/prompt-web'
+2026-07-23T04:54:36.9215641Z ##[group]Initializing the repository
+2026-07-23T04:54:36.9217330Z [command]/usr/bin/git init /home/runner/work/prompt-web/prompt-web
+2026-07-23T04:54:36.9356751Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-07-23T04:54:36.9360798Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-07-23T04:54:36.9362249Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-07-23T04:54:36.9363392Z hint: call:
+2026-07-23T04:54:36.9364140Z hint:
+2026-07-23T04:54:36.9364989Z hint: 	git config --global init.defaultBranch <name>
+2026-07-23T04:54:36.9365892Z hint:
+2026-07-23T04:54:36.9366734Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-07-23T04:54:36.9368109Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-07-23T04:54:36.9369283Z hint:
+2026-07-23T04:54:36.9369901Z hint: 	git branch -m <name>
+2026-07-23T04:54:36.9370632Z hint:
+2026-07-23T04:54:36.9371571Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-07-23T04:54:36.9376704Z Initialized empty Git repository in /home/runner/work/prompt-web/prompt-web/.git/
+2026-07-23T04:54:36.9379328Z [command]/usr/bin/git remote add origin https://github.com/ActiveInsighter/prompt-web
+2026-07-23T04:54:36.9467725Z ##[endgroup]
+2026-07-23T04:54:36.9471183Z ##[group]Disabling automatic garbage collection
+2026-07-23T04:54:36.9472733Z [command]/usr/bin/git config --local gc.auto 0
+2026-07-23T04:54:36.9504668Z ##[endgroup]
+2026-07-23T04:54:36.9524528Z ##[group]Setting up auth
+2026-07-23T04:54:36.9526087Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-07-23T04:54:36.9576149Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-07-23T04:54:37.0055661Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-07-23T04:54:37.0109930Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-07-23T04:54:37.0496380Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-07-23T04:54:37.0538356Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-07-23T04:54:37.0798436Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-07-23T04:54:37.0849706Z ##[endgroup]
+2026-07-23T04:54:37.0851371Z ##[group]Fetching the repository
+2026-07-23T04:54:37.0861442Z [command]/usr/bin/git -c protocol.version=2 fetch --prune --no-recurse-submodules origin +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/*
+2026-07-23T04:54:38.1152132Z From https://github.com/ActiveInsighter/prompt-web
+2026-07-23T04:54:38.1155825Z  * [new branch]      agent/ci-run-state-bootstrap -> origin/agent/ci-run-state-bootstrap
+2026-07-23T04:54:38.1158619Z  * [new branch]      chore/capture-deploy-logs -> origin/chore/capture-deploy-logs
+2026-07-23T04:54:38.1161140Z  * [new branch]      ci/deployment-smoke-test -> origin/ci/deployment-smoke-test
+2026-07-23T04:54:38.1163837Z  * [new branch]      ci/run-ai-file-smoke-on-pr-20260720 -> origin/ci/run-ai-file-smoke-on-pr-20260720
+2026-07-23T04:54:38.1166744Z  * [new branch]      ci/verify-ai-file-api-20260720 -> origin/ci/verify-ai-file-api-20260720
+2026-07-23T04:54:38.1170157Z  * [new branch]      ci/verify-live-unified-api-on-pr-20260720 -> origin/ci/verify-live-unified-api-on-pr-20260720
+2026-07-23T04:54:38.1173710Z  * [new branch]      diagnose/ai-search-metadata-filter -> origin/diagnose/ai-search-metadata-filter
+2026-07-23T04:54:38.1177926Z  * [new branch]      diagnostic/live-ai-search-postfix -> origin/diagnostic/live-ai-search-postfix
+2026-07-23T04:54:38.1181122Z  * [new branch]      feat/ai-index-escaped-markdown -> origin/feat/ai-index-escaped-markdown
+2026-07-23T04:54:38.1184563Z  * [new branch]      feat/ai-safe-file-api-20260720 -> origin/feat/ai-safe-file-api-20260720
+2026-07-23T04:54:38.1187347Z  * [new branch]      feat/ai-search-project-storage -> origin/feat/ai-search-project-storage
+2026-07-23T04:54:38.1191009Z  * [new branch]      feat/ai-search-project-storage-check -> origin/feat/ai-search-project-storage-check
+2026-07-23T04:54:38.1195417Z  * [new branch]      feat/ai-search-project-storage-ci -> origin/feat/ai-search-project-storage-ci
+2026-07-23T04:54:38.1200307Z  * [new branch]      feat/ai-search-sitemap-trailing-slash-20260720 -> origin/feat/ai-search-sitemap-trailing-slash-20260720
+2026-07-23T04:54:38.1204821Z  * [new branch]      feat/cloudflare-ai-search-api -> origin/feat/cloudflare-ai-search-api
+2026-07-23T04:54:38.1207821Z  * [new branch]      feat/cloudflare-prompt-mcp -> origin/feat/cloudflare-prompt-mcp
+2026-07-23T04:54:38.1211115Z  * [new branch]      feat/content-library-sync -> origin/feat/content-library-sync
+2026-07-23T04:54:38.1214213Z  * [new branch]      feat/content-sync-pipeline -> origin/feat/content-sync-pipeline
+2026-07-23T04:54:38.1217870Z  * [new branch]      feat/markdown-source-viewer-20260720 -> origin/feat/markdown-source-viewer-20260720
+2026-07-23T04:54:38.1221529Z  * [new branch]      feat/project-file-library -> origin/feat/project-file-library
+2026-07-23T04:54:38.1225184Z  * [new branch]      feat/unified-content-api-20260720 -> origin/feat/unified-content-api-20260720
+2026-07-23T04:54:38.1229237Z  * [new branch]      feature/mcp-ai-search-alignment -> origin/feature/mcp-ai-search-alignment
+2026-07-23T04:54:38.1233442Z  * [new branch]      feature/tailwindcss-docs-collector -> origin/feature/tailwindcss-docs-collector
+2026-07-23T04:54:38.1237656Z  * [new branch]      fix/ai-index-tag-boundaries -> origin/fix/ai-index-tag-boundaries
+2026-07-23T04:54:38.1246178Z  * [new branch]      fix/ai-search-async-upload -> origin/fix/ai-search-async-upload
+2026-07-23T04:54:38.1250055Z  * [new branch]      fix/ai-search-contract-alignment -> origin/fix/ai-search-contract-alignment
+2026-07-23T04:54:38.1254397Z  * [new branch]      fix/ai-search-d1-primary-session -> origin/fix/ai-search-d1-primary-session
+2026-07-23T04:54:38.1258241Z  * [new branch]      fix/ai-search-deploy-shell -> origin/fix/ai-search-deploy-shell
+2026-07-23T04:54:38.1261759Z  * [new branch]      fix/ai-search-deploy-smoke -> origin/fix/ai-search-deploy-smoke
+2026-07-23T04:54:38.1266410Z  * [new branch]      fix/ai-search-double-escaping -> origin/fix/ai-search-double-escaping
+2026-07-23T04:54:38.1269897Z  * [new branch]      fix/ai-search-index-root -> origin/fix/ai-search-index-root
+2026-07-23T04:54:38.1273660Z  * [new branch]      fix/ai-search-legacy-job-migration -> origin/fix/ai-search-legacy-job-migration
+2026-07-23T04:54:38.1278508Z  * [new branch]      fix/ai-search-project-scope-fallback -> origin/fix/ai-search-project-scope-fallback
+2026-07-23T04:54:38.1282454Z  * [new branch]      fix/ai-search-raw-index -> origin/fix/ai-search-raw-index
+2026-07-23T04:54:38.1286142Z  * [new branch]      fix/ai-search-recover-by-id -> origin/fix/ai-search-recover-by-id
+2026-07-23T04:54:38.1290060Z  * [new branch]      fix/ai-search-recovery-observable -> origin/fix/ai-search-recovery-observable
+2026-07-23T04:54:38.1294414Z  * [new branch]      fix/ai-search-requeue-timeouts -> origin/fix/ai-search-requeue-timeouts
+2026-07-23T04:54:38.1298777Z  * [new branch]      fix/ai-search-retry-legacy-transients -> origin/fix/ai-search-retry-legacy-transients
+2026-07-23T04:54:38.1303458Z  * [new branch]      fix/ai-search-retry-terminal-timeouts -> origin/fix/ai-search-retry-terminal-timeouts
+2026-07-23T04:54:38.1308380Z  * [new branch]      fix/ai-search-runtime-compatibility -> origin/fix/ai-search-runtime-compatibility
+2026-07-23T04:54:38.1312845Z  * [new branch]      fix/ai-search-upload-timeouts -> origin/fix/ai-search-upload-timeouts
+2026-07-23T04:54:38.1317126Z  * [new branch]      fix/atomic-content-sync-deploy -> origin/fix/atomic-content-sync-deploy
+2026-07-23T04:54:38.1321068Z  * [new branch]      fix/content-sync-user-agent -> origin/fix/content-sync-user-agent
+2026-07-23T04:54:38.1344500Z  * [new branch]      fix/deploy-auth-propagation -> origin/fix/deploy-auth-propagation
+2026-07-23T04:54:38.1348191Z  * [new branch]      fix/deploy-index-batch  -> origin/fix/deploy-index-batch
+2026-07-23T04:54:38.1351481Z  * [new branch]      fix/incremental-d1-sync -> origin/fix/incremental-d1-sync
+2026-07-23T04:54:38.1356144Z  * [new branch]      fix/markdown-viewer-asset-routing-20260720 -> origin/fix/markdown-viewer-asset-routing-20260720
+2026-07-23T04:54:38.1361363Z  * [new branch]      fix/markdown-viewer-index-shell-20260720 -> origin/fix/markdown-viewer-index-shell-20260720
+2026-07-23T04:54:38.1366347Z  * [new branch]      fix/mcp-ai-search-contracts -> origin/fix/mcp-ai-search-contracts
+2026-07-23T04:54:38.1370863Z  * [new branch]      fix/recent-run-history-and-api-verification -> origin/fix/recent-run-history-and-api-verification
+2026-07-23T04:54:38.1375133Z  * [new branch]      fix/remote-kv-seed      -> origin/fix/remote-kv-seed
+2026-07-23T04:54:38.1387627Z  * [new branch]      fix/restore-ai-search-angle-brackets -> origin/fix/restore-ai-search-angle-brackets
+2026-07-23T04:54:38.1392393Z  * [new branch]      fix/restore-ai-search-markdown-escapes -> origin/fix/restore-ai-search-markdown-escapes
+2026-07-23T04:54:38.1413614Z  * [new branch]      fix/service-version-contract -> origin/fix/service-version-contract
+2026-07-23T04:54:38.1418205Z  * [new branch]      fix/unified-api-routing-smoke-20260720 -> origin/fix/unified-api-routing-smoke-20260720
+2026-07-23T04:54:38.1422770Z  * [new branch]      fix/use-ai-search-prompt-and-slim-response -> origin/fix/use-ai-search-prompt-and-slim-response
+2026-07-23T04:54:38.1431408Z  * [new branch]      fix/verify-ai-index-production -> origin/fix/verify-ai-index-production
+2026-07-23T04:54:38.1436495Z  * [new branch]      fix/verify-production-api-followup -> origin/fix/verify-production-api-followup
+2026-07-23T04:54:38.1440831Z  * [new branch]      fix/wait-content-sync-secret -> origin/fix/wait-content-sync-secret
+2026-07-23T04:54:38.1443945Z  * [new branch]      main                    -> origin/main
+2026-07-23T04:54:38.1447359Z  * [new branch]      simplify-search-api-vector-only -> origin/simplify-search-api-vector-only
+2026-07-23T04:54:38.1457283Z  * [new branch]      test/ai-index-deploy-smoke -> origin/test/ai-index-deploy-smoke
+2026-07-23T04:54:38.1460743Z  * [new branch]      test/https-read-markdown -> origin/test/https-read-markdown
+2026-07-23T04:54:38.1464623Z  * [new branch]      verify/ai-search-production -> origin/verify/ai-search-production
+2026-07-23T04:54:38.1468490Z  * [new branch]      verify/ai-search-production-final -> origin/verify/ai-search-production-final
+2026-07-23T04:54:38.1473175Z  * [new branch]      verify/ai-search-project-scope-production -> origin/verify/ai-search-project-scope-production
+2026-07-23T04:54:38.1483646Z [command]/usr/bin/git branch --list --remote origin/main
+2026-07-23T04:54:38.1488295Z   origin/main
+2026-07-23T04:54:38.1491845Z [command]/usr/bin/git rev-parse refs/remotes/origin/main
+2026-07-23T04:54:38.1498253Z 0c0425c9200c8172edd77032ab6fa75fc7e46461
+2026-07-23T04:54:38.1507325Z ##[endgroup]
+2026-07-23T04:54:38.1509915Z ##[group]Determining the checkout info
+2026-07-23T04:54:38.1514239Z ##[endgroup]
+2026-07-23T04:54:38.1516507Z [command]/usr/bin/git sparse-checkout disable
+2026-07-23T04:54:38.1566423Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-07-23T04:54:38.1618061Z ##[group]Checking out the ref
+2026-07-23T04:54:38.1621332Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-07-23T04:54:38.1997233Z Switched to a new branch 'main'
+2026-07-23T04:54:38.2000082Z branch 'main' set up to track 'origin/main'.
+2026-07-23T04:54:38.2009214Z ##[endgroup]
+2026-07-23T04:54:38.2054492Z [command]/usr/bin/git log -1 --format=%H
+2026-07-23T04:54:38.2089868Z 0c0425c9200c8172edd77032ab6fa75fc7e46461
+2026-07-23T04:54:38.2471543Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-23T04:54:38.2477133Z ##[group]Run actions/setup-node@v4
+2026-07-23T04:54:38.2478230Z with:
+2026-07-23T04:54:38.2479059Z   node-version: 24
+2026-07-23T04:54:38.2479968Z   always-auth: false
+2026-07-23T04:54:38.2480901Z   check-latest: false
+2026-07-23T04:54:38.2489540Z   token: ***
+2026-07-23T04:54:38.2490414Z ##[endgroup]
+2026-07-23T04:54:38.4107835Z (node:2021) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-07-23T04:54:38.4116042Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-07-23T04:54:38.4282337Z Found in cache @ /opt/hostedtoolcache/node/24.18.0/x64
+2026-07-23T04:54:38.4286589Z ##[group]Environment details
+2026-07-23T04:54:38.9901998Z node: v24.18.0
+2026-07-23T04:54:38.9902469Z npm: 11.16.0
+2026-07-23T04:54:38.9902876Z yarn: 1.22.22
+2026-07-23T04:54:38.9903929Z ##[endgroup]
+2026-07-23T04:54:39.0096992Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-23T04:54:39.0098301Z ##[group]Run actions/setup-python@v5
+2026-07-23T04:54:39.0098632Z with:
+2026-07-23T04:54:39.0098893Z   python-version: 3.13
+2026-07-23T04:54:39.0099218Z   check-latest: false
+2026-07-23T04:54:39.0101672Z   token: ***
+2026-07-23T04:54:39.0101954Z   update-environment: true
+2026-07-23T04:54:39.0102258Z   allow-prereleases: false
+2026-07-23T04:54:39.0102543Z   freethreaded: false
+2026-07-23T04:54:39.0102820Z ##[endgroup]
+2026-07-23T04:54:39.1597472Z ##[group]Installed versions
+2026-07-23T04:54:39.1697011Z (node:2052) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-07-23T04:54:39.1698760Z Successfully set up CPython (3.13.14)
+2026-07-23T04:54:39.1700056Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-07-23T04:54:39.1701411Z ##[endgroup]
+2026-07-23T04:54:39.1931043Z ##[group]Run node scripts/record-run-state.mjs start
+2026-07-23T04:54:39.1931857Z [36;1mnode scripts/record-run-state.mjs start[0m
+2026-07-23T04:54:39.2060080Z shell: /usr/bin/bash -e {0}
+2026-07-23T04:54:39.2060609Z env:
+2026-07-23T04:54:39.2061107Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:54:39.2061922Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
+2026-07-23T04:54:39.2062736Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:54:39.2063429Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:54:39.2064340Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:54:39.2065026Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
+2026-07-23T04:54:39.2065635Z ##[endgroup]
+2026-07-23T04:54:39.2743093Z Recorded run 29980737158: running; retained 10 run id(s).
+2026-07-23T04:54:39.2839684Z ##[group]Run node scripts/git-commit-state.mjs "Record workflow start [skip ci]"
+2026-07-23T04:54:39.2840367Z [36;1mnode scripts/git-commit-state.mjs "Record workflow start [skip ci]"[0m
+2026-07-23T04:54:39.2907868Z shell: /usr/bin/bash -e {0}
+2026-07-23T04:54:39.2908205Z env:
+2026-07-23T04:54:39.2908544Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:54:39.2909328Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
+2026-07-23T04:54:39.2909826Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:54:39.2910272Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:54:39.2910714Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:54:39.2911151Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
+2026-07-23T04:54:39.2911531Z ##[endgroup]
+2026-07-23T04:54:39.3675812Z [main 075c19e] Record workflow start [skip ci]
+2026-07-23T04:54:39.3678779Z  5 files changed, 35 insertions(+), 35 deletions(-)
+2026-07-23T04:54:39.6866871Z To https://github.com/ActiveInsighter/prompt-web
+2026-07-23T04:54:39.6882610Z  ! [rejected]        HEAD -> main (fetch first)
+2026-07-23T04:54:39.6883598Z error: failed to push some refs to 'https://github.com/ActiveInsighter/prompt-web'
+2026-07-23T04:54:39.6895292Z hint: Updates were rejected because the remote contains work that you do not
+2026-07-23T04:54:39.6905252Z hint: have locally. This is usually caused by another repository pushing to
+2026-07-23T04:54:39.6925550Z hint: the same ref. If you want to integrate the remote changes, use
+2026-07-23T04:54:39.6945440Z hint: 'git pull' before pushing again.
+2026-07-23T04:54:39.6964684Z hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+2026-07-23T04:54:39.6994857Z Push attempt 1 failed; rebasing onto origin/main.
+2026-07-23T04:54:40.1342902Z From https://github.com/ActiveInsighter/prompt-web
+2026-07-23T04:54:40.1344613Z  * branch            main       -> FETCH_HEAD
+2026-07-23T04:54:40.1355085Z    0c0425c..e82e7db  main       -> origin/main
+2026-07-23T04:54:40.1554521Z Rebasing (1/1)
+2026-07-23T04:54:40.1555424Z Successfully rebased and updated refs/heads/main.
+2026-07-23T04:54:41.1029258Z To https://github.com/ActiveInsighter/prompt-web
+2026-07-23T04:54:41.1030236Z    e82e7db..673b736  HEAD -> main
+2026-07-23T04:54:41.1141572Z ##[group]Run mkdir -p .github
+2026-07-23T04:54:41.1141891Z [36;1mmkdir -p .github[0m
+2026-07-23T04:54:41.1142151Z [36;1m: > .github/latest-build-log.txt[0m
+2026-07-23T04:54:41.1142423Z [36;1m{[0m
+2026-07-23T04:54:41.1142651Z [36;1m  echo "repository=$GITHUB_REPOSITORY"[0m
+2026-07-23T04:54:41.1142952Z [36;1m  echo "workflow=$GITHUB_WORKFLOW"[0m
+2026-07-23T04:54:41.1143239Z [36;1m  echo "run_id=$GITHUB_RUN_ID"[0m
+2026-07-23T04:54:41.1143526Z [36;1m  echo "run_attempt=$GITHUB_RUN_ATTEMPT"[0m
+2026-07-23T04:54:41.1143823Z [36;1m  echo "head_sha=$GITHUB_SHA"[0m
+2026-07-23T04:54:41.1144795Z [36;1m  echo "started_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"[0m
+2026-07-23T04:54:41.1168735Z [36;1m} | tee -a .github/latest-build-log.txt[0m
+2026-07-23T04:54:41.1242443Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-07-23T04:54:41.1242794Z env:
+2026-07-23T04:54:41.1243069Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:54:41.1243537Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
+2026-07-23T04:54:41.1244224Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:54:41.1244618Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:54:41.1244995Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:54:41.1245368Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
+2026-07-23T04:54:41.1245684Z ##[endgroup]
+2026-07-23T04:54:41.1369791Z repository=ActiveInsighter/prompt-web
+2026-07-23T04:54:41.1370777Z workflow=Prompt Web CI
+2026-07-23T04:54:41.1371905Z run_id=29980737158
+2026-07-23T04:54:41.1372641Z run_attempt=1
+2026-07-23T04:54:41.1373754Z head_sha=0c0425c9200c8172edd77032ab6fa75fc7e46461
+2026-07-23T04:54:41.1375039Z started_at=2026-07-23T04:54:41Z
+2026-07-23T04:54:41.1403889Z ##[group]Run set -o pipefail
+2026-07-23T04:54:41.1404457Z [36;1mset -o pipefail[0m
+2026-07-23T04:54:41.1404729Z [36;1mif [[ -f package-lock.json ]]; then[0m
+2026-07-23T04:54:41.1405139Z [36;1m  npm ci --no-audit --no-fund 2>&1 | tee -a .github/latest-build-log.txt[0m
+2026-07-23T04:54:41.1405735Z [36;1melif [[ -f package.json ]]; then[0m
+2026-07-23T04:54:41.1406206Z [36;1m  npm install --no-package-lock --no-audit --no-fund 2>&1 | tee -a .github/latest-build-log.txt[0m
+2026-07-23T04:54:41.1406669Z [36;1melse[0m
+2026-07-23T04:54:41.1407077Z [36;1m  echo "No package.json; dependency installation skipped." | tee -a .github/latest-build-log.txt[0m
+2026-07-23T04:54:41.1407537Z [36;1mfi[0m
+2026-07-23T04:54:41.1407921Z [36;1mpython -m pip install --disable-pip-version-check -r scripts/requirements.txt 2>&1 \[0m
+2026-07-23T04:54:41.1408391Z [36;1m  | tee -a .github/latest-build-log.txt[0m
+2026-07-23T04:54:41.1469954Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-07-23T04:54:41.1470301Z env:
+2026-07-23T04:54:41.1470578Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:54:41.1471029Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
+2026-07-23T04:54:41.1471449Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:54:41.1471831Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:54:41.1472200Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:54:41.1472577Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
+2026-07-23T04:54:41.1472889Z ##[endgroup]
+2026-07-23T04:55:06.5085809Z 
+2026-07-23T04:55:06.5086797Z added 212 packages in 25s
+2026-07-23T04:55:06.5100788Z npm warn allow-scripts 4 packages have install scripts not yet covered by allowScripts:
+2026-07-23T04:55:06.5102243Z npm warn allow-scripts   esbuild@0.28.1 (postinstall: node install.js)
+2026-07-23T04:55:06.5103887Z npm warn allow-scripts   core-js-pure@3.49.0 (postinstall: node -e "try{require('./postinstall')}catch(e){}")
+2026-07-23T04:55:06.5105616Z npm warn allow-scripts   workerd@1.20260708.1 (postinstall: node install.js)
+2026-07-23T04:55:06.5106911Z npm warn allow-scripts   sharp@0.34.5 (install: node install/check.js || npm run build)
+2026-07-23T04:55:06.5107741Z npm warn allow-scripts
+2026-07-23T04:55:06.5108949Z npm warn allow-scripts Run `npm approve-scripts --allow-scripts-pending` to review, or `npm approve-scripts <pkg>` to allow.
+2026-07-23T04:55:08.3411656Z Collecting PyYAML<7,>=6.0.2 (from -r scripts/requirements.txt (line 1))
+2026-07-23T04:55:08.4263364Z   Downloading pyyaml-6.0.3-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.4 kB)
+2026-07-23T04:55:08.4521572Z Collecting beautifulsoup4<5,>=4.15.0 (from -r scripts/requirements.txt (line 2))
+2026-07-23T04:55:08.4681017Z   Downloading beautifulsoup4-4.15.0-py3-none-any.whl.metadata (3.8 kB)
+2026-07-23T04:55:08.4931879Z Collecting markdownify<2,>=1.2.3 (from -r scripts/requirements.txt (line 3))
+2026-07-23T04:55:08.5086922Z   Downloading markdownify-1.2.3-py3-none-any.whl.metadata (9.9 kB)
+2026-07-23T04:55:08.5359932Z Collecting soupsieve>=1.6.1 (from beautifulsoup4<5,>=4.15.0->-r scripts/requirements.txt (line 2))
+2026-07-23T04:55:08.5511655Z   Downloading soupsieve-2.9.1-py3-none-any.whl.metadata (4.6 kB)
+2026-07-23T04:55:08.5769486Z Collecting typing-extensions>=4.0.0 (from beautifulsoup4<5,>=4.15.0->-r scripts/requirements.txt (line 2))
+2026-07-23T04:55:08.5925330Z   Downloading typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
+2026-07-23T04:55:08.6148589Z Collecting six<2,>=1.15 (from markdownify<2,>=1.2.3->-r scripts/requirements.txt (line 3))
+2026-07-23T04:55:08.6315372Z   Downloading six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
+2026-07-23T04:55:08.6529003Z Downloading pyyaml-6.0.3-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (801 kB)
+2026-07-23T04:55:08.8163753Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 801.6/801.6 kB 4.5 MB/s  0:00:00
+2026-07-23T04:55:08.8325286Z Downloading beautifulsoup4-4.15.0-py3-none-any.whl (109 kB)
+2026-07-23T04:55:08.8885454Z Downloading markdownify-1.2.3-py3-none-any.whl (15 kB)
+2026-07-23T04:55:08.9333487Z Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
+2026-07-23T04:55:09.1221802Z Downloading soupsieve-2.9.1-py3-none-any.whl (37 kB)
+2026-07-23T04:55:09.1715149Z Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+2026-07-23T04:55:09.3781042Z Installing collected packages: typing-extensions, soupsieve, six, PyYAML, beautifulsoup4, markdownify
+2026-07-23T04:55:09.5897672Z 
+2026-07-23T04:55:09.5916220Z Successfully installed PyYAML-6.0.3 beautifulsoup4-4.15.0 markdownify-1.2.3 six-1.17.0 soupsieve-2.9.1 typing-extensions-4.16.0
+2026-07-23T04:55:09.6449910Z ##[group]Run node scripts/run-ci-with-log.mjs
+2026-07-23T04:55:09.6450271Z [36;1mnode scripts/run-ci-with-log.mjs[0m
+2026-07-23T04:55:09.6620731Z shell: /usr/bin/bash -e {0}
+2026-07-23T04:55:09.6621102Z env:
+2026-07-23T04:55:09.6621502Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:55:09.6622190Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
+2026-07-23T04:55:09.6622865Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:55:09.6623462Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:55:09.6624274Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:55:09.6624876Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
+2026-07-23T04:55:09.6625370Z ##[endgroup]
+2026-07-23T04:55:09.7380956Z 
+2026-07-23T04:55:09.7381672Z ## Project CI
+2026-07-23T04:55:09.7383398Z command=npm run project:ci
+2026-07-23T04:55:09.7386485Z started_at=2026-07-23T04:55:09.738Z
+2026-07-23T04:55:09.7387098Z 
+2026-07-23T04:55:09.8422093Z 
+2026-07-23T04:55:09.8426118Z > prompt-web@0.9.0 project:ci
+2026-07-23T04:55:09.8427810Z > npm run typecheck && npm run db:migrate:local && npm run content:validate && npm run content:build && npm run content:test && npm test && npm run worker:dry-run
+2026-07-23T04:55:09.8428973Z 
+2026-07-23T04:55:09.9645801Z 
+2026-07-23T04:55:09.9648785Z > prompt-web@0.9.0 typecheck
+2026-07-23T04:55:09.9649610Z > tsc --noEmit
+2026-07-23T04:55:09.9650033Z 
+2026-07-23T04:55:12.2204624Z 
+2026-07-23T04:55:12.2205656Z > prompt-web@0.9.0 db:migrate:local
+2026-07-23T04:55:12.2207015Z > wrangler d1 migrations apply DB --local
+2026-07-23T04:55:12.2224508Z 
+2026-07-23T04:55:13.2083483Z 
+2026-07-23T04:55:13.2093258Z  ⛅️ wrangler 4.109.0
+2026-07-23T04:55:13.2094467Z ────────────────────
+2026-07-23T04:55:13.2095085Z Resource location: local 
+2026-07-23T04:55:13.2095519Z 
+2026-07-23T04:55:13.2095980Z Use --remote if you want to access the remote instance.
+2026-07-23T04:55:13.2096540Z 
+2026-07-23T04:55:13.9574851Z Migrations to be applied:
+2026-07-23T04:55:13.9639939Z ┌───────────────────────────────────────────────┐
+2026-07-23T04:55:13.9644184Z │ name                                          │
+2026-07-23T04:55:13.9664889Z ├───────────────────────────────────────────────┤
+2026-07-23T04:55:13.9667502Z │ 0001_create_prompts.sql                       │
+2026-07-23T04:55:13.9675063Z ├───────────────────────────────────────────────┤
+2026-07-23T04:55:13.9676323Z │ 0002_create_project_file_tree.sql             │
+2026-07-23T04:55:13.9679860Z ├───────────────────────────────────────────────┤
+2026-07-23T04:55:13.9682044Z │ 0003_create_content_sync.sql                  │
+2026-07-23T04:55:13.9683252Z ├───────────────────────────────────────────────┤
+2026-07-23T04:55:13.9686633Z │ 0004_optimize_content_sync.sql                │
+2026-07-23T04:55:13.9687520Z ├───────────────────────────────────────────────┤
+2026-07-23T04:55:13.9688342Z │ 0005_create_ai_search_storage.sql             │
+2026-07-23T04:55:13.9689251Z ├───────────────────────────────────────────────┤
+2026-07-23T04:55:13.9690106Z │ 0006_preserve_ai_search_terminal_failures.sql │
+2026-07-23T04:55:13.9690975Z ├───────────────────────────────────────────────┤
+2026-07-23T04:55:13.9691812Z │ 0006_requeue_legacy_ai_search_jobs.sql        │
+2026-07-23T04:55:13.9692690Z ├───────────────────────────────────────────────┤
+2026-07-23T04:55:13.9693535Z │ 0007_retry_legacy_ai_search_timeouts.sql      │
+2026-07-23T04:55:13.9694603Z ├───────────────────────────────────────────────┤
+2026-07-23T04:55:13.9695813Z │ 0008_retry_legacy_ai_search_transients.sql    │
+2026-07-23T04:55:13.9705901Z └───────────────────────────────────────────────┘
+2026-07-23T04:55:13.9706833Z ? About to apply 9 migration(s)
+2026-07-23T04:55:13.9707949Z Your database may not be available to serve requests during the migration, continue?
+2026-07-23T04:55:13.9708936Z 🤖 Using fallback value in non-interactive context: yes
+2026-07-23T04:55:13.9710470Z 🌀 Executing on local database DB (00000000-0000-0000-0000-000000000000) from .wrangler/state/v3/d1:
+2026-07-23T04:55:13.9711711Z 🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+2026-07-23T04:55:14.2406324Z 🚣 12 commands executed successfully.
+2026-07-23T04:55:14.2420945Z ┌───────────────────────────────────────────────┬────────┐
+2026-07-23T04:55:14.2423477Z │ name                                          │ status │
+2026-07-23T04:55:14.2424758Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:14.2425690Z │ 0001_create_prompts.sql                       │ ✅     │
+2026-07-23T04:55:14.2426684Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:14.2427628Z │ 0002_create_project_file_tree.sql             │ 🕒️    │
+2026-07-23T04:55:14.2428549Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:14.2429394Z │ 0003_create_content_sync.sql                  │ 🕒️    │
+2026-07-23T04:55:14.2430323Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:14.2435282Z │ 0004_optimize_content_sync.sql                │ 🕒️    │
+2026-07-23T04:55:14.2436741Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:14.2437706Z │ 0005_create_ai_search_storage.sql             │ 🕒️    │
+2026-07-23T04:55:14.2438673Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:14.2439635Z │ 0006_preserve_ai_search_terminal_failures.sql │ 🕒️    │
+2026-07-23T04:55:14.2440597Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:14.2442152Z │ 0006_requeue_legacy_ai_search_jobs.sql        │ 🕒️    │
+2026-07-23T04:55:14.2443285Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:14.2444613Z │ 0007_retry_legacy_ai_search_timeouts.sql      │ 🕒️    │
+2026-07-23T04:55:14.2445636Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:14.2446689Z │ 0008_retry_legacy_ai_search_transients.sql    │ 🕒️    │
+2026-07-23T04:55:14.2447981Z └───────────────────────────────────────────────┴────────┘
+2026-07-23T04:55:14.2449321Z 🌀 Executing on local database DB (00000000-0000-0000-0000-000000000000) from .wrangler/state/v3/d1:
+2026-07-23T04:55:14.2450713Z 🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+2026-07-23T04:55:14.5724744Z 🚣 29 commands executed successfully.
+2026-07-23T04:55:14.5745057Z ┌───────────────────────────────────────────────┬────────┐
+2026-07-23T04:55:14.5748176Z │ name                                          │ status │
+2026-07-23T04:55:14.5749254Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:14.5763266Z │ 0001_create_prompts.sql                       │ ✅     │
+2026-07-23T04:55:14.5764439Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:14.5765195Z │ 0002_create_project_file_tree.sql             │ ✅     │
+2026-07-23T04:55:14.5765957Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:14.5766715Z │ 0003_create_content_sync.sql                  │ 🕒️    │
+2026-07-23T04:55:14.5767459Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:14.5768151Z │ 0004_optimize_content_sync.sql                │ 🕒️    │
+2026-07-23T04:55:14.5768886Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:14.5769569Z │ 0005_create_ai_search_storage.sql             │ 🕒️    │
+2026-07-23T04:55:14.5770034Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:14.5770473Z │ 0006_preserve_ai_search_terminal_failures.sql │ 🕒️    │
+2026-07-23T04:55:14.5770978Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:14.5771398Z │ 0006_requeue_legacy_ai_search_jobs.sql        │ 🕒️    │
+2026-07-23T04:55:14.5771843Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:14.5772257Z │ 0007_retry_legacy_ai_search_timeouts.sql      │ 🕒️    │
+2026-07-23T04:55:14.5772715Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:14.5773175Z │ 0008_retry_legacy_ai_search_transients.sql    │ 🕒️    │
+2026-07-23T04:55:14.5773632Z └───────────────────────────────────────────────┴────────┘
+2026-07-23T04:55:14.5774716Z 🌀 Executing on local database DB (00000000-0000-0000-0000-000000000000) from .wrangler/state/v3/d1:
+2026-07-23T04:55:14.5775740Z 🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+2026-07-23T04:55:14.8331383Z 🚣 7 commands executed successfully.
+2026-07-23T04:55:14.8351832Z ┌───────────────────────────────────────────────┬────────┐
+2026-07-23T04:55:14.8355068Z │ name                                          │ status │
+2026-07-23T04:55:14.8356175Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:14.8357061Z │ 0001_create_prompts.sql                       │ ✅     │
+2026-07-23T04:55:14.8370707Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:14.8372179Z │ 0002_create_project_file_tree.sql             │ ✅     │
+2026-07-23T04:55:14.8375496Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:14.8377635Z │ 0003_create_content_sync.sql                  │ ✅     │
+2026-07-23T04:55:14.8378929Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:14.8379900Z │ 0004_optimize_content_sync.sql                │ 🕒️    │
+2026-07-23T04:55:14.8380873Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:14.8381796Z │ 0005_create_ai_search_storage.sql             │ 🕒️    │
+2026-07-23T04:55:14.8382761Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:14.8384342Z │ 0006_preserve_ai_search_terminal_failures.sql │ 🕒️    │
+2026-07-23T04:55:14.8386510Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:14.8387442Z │ 0006_requeue_legacy_ai_search_jobs.sql        │ 🕒️    │
+2026-07-23T04:55:14.8388364Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:14.8389249Z │ 0007_retry_legacy_ai_search_timeouts.sql      │ 🕒️    │
+2026-07-23T04:55:14.8390231Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:14.8391115Z │ 0008_retry_legacy_ai_search_transients.sql    │ 🕒️    │
+2026-07-23T04:55:14.8392060Z └───────────────────────────────────────────────┴────────┘
+2026-07-23T04:55:14.8393273Z 🌀 Executing on local database DB (00000000-0000-0000-0000-000000000000) from .wrangler/state/v3/d1:
+2026-07-23T04:55:14.8396216Z 🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+2026-07-23T04:55:15.1172120Z 🚣 10 commands executed successfully.
+2026-07-23T04:55:15.1182329Z ┌───────────────────────────────────────────────┬────────┐
+2026-07-23T04:55:15.1196299Z │ name                                          │ status │
+2026-07-23T04:55:15.1201043Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:15.1211286Z │ 0001_create_prompts.sql                       │ ✅     │
+2026-07-23T04:55:15.1212595Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:15.1213949Z │ 0002_create_project_file_tree.sql             │ ✅     │
+2026-07-23T04:55:15.1221560Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:15.1222577Z │ 0003_create_content_sync.sql                  │ ✅     │
+2026-07-23T04:55:15.1223641Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:15.1224885Z │ 0004_optimize_content_sync.sql                │ ✅     │
+2026-07-23T04:55:15.1225927Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:15.1226918Z │ 0005_create_ai_search_storage.sql             │ 🕒️    │
+2026-07-23T04:55:15.1228030Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:15.1229070Z │ 0006_preserve_ai_search_terminal_failures.sql │ 🕒️    │
+2026-07-23T04:55:15.1230083Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:15.1231025Z │ 0006_requeue_legacy_ai_search_jobs.sql        │ 🕒️    │
+2026-07-23T04:55:15.1232051Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:15.1232993Z │ 0007_retry_legacy_ai_search_timeouts.sql      │ 🕒️    │
+2026-07-23T04:55:15.1233961Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:15.1235286Z │ 0008_retry_legacy_ai_search_transients.sql    │ 🕒️    │
+2026-07-23T04:55:15.1236265Z └───────────────────────────────────────────────┴────────┘
+2026-07-23T04:55:15.1237625Z 🌀 Executing on local database DB (00000000-0000-0000-0000-000000000000) from .wrangler/state/v3/d1:
+2026-07-23T04:55:15.1239098Z 🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+2026-07-23T04:55:15.4255386Z 🚣 17 commands executed successfully.
+2026-07-23T04:55:15.4277598Z ┌───────────────────────────────────────────────┬────────┐
+2026-07-23T04:55:15.4299334Z │ name                                          │ status │
+2026-07-23T04:55:15.4305500Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:15.4307926Z │ 0001_create_prompts.sql                       │ ✅     │
+2026-07-23T04:55:15.4309200Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:15.4310163Z │ 0002_create_project_file_tree.sql             │ ✅     │
+2026-07-23T04:55:15.4312227Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:15.4313148Z │ 0003_create_content_sync.sql                  │ ✅     │
+2026-07-23T04:55:15.4314370Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:15.4315298Z │ 0004_optimize_content_sync.sql                │ ✅     │
+2026-07-23T04:55:15.4316656Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:15.4317552Z │ 0005_create_ai_search_storage.sql             │ ✅     │
+2026-07-23T04:55:15.4321217Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:15.4322235Z │ 0006_preserve_ai_search_terminal_failures.sql │ 🕒️    │
+2026-07-23T04:55:15.4323212Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:15.4324602Z │ 0006_requeue_legacy_ai_search_jobs.sql        │ 🕒️    │
+2026-07-23T04:55:15.4325578Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:15.4326487Z │ 0007_retry_legacy_ai_search_timeouts.sql      │ 🕒️    │
+2026-07-23T04:55:15.4327443Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:15.4328333Z │ 0008_retry_legacy_ai_search_transients.sql    │ 🕒️    │
+2026-07-23T04:55:15.4329256Z └───────────────────────────────────────────────┴────────┘
+2026-07-23T04:55:15.4330426Z 🌀 Executing on local database DB (00000000-0000-0000-0000-000000000000) from .wrangler/state/v3/d1:
+2026-07-23T04:55:15.4331888Z 🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+2026-07-23T04:55:15.6799868Z 🚣 5 commands executed successfully.
+2026-07-23T04:55:15.6810085Z ┌───────────────────────────────────────────────┬────────┐
+2026-07-23T04:55:15.6825265Z │ name                                          │ status │
+2026-07-23T04:55:15.6830945Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:15.6833582Z │ 0001_create_prompts.sql                       │ ✅     │
+2026-07-23T04:55:15.6835015Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:15.6835931Z │ 0002_create_project_file_tree.sql             │ ✅     │
+2026-07-23T04:55:15.6838355Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:15.6850684Z │ 0003_create_content_sync.sql                  │ ✅     │
+2026-07-23T04:55:15.6851695Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:15.6852736Z │ 0004_optimize_content_sync.sql                │ ✅     │
+2026-07-23T04:55:15.6853634Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:15.6856931Z │ 0005_create_ai_search_storage.sql             │ ✅     │
+2026-07-23T04:55:15.6861018Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:15.6869832Z │ 0006_preserve_ai_search_terminal_failures.sql │ ✅     │
+2026-07-23T04:55:15.6871078Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:15.6871991Z │ 0006_requeue_legacy_ai_search_jobs.sql        │ 🕒️    │
+2026-07-23T04:55:15.6896385Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:15.6905069Z │ 0007_retry_legacy_ai_search_timeouts.sql      │ 🕒️    │
+2026-07-23T04:55:15.6905950Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:15.6906864Z │ 0008_retry_legacy_ai_search_transients.sql    │ 🕒️    │
+2026-07-23T04:55:15.6908673Z └───────────────────────────────────────────────┴────────┘
+2026-07-23T04:55:15.6910022Z 🌀 Executing on local database DB (00000000-0000-0000-0000-000000000000) from .wrangler/state/v3/d1:
+2026-07-23T04:55:15.6911376Z 🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+2026-07-23T04:55:15.9265632Z 🚣 2 commands executed successfully.
+2026-07-23T04:55:15.9276475Z ┌───────────────────────────────────────────────┬────────┐
+2026-07-23T04:55:15.9277289Z │ name                                          │ status │
+2026-07-23T04:55:15.9279606Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:15.9281695Z │ 0001_create_prompts.sql                       │ ✅     │
+2026-07-23T04:55:15.9282685Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:15.9283516Z │ 0002_create_project_file_tree.sql             │ ✅     │
+2026-07-23T04:55:15.9285550Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:15.9286438Z │ 0003_create_content_sync.sql                  │ ✅     │
+2026-07-23T04:55:15.9287398Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:15.9288250Z │ 0004_optimize_content_sync.sql                │ ✅     │
+2026-07-23T04:55:15.9292024Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:15.9294453Z │ 0005_create_ai_search_storage.sql             │ ✅     │
+2026-07-23T04:55:15.9304659Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:15.9306359Z │ 0006_preserve_ai_search_terminal_failures.sql │ ✅     │
+2026-07-23T04:55:15.9307254Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:15.9308021Z │ 0006_requeue_legacy_ai_search_jobs.sql        │ ✅     │
+2026-07-23T04:55:15.9308785Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:15.9309544Z │ 0007_retry_legacy_ai_search_timeouts.sql      │ 🕒️    │
+2026-07-23T04:55:15.9310337Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:15.9311066Z │ 0008_retry_legacy_ai_search_transients.sql    │ 🕒️    │
+2026-07-23T04:55:15.9312103Z └───────────────────────────────────────────────┴────────┘
+2026-07-23T04:55:15.9313230Z 🌀 Executing on local database DB (00000000-0000-0000-0000-000000000000) from .wrangler/state/v3/d1:
+2026-07-23T04:55:15.9314758Z 🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+2026-07-23T04:55:16.1637209Z 🚣 2 commands executed successfully.
+2026-07-23T04:55:16.1648980Z ┌───────────────────────────────────────────────┬────────┐
+2026-07-23T04:55:16.1662238Z │ name                                          │ status │
+2026-07-23T04:55:16.1663228Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:16.1664197Z │ 0001_create_prompts.sql                       │ ✅     │
+2026-07-23T04:55:16.1665092Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:16.1670926Z │ 0002_create_project_file_tree.sql             │ ✅     │
+2026-07-23T04:55:16.1672019Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:16.1673085Z │ 0003_create_content_sync.sql                  │ ✅     │
+2026-07-23T04:55:16.1674459Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:16.1675407Z │ 0004_optimize_content_sync.sql                │ ✅     │
+2026-07-23T04:55:16.1676352Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:16.1680740Z │ 0005_create_ai_search_storage.sql             │ ✅     │
+2026-07-23T04:55:16.1682014Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:16.1683524Z │ 0006_preserve_ai_search_terminal_failures.sql │ ✅     │
+2026-07-23T04:55:16.1684950Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:16.1685966Z │ 0006_requeue_legacy_ai_search_jobs.sql        │ ✅     │
+2026-07-23T04:55:16.1688014Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:16.1688968Z │ 0007_retry_legacy_ai_search_timeouts.sql      │ ✅     │
+2026-07-23T04:55:16.1689964Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:16.1691319Z │ 0008_retry_legacy_ai_search_transients.sql    │ 🕒️    │
+2026-07-23T04:55:16.1692275Z └───────────────────────────────────────────────┴────────┘
+2026-07-23T04:55:16.1693594Z 🌀 Executing on local database DB (00000000-0000-0000-0000-000000000000) from .wrangler/state/v3/d1:
+2026-07-23T04:55:16.1695290Z 🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+2026-07-23T04:55:16.4017805Z 🚣 2 commands executed successfully.
+2026-07-23T04:55:16.4044780Z ┌───────────────────────────────────────────────┬────────┐
+2026-07-23T04:55:16.4045618Z │ name                                          │ status │
+2026-07-23T04:55:16.4046353Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:16.4047045Z │ 0001_create_prompts.sql                       │ ✅     │
+2026-07-23T04:55:16.4047746Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:16.4048416Z │ 0002_create_project_file_tree.sql             │ ✅     │
+2026-07-23T04:55:16.4049160Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:16.4049838Z │ 0003_create_content_sync.sql                  │ ✅     │
+2026-07-23T04:55:16.4050591Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:16.4051507Z │ 0004_optimize_content_sync.sql                │ ✅     │
+2026-07-23T04:55:16.4063110Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:16.4089540Z │ 0005_create_ai_search_storage.sql             │ ✅     │
+2026-07-23T04:55:16.4098426Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:16.4110482Z │ 0006_preserve_ai_search_terminal_failures.sql │ ✅     │
+2026-07-23T04:55:16.4111628Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:16.4112626Z │ 0006_requeue_legacy_ai_search_jobs.sql        │ ✅     │
+2026-07-23T04:55:16.4113452Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:16.4114493Z │ 0007_retry_legacy_ai_search_timeouts.sql      │ ✅     │
+2026-07-23T04:55:16.4115452Z ├───────────────────────────────────────────────┼────────┤
+2026-07-23T04:55:16.4116201Z │ 0008_retry_legacy_ai_search_transients.sql    │ ✅     │
+2026-07-23T04:55:16.4116967Z └───────────────────────────────────────────────┴────────┘
+2026-07-23T04:55:16.5719973Z 
+2026-07-23T04:55:16.5735488Z > prompt-web@0.9.0 content:validate
+2026-07-23T04:55:16.5745532Z > python -m scripts.cli validate
+2026-07-23T04:55:16.5749901Z 
+2026-07-23T04:55:17.0315667Z Content validation succeeded: projects=4 folders=39 files=348 manifest=sha256:78a7f1039495407a5253176edfb390e7954cf58689e861202789108a3718802e
+2026-07-23T04:55:17.1488571Z 
+2026-07-23T04:55:17.1489530Z > prompt-web@0.9.0 content:build
+2026-07-23T04:55:17.1490381Z > python -m scripts.cli build
+2026-07-23T04:55:17.1490867Z 
+2026-07-23T04:55:17.6508682Z Wrote /home/runner/work/prompt-web/prompt-web/.prompt-sync/manifest.json: projects=4 folders=39 files=348 manifest=sha256:78a7f1039495407a5253176edfb390e7954cf58689e861202789108a3718802e
+2026-07-23T04:55:17.7698450Z 
+2026-07-23T04:55:17.7705794Z > prompt-web@0.9.0 content:test
+2026-07-23T04:55:17.7706784Z > python -m unittest discover -s scripts/tests -p "test_*.py"
+2026-07-23T04:55:17.7707474Z 
+2026-07-23T04:55:18.4702759Z ..................
+2026-07-23T04:55:18.4704712Z ----------------------------------------------------------------------
+2026-07-23T04:55:18.4705502Z Ran 18 tests in 0.070s
+2026-07-23T04:55:18.4706032Z 
+2026-07-23T04:55:18.4706293Z OK
+2026-07-23T04:55:18.6054722Z 
+2026-07-23T04:55:18.6055536Z > prompt-web@0.9.0 test
+2026-07-23T04:55:18.6057544Z > npm run test:run-state && npm run test:viewer && npm run test:ai-safe-json && npm run test:cloudflare-ai-search && npm run test:ai-search-storage && npm run test:mcp-contracts && npm run test:content-sync && npm run test:deploy-workflow
+2026-07-23T04:55:18.6058914Z 
+2026-07-23T04:55:18.7065056Z 
+2026-07-23T04:55:18.7075434Z > prompt-web@0.9.0 test:run-state
+2026-07-23T04:55:18.7076275Z > node scripts/test-run-state.mjs
+2026-07-23T04:55:18.7076840Z 
+2026-07-23T04:55:19.8679719Z Run-state self test passed.
+2026-07-23T04:55:19.9814812Z 
+2026-07-23T04:55:19.9825410Z > prompt-web@0.9.0 test:viewer
+2026-07-23T04:55:19.9826049Z > node scripts/test-markdown-viewer.mjs
+2026-07-23T04:55:19.9826271Z 
+2026-07-23T04:55:20.0176030Z Markdown viewer URL tests passed.
+2026-07-23T04:55:20.1235490Z 
+2026-07-23T04:55:20.1236727Z > prompt-web@0.9.0 test:ai-safe-json
+2026-07-23T04:55:20.1237814Z > node --experimental-strip-types scripts/test-ai-safe-json.mjs
+2026-07-23T04:55:20.1238419Z 
+2026-07-23T04:55:20.2053240Z AI-safe JSON serialization tests passed
+2026-07-23T04:55:20.3264629Z 
+2026-07-23T04:55:20.3273603Z > prompt-web@0.9.0 test:cloudflare-ai-search
+2026-07-23T04:55:20.3274983Z > node --experimental-strip-types scripts/test-cloudflare-ai-search.mjs
+2026-07-23T04:55:20.3275719Z 
+2026-07-23T04:55:20.4068283Z Cloudflare AI Search API tests passed
+2026-07-23T04:55:20.5309081Z 
+2026-07-23T04:55:20.5315232Z > prompt-web@0.9.0 test:ai-search-storage
+2026-07-23T04:55:20.5335062Z > node --experimental-strip-types scripts/test-ai-search-storage.mjs
+2026-07-23T04:55:20.5342510Z 
+2026-07-23T04:55:20.6255488Z AI Search storage tests passed
+2026-07-23T04:55:20.7553701Z 
+2026-07-23T04:55:20.7554843Z > prompt-web@0.9.0 test:mcp-contracts
+2026-07-23T04:55:20.7555732Z > node scripts/test-mcp-contracts.mjs
+2026-07-23T04:55:20.7556337Z 
+2026-07-23T04:55:20.7910006Z MCP structured output contract tests passed.
+2026-07-23T04:55:20.9014242Z 
+2026-07-23T04:55:20.9016668Z > prompt-web@0.9.0 test:content-sync
+2026-07-23T04:55:20.9017586Z > node scripts/test-content-sync-planning.mjs
+2026-07-23T04:55:20.9018151Z 
+2026-07-23T04:55:21.3010023Z content sync planning tests passed
+2026-07-23T04:55:21.4174713Z 
+2026-07-23T04:55:21.4185845Z > prompt-web@0.9.0 test:deploy-workflow
+2026-07-23T04:55:21.4186880Z > node scripts/test-deploy-workflow.mjs
+2026-07-23T04:55:21.4187440Z 
+2026-07-23T04:55:21.4677383Z deployment and production verification workflow contract tests passed
+2026-07-23T04:55:21.5834274Z 
+2026-07-23T04:55:21.5836942Z > prompt-web@0.9.0 worker:dry-run
+2026-07-23T04:55:21.5838040Z > wrangler deploy --dry-run --outdir .wrangler/dry-run
+2026-07-23T04:55:21.5838650Z 
+2026-07-23T04:55:22.4624437Z 
+2026-07-23T04:55:22.4705347Z  ⛅️ wrangler 4.109.0 (update available 4.113.0)
+2026-07-23T04:55:22.4764826Z ───────────────────────────────────────────────
+2026-07-23T04:55:22.4880787Z 
+2026-07-23T04:55:22.4883370Z Cloudflare collects anonymous telemetry about your usage of Wrangler. Learn more at https://github.com/cloudflare/workers-sdk/tree/main/packages/wrangler/telemetry.md
+2026-07-23T04:55:23.0272573Z ✨ Read 4 files from the assets directory /home/runner/work/prompt-web/prompt-web/public
+2026-07-23T04:55:23.0951813Z Total Upload: 2261.15 KiB / gzip: 412.46 KiB
+2026-07-23T04:55:23.1037650Z Your Worker has access to the following bindings:
+2026-07-23T04:55:23.1045836Z Binding                                                      Resource                  
+2026-07-23T04:55:23.1052162Z env.PROMPT_KV (00000000000000000000000000000000)             KV Namespace              
+2026-07-23T04:55:23.1053419Z env.DB (prompt-web-db)                                       D1 Database               
+2026-07-23T04:55:23.1055924Z env.PROMPT_AI_SEARCH (prompt-projects)                       AI Search Namespace       
+2026-07-23T04:55:23.1057079Z env.ASSETS                                                   Assets                    
+2026-07-23T04:55:23.1058158Z env.ENVIRONMENT ("development")                              Environment Variable      
+2026-07-23T04:55:23.1065056Z 
+2026-07-23T04:55:23.1066019Z --dry-run: exiting now.
+2026-07-23T04:55:23.1705997Z 
+2026-07-23T04:55:23.1707434Z finished_at=2026-07-23T04:55:23.170Z
+2026-07-23T04:55:23.1707917Z exit_code=0
+2026-07-23T04:55:23.1844355Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-23T04:55:23.1845671Z ##[group]Run actions/upload-artifact@v4
+2026-07-23T04:55:23.1845948Z with:
+2026-07-23T04:55:23.1846161Z   name: prompt-web-build-29980737158
+2026-07-23T04:55:23.1846520Z   path: .github/latest-build-log.txt
 .prompt-sync/manifest.json
 
-2026-07-23T04:54:22.0085539Z   if-no-files-found: error
-2026-07-23T04:54:22.0085772Z   retention-days: 14
-2026-07-23T04:54:22.0085987Z   compression-level: 6
-2026-07-23T04:54:22.0086201Z   overwrite: false
-2026-07-23T04:54:22.0086724Z   include-hidden-files: false
-2026-07-23T04:54:22.0087031Z env:
-2026-07-23T04:54:22.0087293Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:54:22.0087760Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
-2026-07-23T04:54:22.0088204Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:54:22.0088580Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:54:22.0088962Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:54:22.0089348Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
-2026-07-23T04:54:22.0089670Z ##[endgroup]
-2026-07-23T04:54:22.1823263Z (node:2877) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-2026-07-23T04:54:22.1825023Z (Use `node --trace-deprecation ...` to show where the warning was created)
-2026-07-23T04:54:22.1932756Z Multiple search paths detected. Calculating the least common ancestor of all paths
-2026-07-23T04:54:22.1979320Z The least common ancestor is /home/runner/work/prompt-web/prompt-web. This will be the root directory of the artifact
-2026-07-23T04:54:22.1982009Z With the provided path, there will be 2 files uploaded
-2026-07-23T04:54:22.1984316Z Artifact name is valid!
-2026-07-23T04:54:22.1984781Z Root directory input is valid!
-2026-07-23T04:54:22.3693192Z Beginning upload of artifact content to blob storage
-2026-07-23T04:54:22.4725114Z (node:2877) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
-2026-07-23T04:54:22.7593658Z Uploaded bytes 599621
-2026-07-23T04:54:22.8018447Z Finished uploading artifact content to blob storage!
-2026-07-23T04:54:22.8031287Z SHA256 digest of uploaded artifact zip is ba9515eedce2ba2fca0ce93a78c7d19cdc705fa2376e19d3b04468cfac181084
-2026-07-23T04:54:22.8032570Z Finalizing artifact upload
-2026-07-23T04:54:22.9754928Z Artifact prompt-web-build-29980698441.zip successfully finalized. Artifact ID 8553069998
-2026-07-23T04:54:22.9757061Z Artifact prompt-web-build-29980698441 has been successfully uploaded! Final size is 599621 bytes. Artifact ID is 8553069998
-2026-07-23T04:54:22.9764635Z Artifact download URL: https://github.com/ActiveInsighter/prompt-web/actions/runs/29980698441/artifacts/8553069998
-2026-07-23T04:54:22.9905328Z ##[group]Run node scripts/record-run-state.mjs finish
-2026-07-23T04:54:22.9905726Z [36;1mnode scripts/record-run-state.mjs finish[0m
-2026-07-23T04:54:22.9965445Z shell: /usr/bin/bash -e {0}
-2026-07-23T04:54:22.9965694Z env:
-2026-07-23T04:54:22.9965958Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:54:22.9966544Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
-2026-07-23T04:54:22.9966978Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:54:22.9967367Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:54:22.9967769Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:54:22.9968154Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
-2026-07-23T04:54:22.9968490Z   CI_OUTCOME: success
-2026-07-23T04:54:22.9968704Z   ARTIFACT_OUTCOME: success
-2026-07-23T04:54:22.9968926Z ##[endgroup]
-2026-07-23T04:54:23.0427033Z Recorded run 29980698441: success; retained 10 run id(s).
-2026-07-23T04:54:23.0499073Z ##[group]Run node scripts/git-commit-state.mjs "Record workflow finish [skip ci]"
-2026-07-23T04:54:23.0499710Z [36;1mnode scripts/git-commit-state.mjs "Record workflow finish [skip ci]"[0m
-2026-07-23T04:54:23.0560301Z shell: /usr/bin/bash -e {0}
-2026-07-23T04:54:23.0560552Z env:
-2026-07-23T04:54:23.0560818Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:54:23.0561273Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
-2026-07-23T04:54:23.0561703Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:54:23.0562080Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:54:23.0562472Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:54:23.0562856Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
-2026-07-23T04:54:23.0563174Z ##[endgroup]
-2026-07-23T04:54:23.1139620Z [main 0199ca8] Record workflow finish [skip ci]
-2026-07-23T04:54:23.1140649Z  3 files changed, 17 insertions(+), 17 deletions(-)
-2026-07-23T04:54:24.0380508Z To https://github.com/ActiveInsighter/prompt-web
-2026-07-23T04:54:24.0381439Z    27ebc07..0199ca8  HEAD -> main
-2026-07-23T04:54:24.0484260Z ##[group]Run {
-2026-07-23T04:54:24.0484507Z [36;1m{[0m
-2026-07-23T04:54:24.0484705Z [36;1m  echo "## Prompt Web CI"[0m
-2026-07-23T04:54:24.0484953Z [36;1m  echo[0m
-2026-07-23T04:54:24.0485180Z [36;1m  echo "- Run ID: \`$GITHUB_RUN_ID\`"[0m
-2026-07-23T04:54:24.0485489Z [36;1m  echo "- Commit: \`$GITHUB_SHA\`"[0m
-2026-07-23T04:54:24.0485795Z [36;1m  echo "- Project checks: \`success\`"[0m
-2026-07-23T04:54:24.0486096Z [36;1m  echo "- Build artifact: \`success\`"[0m
-2026-07-23T04:54:24.0486378Z [36;1m} >> "$GITHUB_STEP_SUMMARY"[0m
-2026-07-23T04:54:24.0547557Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
-2026-07-23T04:54:24.0547902Z env:
-2026-07-23T04:54:24.0548166Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:54:24.0548622Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
-2026-07-23T04:54:24.0549080Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:54:24.0549500Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:54:24.0549877Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:54:24.0550248Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
-2026-07-23T04:54:24.0550568Z ##[endgroup]
-2026-07-23T04:54:24.0668208Z ##[group]Run [[ "$CI_OUTCOME" == "success" && "$ARTIFACT_OUTCOME" == "success" ]]
-2026-07-23T04:54:24.0668761Z [36;1m[[ "$CI_OUTCOME" == "success" && "$ARTIFACT_OUTCOME" == "success" ]][0m
-2026-07-23T04:54:24.0721539Z shell: /usr/bin/bash -e {0}
-2026-07-23T04:54:24.0721790Z env:
-2026-07-23T04:54:24.0722057Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:54:24.0722501Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
-2026-07-23T04:54:24.0722941Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:54:24.0723316Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:54:24.0723867Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
-2026-07-23T04:54:24.0724270Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
-2026-07-23T04:54:24.0724591Z   CI_OUTCOME: success
-2026-07-23T04:54:24.0724808Z   ARTIFACT_OUTCOME: success
-2026-07-23T04:54:24.0725029Z ##[endgroup]
-2026-07-23T04:54:24.0871600Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
-2026-07-23T04:54:24.0872831Z Post job cleanup.
-2026-07-23T04:54:24.2127021Z (node:2926) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-2026-07-23T04:54:24.2128815Z (Use `node --trace-deprecation ...` to show where the warning was created)
-2026-07-23T04:54:24.2356162Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
-2026-07-23T04:54:24.2358719Z Post job cleanup.
-2026-07-23T04:54:24.4064804Z (node:2934) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-2026-07-23T04:54:24.4066758Z (Use `node --trace-deprecation ...` to show where the warning was created)
-2026-07-23T04:54:24.4315213Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
-2026-07-23T04:54:24.4317668Z Post job cleanup.
-2026-07-23T04:54:24.5469596Z [command]/usr/bin/git version
-2026-07-23T04:54:24.5627093Z git version 2.54.0
-2026-07-23T04:54:24.5788173Z Temporarily overriding HOME='/home/runner/work/_temp/0574509a-22df-4a24-ad8b-4297f016c7ea' before making global git config changes
-2026-07-23T04:54:24.5827556Z Adding repository directory to the temporary git global config as a safe directory
-2026-07-23T04:54:24.5829164Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/prompt-web/prompt-web
-2026-07-23T04:54:24.5907584Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-2026-07-23T04:54:24.5988839Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-2026-07-23T04:54:24.6706333Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-2026-07-23T04:54:24.6767319Z http.https://github.com/.extraheader
-2026-07-23T04:54:24.6827478Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-2026-07-23T04:54:24.6938710Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-2026-07-23T04:54:24.7565845Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-2026-07-23T04:54:24.7628063Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-2026-07-23T04:54:24.8163164Z Cleaning up orphan processes
-2026-07-23T04:54:24.8363722Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/setup-python@v5, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-23T04:55:23.1846901Z   if-no-files-found: error
+2026-07-23T04:55:23.1847134Z   retention-days: 14
+2026-07-23T04:55:23.1847347Z   compression-level: 6
+2026-07-23T04:55:23.1847558Z   overwrite: false
+2026-07-23T04:55:23.1847769Z   include-hidden-files: false
+2026-07-23T04:55:23.1847998Z env:
+2026-07-23T04:55:23.1848247Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:55:23.1848686Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
+2026-07-23T04:55:23.1849099Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:55:23.1849469Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:55:23.1849838Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:55:23.1850193Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
+2026-07-23T04:55:23.1850508Z ##[endgroup]
+2026-07-23T04:55:23.3560645Z (node:2889) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-07-23T04:55:23.3562256Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-07-23T04:55:23.3653456Z Multiple search paths detected. Calculating the least common ancestor of all paths
+2026-07-23T04:55:23.3656494Z The least common ancestor is /home/runner/work/prompt-web/prompt-web. This will be the root directory of the artifact
+2026-07-23T04:55:23.3684886Z With the provided path, there will be 2 files uploaded
+2026-07-23T04:55:23.3714721Z Artifact name is valid!
+2026-07-23T04:55:23.3729663Z Root directory input is valid!
+2026-07-23T04:55:23.5705618Z Beginning upload of artifact content to blob storage
+2026-07-23T04:55:23.6677161Z (node:2889) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-07-23T04:55:23.9755280Z Uploaded bytes 599620
+2026-07-23T04:55:24.0179976Z Finished uploading artifact content to blob storage!
+2026-07-23T04:55:24.0181456Z SHA256 digest of uploaded artifact zip is 9d8867a70e3180b7dbdd20c047fb9d5b4a4dbe8258e588a7a10c637adb37b97b
+2026-07-23T04:55:24.0182600Z Finalizing artifact upload
+2026-07-23T04:55:24.2430908Z Artifact prompt-web-build-29980737158.zip successfully finalized. Artifact ID 8553085014
+2026-07-23T04:55:24.2432646Z Artifact prompt-web-build-29980737158 has been successfully uploaded! Final size is 599620 bytes. Artifact ID is 8553085014
+2026-07-23T04:55:24.2439193Z Artifact download URL: https://github.com/ActiveInsighter/prompt-web/actions/runs/29980737158/artifacts/8553085014
+2026-07-23T04:55:24.2590435Z ##[group]Run node scripts/record-run-state.mjs finish
+2026-07-23T04:55:24.2590847Z [36;1mnode scripts/record-run-state.mjs finish[0m
+2026-07-23T04:55:24.2654289Z shell: /usr/bin/bash -e {0}
+2026-07-23T04:55:24.2654560Z env:
+2026-07-23T04:55:24.2654838Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:55:24.2655301Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
+2026-07-23T04:55:24.2655723Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:55:24.2656103Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:55:24.2656477Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:55:24.2656848Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
+2026-07-23T04:55:24.2657171Z   CI_OUTCOME: success
+2026-07-23T04:55:24.2657408Z   ARTIFACT_OUTCOME: success
+2026-07-23T04:55:24.2657651Z ##[endgroup]
+2026-07-23T04:55:24.3136971Z Recorded run 29980737158: success; retained 10 run id(s).
+2026-07-23T04:55:24.3211668Z ##[group]Run node scripts/git-commit-state.mjs "Record workflow finish [skip ci]"
+2026-07-23T04:55:24.3212253Z [36;1mnode scripts/git-commit-state.mjs "Record workflow finish [skip ci]"[0m
+2026-07-23T04:55:24.3275196Z shell: /usr/bin/bash -e {0}
+2026-07-23T04:55:24.3275473Z env:
+2026-07-23T04:55:24.3275760Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:55:24.3276226Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
+2026-07-23T04:55:24.3276673Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:55:24.3277066Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:55:24.3277446Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:55:24.3277828Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
+2026-07-23T04:55:24.3278156Z ##[endgroup]
+2026-07-23T04:55:24.3858532Z [main d445d00] Record workflow finish [skip ci]
+2026-07-23T04:55:24.3859102Z  3 files changed, 35 insertions(+), 19 deletions(-)
+2026-07-23T04:55:24.6740327Z To https://github.com/ActiveInsighter/prompt-web
+2026-07-23T04:55:24.6741503Z  ! [rejected]        HEAD -> main (fetch first)
+2026-07-23T04:55:24.6742622Z error: failed to push some refs to 'https://github.com/ActiveInsighter/prompt-web'
+2026-07-23T04:55:24.6752337Z hint: Updates were rejected because the remote contains work that you do not
+2026-07-23T04:55:24.6753516Z hint: have locally. This is usually caused by another repository pushing to
+2026-07-23T04:55:24.6754937Z hint: the same ref. If you want to integrate the remote changes, use
+2026-07-23T04:55:24.6764927Z hint: 'git pull' before pushing again.
+2026-07-23T04:55:24.6765976Z hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+2026-07-23T04:55:24.6775687Z Push attempt 1 failed; rebasing onto origin/main.
+2026-07-23T04:55:25.1169644Z From https://github.com/ActiveInsighter/prompt-web
+2026-07-23T04:55:25.1170661Z  * branch            main       -> FETCH_HEAD
+2026-07-23T04:55:25.1171771Z    673b736..844d807  main       -> origin/main
+2026-07-23T04:55:25.1371176Z Rebasing (1/1)
+2026-07-23T04:55:25.1371977Z Successfully rebased and updated refs/heads/main.
+2026-07-23T04:55:26.1300598Z To https://github.com/ActiveInsighter/prompt-web
+2026-07-23T04:55:26.1301541Z    844d807..5821e6c  HEAD -> main
+2026-07-23T04:55:26.1420268Z ##[group]Run {
+2026-07-23T04:55:26.1420523Z [36;1m{[0m
+2026-07-23T04:55:26.1420750Z [36;1m  echo "## Prompt Web CI"[0m
+2026-07-23T04:55:26.1421011Z [36;1m  echo[0m
+2026-07-23T04:55:26.1421254Z [36;1m  echo "- Run ID: \`$GITHUB_RUN_ID\`"[0m
+2026-07-23T04:55:26.1421580Z [36;1m  echo "- Commit: \`$GITHUB_SHA\`"[0m
+2026-07-23T04:55:26.1421887Z [36;1m  echo "- Project checks: \`success\`"[0m
+2026-07-23T04:55:26.1422218Z [36;1m  echo "- Build artifact: \`success\`"[0m
+2026-07-23T04:55:26.1422574Z [36;1m} >> "$GITHUB_STEP_SUMMARY"[0m
+2026-07-23T04:55:26.1486857Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-07-23T04:55:26.1487236Z env:
+2026-07-23T04:55:26.1487517Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:55:26.1487962Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
+2026-07-23T04:55:26.1488389Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:55:26.1488804Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:55:26.1489194Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:55:26.1489576Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
+2026-07-23T04:55:26.1489902Z ##[endgroup]
+2026-07-23T04:55:26.1612155Z ##[group]Run [[ "$CI_OUTCOME" == "success" && "$ARTIFACT_OUTCOME" == "success" ]]
+2026-07-23T04:55:26.1612665Z [36;1m[[ "$CI_OUTCOME" == "success" && "$ARTIFACT_OUTCOME" == "success" ]][0m
+2026-07-23T04:55:26.1669514Z shell: /usr/bin/bash -e {0}
+2026-07-23T04:55:26.1669775Z env:
+2026-07-23T04:55:26.1670054Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:55:26.1670510Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib/pkgconfig
+2026-07-23T04:55:26.1670940Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:55:26.1671319Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:55:26.1671695Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.14/x64
+2026-07-23T04:55:26.1672072Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.14/x64/lib
+2026-07-23T04:55:26.1672394Z   CI_OUTCOME: success
+2026-07-23T04:55:26.1672630Z   ARTIFACT_OUTCOME: success
+2026-07-23T04:55:26.1672857Z ##[endgroup]
+2026-07-23T04:55:26.1828325Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-23T04:55:26.1829494Z Post job cleanup.
+2026-07-23T04:55:26.3100104Z (node:2955) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-07-23T04:55:26.3101841Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-07-23T04:55:26.3363793Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-23T04:55:26.3366127Z Post job cleanup.
+2026-07-23T04:55:26.4975830Z (node:2963) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-07-23T04:55:26.4995045Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-07-23T04:55:26.5362998Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-23T04:55:26.5365558Z Post job cleanup.
+2026-07-23T04:55:26.6509292Z [command]/usr/bin/git version
+2026-07-23T04:55:26.6614817Z git version 2.54.0
+2026-07-23T04:55:26.6747269Z Temporarily overriding HOME='/home/runner/work/_temp/94e543d0-4abe-4795-ad58-5068d5a7a435' before making global git config changes
+2026-07-23T04:55:26.6782991Z Adding repository directory to the temporary git global config as a safe directory
+2026-07-23T04:55:26.6825064Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/prompt-web/prompt-web
+2026-07-23T04:55:26.6903249Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-07-23T04:55:26.6926934Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-07-23T04:55:26.7592090Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-07-23T04:55:26.7668282Z http.https://github.com/.extraheader
+2026-07-23T04:55:26.7715117Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-07-23T04:55:26.7773629Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-07-23T04:55:26.8334385Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-07-23T04:55:26.8369616Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-07-23T04:55:26.8864389Z Cleaning up orphan processes
+2026-07-23T04:55:26.9107568Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/setup-python@v5, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
 
