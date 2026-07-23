@@ -1,6 +1,7 @@
 import type { Hono } from 'hono';
 import { hasValidBearerToken, resolveAccessContext } from '../auth';
 import { retryFailedAiSearchJobs } from '../services/ai-search-admin-service';
+import { getAiSearchIndexStatus } from '../services/ai-search-indexing-service';
 import {
   AiSearchServiceError,
   searchAiDocuments,
@@ -24,6 +25,10 @@ function jsonResponse(value: unknown, status: JsonStatus = 200): Response {
       'X-Content-Type-Options': 'nosniff',
     },
   });
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 function discoveryResponse(): Response {
@@ -119,6 +124,19 @@ async function handleAiSearch(
 }
 
 export function registerCloudflareAiSearchRoutes(app: PromptApp): void {
+  // The core /health route already computes the full AI Search status but only
+  // exposed its compact counters. Enrich the final response so deployment and
+  // observability clients read the same documents/migration snapshot as the
+  // protected admin endpoint.
+  app.use('/health', async (context, next) => {
+    await next();
+    if (context.res.status !== 200) return;
+    const payload = await context.res.clone().json<unknown>();
+    if (!isRecord(payload)) return;
+    const aiSearch = await getAiSearchIndexStatus(context.env);
+    context.res = jsonResponse({ ...payload, aiSearch });
+  });
+
   app.get('/api/ai-search/info', () => discoveryResponse());
   app.get('/api/ai-search', (context) => handleAiSearch(context.req.raw, context.env));
   app.get('/api/ai-search/:project', (context) =>
