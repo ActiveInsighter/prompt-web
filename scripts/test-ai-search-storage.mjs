@@ -20,9 +20,10 @@ assert.equal(
 );
 assert.equal(buildProjectAiSearchInstanceId('prompt_library'), 'prompt_library');
 assert.match(buildProjectAiSearchInstanceId('Tailwind CSS Docs'), /^[a-z0-9_]+(?:-[a-z0-9_]+)*$/u);
-assert.ok(
-  buildProjectAiSearchInstanceId('a'.repeat(100)).length <= 64,
-  'Cloudflare instance IDs must not exceed 64 characters',
+assert.throws(
+  () => buildProjectAiSearchInstanceId('a'.repeat(65)),
+  /too long for a readable AI Search instance name/u,
+  'long project slugs must fail instead of being silently truncated or given a hash suffix',
 );
 assert.equal(stableAiSearchToken('same'), stableAiSearchToken('same'));
 
