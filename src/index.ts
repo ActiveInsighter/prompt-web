@@ -499,8 +499,8 @@ app.get('/api/admin/ai-search/status', async (context) => {
   const authorizationError = contentSyncAuthorizationError(context);
   if (authorizationError) return authorizationError;
   return context.json(
-  await getAiSearchIndexStatus(withPrimaryDatabaseSession(context.env)),
-);
+    await getAiSearchIndexStatus(withPrimaryDatabaseSession(context.env)),
+  );
 });
 
 app.post('/api/admin/ai-search/process', async (context) => {
