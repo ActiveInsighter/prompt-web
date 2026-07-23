@@ -25,11 +25,11 @@ jobs:
     timeout-minutes: 5
 
     steps:
-      - name: Verify directory, file, search, and indexing endpoints
+      - name: Verify directory, file, lexical search, and built-in AI Search endpoints
         shell: bash
         env:
           BASE_URL: https://prompt.2212148739lbw.workers.dev
-          VERIFY_AI_SEARCH_INDEX: ${{ github.event_name != 'pull_request' }}
+          VERIFY_AI_SEARCH_SERVICE: true
         run: |
           set -euo pipefail
 
@@ -48,21 +48,6 @@ jobs:
               --retry-all-errors \
               --max-time 20 \
               --header 'Accept: application/json' \
-              --output "$output" \
-              "$url"
-          }
-
-          get_text() {
-            local url="$1"
-            local output="$2"
-            curl \
-              --fail \
-              --silent \
-              --show-error \
-              --retry 12 \
-              --retry-delay 3 \
-              --retry-all-errors \
-              --max-time 20 \
               --output "$output" \
               "$url"
           }
@@ -88,27 +73,53 @@ jobs:
             --output "$temp_dir/search-post.json" \
             "$BASE_URL/api/v1/search/"
 
-          if [[ "$VERIFY_AI_SEARCH_INDEX" == "true" ]]; then
+          if [[ "$VERIFY_AI_SEARCH_SERVICE" == "true" ]]; then
             get_json "$BASE_URL/api/files" "$temp_dir/api-root-no-slash.json"
             get_json "$BASE_URL/api/files/" "$temp_dir/api-root-slash.json"
-            get_text "$BASE_URL/ai-index" "$temp_dir/ai-index-root.html"
-            get_text "$BASE_URL/ai-index/" "$temp_dir/ai-index-root-slash.html"
-            get_text "$BASE_URL/ai-index/shadcn-ui-docs" "$temp_dir/ai-index-project.html"
-            get_text "$BASE_URL/ai-index/shadcn-ui-docs/components/progress.md" "$temp_dir/ai-index-file.txt"
-            get_text "$BASE_URL/robots.txt" "$temp_dir/robots.txt"
-            get_text "$BASE_URL/sitemap.xml" "$temp_dir/sitemap.xml"
+            get_json "$BASE_URL/api/ai-search/info" "$temp_dir/ai-search-info.json"
+
+            ai_search_ready=false
+            for attempt in $(seq 1 6); do
+              if get_json \
+                "$BASE_URL/api/ai-search/shadcn-ui-docs?q=progress&limit=5&threshold=0" \
+                "$temp_dir/ai-search.json"; then
+                if AI_SEARCH_FILE="$temp_dir/ai-search.json" node --input-type=module -e '
+                  import { readFileSync } from "node:fs";
+                  const response = JSON.parse(readFileSync(process.env.AI_SEARCH_FILE, "utf8"));
+                  const valid = response.ok !== false &&
+                    Array.isArray(response.results) &&
+                    Number(response.count ?? 0) > 0 &&
+                    response.results.some((item) =>
+                      typeof item.uri === "string" &&
+                      item.uri.startsWith("prompt://shadcn-ui-docs/")
+                    );
+                  process.exit(valid ? 0 : 1);
+                '; then
+                  ai_search_ready=true
+                  break
+                fi
+              fi
+              sleep 2
+            done
+
+            if [[ "$ai_search_ready" != "true" ]]; then
+              echo 'Built-in AI Search did not return a hydrated shadcn-ui-docs result.' >&2
+              if [[ -f "$temp_dir/ai-search.json" ]]; then
+                cat "$temp_dir/ai-search.json" >&2
+                echo >&2
+              fi
+              exit 1
+            fi
           fi
 
           TEMP_DIR="$temp_dir" \
-          VERIFY_AI_SEARCH_INDEX="$VERIFY_AI_SEARCH_INDEX" \
-          BASE_URL="$BASE_URL" \
+          VERIFY_AI_SEARCH_SERVICE="$VERIFY_AI_SEARCH_SERVICE" \
           node --input-type=module <<'NODE'
           import { readFileSync } from 'node:fs';
           import { join } from 'node:path';
 
           const directory = process.env.TEMP_DIR;
           const readJson = (name) => JSON.parse(readFileSync(join(directory, name), 'utf8'));
-          const readText = (name) => readFileSync(join(directory, name), 'utf8');
 
           const projectNoSlash = readJson('project-no-slash.json');
           const projectSlash = readJson('project-slash.json');
@@ -169,15 +180,11 @@ jobs:
             }
           }
 
-          if (process.env.VERIFY_AI_SEARCH_INDEX === 'true') {
+          if (process.env.VERIFY_AI_SEARCH_SERVICE === 'true') {
             const apiRootNoSlash = readJson('api-root-no-slash.json');
             const apiRootSlash = readJson('api-root-slash.json');
-            const aiIndexRoot = readText('ai-index-root.html');
-            const aiIndexRootSlash = readText('ai-index-root-slash.html');
-            const aiIndexProject = readText('ai-index-project.html');
-            const aiIndexFile = readText('ai-index-file.txt');
-            const robots = readText('robots.txt');
-            const sitemap = readText('sitemap.xml');
+            const aiSearchInfo = readJson('ai-search-info.json');
+            const aiSearch = readJson('ai-search.json');
 
             for (const [name, value] of [
               ['API root without slash', apiRootNoSlash],
@@ -188,62 +195,34 @@ jobs:
                 value.type !== 'directory' ||
                 value.path !== '/' ||
                 !Array.isArray(value.entries) ||
-                !value.entries.some((entry) => entry.type === 'project' && entry.slug === 'shadcn-ui-docs')
+                !value.entries.some((entry) => entry.type === 'project' && entry.slug === 'shadcn-ui-docs') ||
+                value.semanticIndex?.engine !== 'cloudflare-ai-search' ||
+                value.semanticIndex?.storage !== 'built-in-items' ||
+                value.semanticIndex?.isolation !== 'project-instance'
               ) {
                 throw new Error(`Invalid ${name} response: ${JSON.stringify(value)}`);
               }
             }
 
-            for (const [name, html] of [
-              ['AI index root without slash', aiIndexRoot],
-              ['AI index root with slash', aiIndexRootSlash],
-            ]) {
-              if (
-                !html.startsWith('<!doctype html>') ||
-                !html.includes(`<link rel="canonical" href="${process.env.BASE_URL}/ai-index">`) ||
-                !html.includes(`href="${process.env.BASE_URL}/ai-index/shadcn-ui-docs"`)
-              ) {
-                throw new Error(`Invalid ${name}: ${html.slice(0, 500)}`);
-              }
+            if (
+              aiSearchInfo.schemaVersion !== '2.0' ||
+              aiSearchInfo.service !== 'cloudflare-ai-search' ||
+              aiSearchInfo.storage !== 'built-in-items' ||
+              aiSearchInfo.isolation !== 'one-instance-per-project' ||
+              aiSearchInfo.endpoints?.oneProject !== '/api/ai-search/<project>?q=<query>'
+            ) {
+              throw new Error(`Invalid built-in AI Search discovery response: ${JSON.stringify(aiSearchInfo)}`);
             }
 
             if (
-              !aiIndexProject.startsWith('<!doctype html>') ||
-              !aiIndexProject.includes(
-                `href="${process.env.BASE_URL}/ai-index/shadcn-ui-docs/components"`,
+              aiSearch.ok === false ||
+              !Array.isArray(aiSearch.results) ||
+              Number(aiSearch.count ?? 0) < 1 ||
+              !aiSearch.results.some((item) =>
+                typeof item.uri === 'string' && item.uri.startsWith('prompt://shadcn-ui-docs/')
               )
             ) {
-              throw new Error(`Invalid AI index project directory: ${aiIndexProject.slice(0, 500)}`);
-            }
-
-            if (
-              !aiIndexFile.includes('\\u003cProgress') ||
-              !aiIndexFile.includes('\\u003cTabsTrigger') ||
-              aiIndexFile.includes('<Progress')
-            ) {
-              throw new Error(`Invalid AI index document response: ${aiIndexFile.slice(0, 500)}`);
-            }
-
-            if (
-              !robots.includes('User-agent: Cloudflare-AI-Search') ||
-              !robots.includes('Allow: /ai-index/') ||
-              !robots.includes('Disallow: /raw/') ||
-              !robots.includes('Disallow: /api/') ||
-              !robots.includes(`Sitemap: ${process.env.BASE_URL}/sitemap.xml`)
-            ) {
-              throw new Error(`Invalid robots.txt: ${robots}`);
-            }
-
-            if (
-              !sitemap.startsWith('<?xml version="1.0" encoding="UTF-8"?>') ||
-              !sitemap.includes(
-                `<loc>${process.env.BASE_URL}/ai-index/shadcn-ui-docs/components/progress.md</loc>`,
-              ) ||
-              sitemap.includes(`<loc>${process.env.BASE_URL}/api/files`) ||
-              sitemap.includes(`<loc>${process.env.BASE_URL}/raw/`) ||
-              !sitemap.includes('<lastmod>')
-            ) {
-              throw new Error('AI Search sitemap is missing required /ai-index URLs or metadata.');
+              throw new Error(`Built-in AI Search returned no hydrated project result: ${JSON.stringify(aiSearch)}`);
             }
           }
 
