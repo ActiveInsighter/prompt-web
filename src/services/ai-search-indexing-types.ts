@@ -12,7 +12,7 @@ export interface ProjectRow {
 export interface ProjectMappingRow {
   project_id: string;
   instance_id: string;
-  previous_instance_id: string | null;
+  replacement_instance_id: string | null;
   status: 'pending' | 'ready' | 'error';
 }
 
@@ -49,6 +49,7 @@ export interface ReconcileProjectRow {
   slug: string;
   config_hash: string;
   mapped_instance_id: string | null;
+  replacement_instance_id: string | null;
   mapping_status: ProjectMappingRow['status'] | null;
 }
 
