@@ -74,11 +74,7 @@ export interface AiSearchIndexStatus {
 
 const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
 const MAX_JOB_ATTEMPTS = 5;
-// uploadAndPoll may legitimately need more than the SDK's 30 second default.
-// Keep the D1 lease longer than the poll timeout so the next cron invocation
-// cannot claim the same file while an upload is still active.
-const UPLOAD_POLL_TIMEOUT_MS = 120_000;
-const JOB_LEASE_SECONDS = 180;
+const JOB_LEASE_SECONDS = 120;
 const DEFAULT_PROCESS_LIMIT = 3;
 const MAX_PROCESS_LIMIT = 10;
 
@@ -448,19 +444,16 @@ async function upsertFile(env: Env, job: AiSearchJobRow): Promise<AiSearchJobRes
   const provisioned = await ensureProjectInstance(env, file.project_id);
   if (!provisioned) return 'skipped';
   const itemKey = buildAiSearchItemKey(file.file_id, file.content_hash, file.format);
-  const uploaded = await provisioned.instance.items.uploadAndPoll(itemKey, file.content, {
-    metadata: {
-      file_id: file.file_id,
-      content_hash: file.content_hash,
-      visibility: file.visibility,
-    },
-    pollIntervalMs: 1000,
-    timeoutMs: UPLOAD_POLL_TIMEOUT_MS,
-  });
-
-  if (uploaded.status !== 'completed' && uploaded.status !== 'skipped') {
-    throw new Error(`AI Search indexing returned ${uploaded.status} for ${file.file_id}.`);
-  }
+  // Queue the document and return immediately. AI Search performs parsing,
+// chunking, and embedding asynchronously, so Worker request duration no
+// longer controls whether the document eventually becomes searchable.
+const uploaded = await provisioned.instance.items.upload(itemKey, file.content, {
+  metadata: {
+    file_id: file.file_id,
+    content_hash: file.content_hash,
+    visibility: file.visibility,
+  },
+});
 
   if (previous?.item_id && previous.item_id !== uploaded.id) {
     await deleteIndexedItem(env.PROMPT_AI_SEARCH.get(previous.instance_id), previous.item_id);
@@ -494,7 +487,7 @@ async function upsertFile(env: Env, job: AiSearchJobRow): Promise<AiSearchJobRes
       uploaded.key || itemKey,
       currentIndexHash,
       file.content_hash,
-      uploaded.chunks_count ?? null,
+      null,
     )
     .run();
   return 'completed';
@@ -641,8 +634,8 @@ export async function processAiSearchJobs(
     skipped: 0,
   };
 
-  // AI Search indexing is mostly upstream waiting time. Run the bounded batch
-  // concurrently so three slow files do not consume up to six minutes serially.
+  // Upload calls only enqueue work upstream, so a small bounded concurrent
+  // batch quickly drains the D1 outbox without exceeding Worker limits.
   await Promise.all(
     candidates.results.map(async (candidate) => {
       const job = await claimJob(env, candidate);
