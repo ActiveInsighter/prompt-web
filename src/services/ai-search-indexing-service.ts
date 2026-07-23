@@ -2,6 +2,7 @@ import type { Env } from '../types';
 
 type AiSearchJobOperation = 'ensure_instance' | 'upsert_file' | 'delete_file';
 type AiSearchJobStatus = 'pending' | 'processing' | 'retry' | 'completed' | 'failed';
+type AiSearchJobResult = 'completed' | 'skipped';
 
 interface ProjectRow {
   id: string;
@@ -73,7 +74,11 @@ export interface AiSearchIndexStatus {
 
 const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
 const MAX_JOB_ATTEMPTS = 5;
-const JOB_LEASE_SECONDS = 120;
+// uploadAndPoll may legitimately need more than the SDK's 30 second default.
+// Keep the D1 lease longer than the poll timeout so the next cron invocation
+// cannot claim the same file while an upload is still active.
+const UPLOAD_POLL_TIMEOUT_MS = 120_000;
+const JOB_LEASE_SECONDS = 180;
 const DEFAULT_PROCESS_LIMIT = 3;
 const MAX_PROCESS_LIMIT = 10;
 
@@ -117,12 +122,13 @@ export function stableAiSearchToken(value: string): string {
 }
 
 export function buildProjectAiSearchInstanceId(projectId: string, slug: string): string {
-  const safeSlug = slug
-    .normalize('NFKC')
-    .toLowerCase()
-    .replace(/[^a-z0-9_]+/gu, '-')
-    .replace(/^-+|-+$/gu, '')
-    .slice(0, 42) || 'project';
+  const safeSlug =
+    slug
+      .normalize('NFKC')
+      .toLowerCase()
+      .replace(/[^a-z0-9_]+/gu, '-')
+      .replace(/^-+|-+$/gu, '')
+      .slice(0, 42) || 'project';
   const suffix = stableAiSearchToken(projectId).slice(0, 12);
   return `p-${safeSlug}-${suffix}`.slice(0, 64).replace(/-+$/gu, '');
 }
@@ -133,12 +139,13 @@ export function buildAiSearchItemKey(
   format: 'markdown' | 'text' | 'json',
 ): string {
   const extension = format === 'markdown' ? 'md' : format === 'json' ? 'json' : 'txt';
-  const safeStem = fileId
-    .normalize('NFKC')
-    .toLowerCase()
-    .replace(/[^a-z0-9_-]+/gu, '-')
-    .replace(/^-+|-+$/gu, '')
-    .slice(0, 36) || 'document';
+  const safeStem =
+    fileId
+      .normalize('NFKC')
+      .toLowerCase()
+      .replace(/[^a-z0-9_-]+/gu, '-')
+      .replace(/^-+|-+$/gu, '')
+      .slice(0, 36) || 'document';
   const fileToken = stableAiSearchToken(fileId).slice(0, 10);
   const revision = contentHash.replace(/^sha256:/u, '').replace(/[^a-f0-9]/giu, '').slice(0, 12);
   return `documents/${safeStem}-${fileToken}-${revision || 'content'}.${extension}`;
@@ -199,10 +206,7 @@ function enqueueUpsertStatement(
   ).bind(`ai-job-${crypto.randomUUID()}`, dedupeKey, projectId, fileId, expectedHash);
 }
 
-function enqueueDeleteStatement(
-  env: Env,
-  item: IndexedItemRow,
-): D1PreparedStatement {
+function enqueueDeleteStatement(env: Env, item: IndexedItemRow): D1PreparedStatement {
   const dedupeKey = `delete:${item.file_id}:${item.item_id}`;
   return env.DB.prepare(
     `INSERT INTO ai_search_jobs(
@@ -227,9 +231,8 @@ function enqueueDeleteStatement(
 }
 
 /**
- * Repairs missing jobs and backfills existing D1 content. It is safe to call on
- * every scheduled run because dedupe keys and indexed revision hashes make it
- * idempotent.
+ * Repairs missing jobs and backfills existing D1 content. Dedupe keys and
+ * indexed revision hashes make this safe to run on every cron invocation.
  */
 export async function reconcileAiSearchJobs(env: Env): Promise<void> {
   const [projects, files, obsoleteItems] = await Promise.all([
@@ -364,7 +367,7 @@ async function ensureProjectInstance(
         ],
       });
     } catch (createError) {
-      // A concurrent worker may have created the deterministic instance after
+      // A concurrent Worker may have created this deterministic instance after
       // the first lookup. Verify once more before treating creation as failed.
       instance = env.PROMPT_AI_SEARCH.get(instanceId);
       try {
@@ -407,10 +410,7 @@ async function loadIndexableFile(env: Env, fileId: string): Promise<IndexableFil
     .first<IndexableFileRow>();
 }
 
-async function deleteIndexedItem(
-  instance: AiSearchInstance,
-  itemId: string,
-): Promise<void> {
+async function deleteIndexedItem(instance: AiSearchInstance, itemId: string): Promise<void> {
   try {
     await instance.items.delete(itemId);
   } catch (error) {
@@ -418,7 +418,7 @@ async function deleteIndexedItem(
   }
 }
 
-async function upsertFile(env: Env, job: AiSearchJobRow): Promise<'completed' | 'skipped'> {
+async function upsertFile(env: Env, job: AiSearchJobRow): Promise<AiSearchJobResult> {
   if (!job.file_id) throw new Error('upsert_file job is missing file_id.');
   const file = await loadIndexableFile(env, job.file_id);
   if (!file) return 'skipped';
@@ -434,10 +434,7 @@ async function upsertFile(env: Env, job: AiSearchJobRow): Promise<'completed' | 
   )
     .bind(file.file_id)
     .first<IndexedItemRow>();
-  if (
-    previous?.index_hash === currentIndexHash &&
-    previous.content_hash === file.content_hash
-  ) {
+  if (previous?.index_hash === currentIndexHash && previous.content_hash === file.content_hash) {
     return 'skipped';
   }
 
@@ -458,20 +455,15 @@ async function upsertFile(env: Env, job: AiSearchJobRow): Promise<'completed' | 
       visibility: file.visibility,
     },
     pollIntervalMs: 1000,
-    timeoutMs: 30_000,
+    timeoutMs: UPLOAD_POLL_TIMEOUT_MS,
   });
 
   if (uploaded.status !== 'completed' && uploaded.status !== 'skipped') {
-    throw new Error(
-      `AI Search indexing returned ${uploaded.status} for ${file.file_id}.`,
-    );
+    throw new Error(`AI Search indexing returned ${uploaded.status} for ${file.file_id}.`);
   }
 
   if (previous?.item_id && previous.item_id !== uploaded.id) {
-    await deleteIndexedItem(
-      env.PROMPT_AI_SEARCH.get(previous.instance_id),
-      previous.item_id,
-    );
+    await deleteIndexedItem(env.PROMPT_AI_SEARCH.get(previous.instance_id), previous.item_id);
   }
 
   await env.DB.prepare(
@@ -508,10 +500,10 @@ async function upsertFile(env: Env, job: AiSearchJobRow): Promise<'completed' | 
   return 'completed';
 }
 
-async function deleteFile(env: Env, job: AiSearchJobRow): Promise<'completed' | 'skipped'> {
+async function deleteFile(env: Env, job: AiSearchJobRow): Promise<AiSearchJobResult> {
   if (!job.file_id) throw new Error('delete_file job is missing file_id.');
   const active = await env.DB.prepare(
-    `SELECT 1 AS active FROM prompt_search_documents WHERE file_id = ? LIMIT 1`,
+    'SELECT 1 AS active FROM prompt_search_documents WHERE file_id = ? LIMIT 1',
   )
     .bind(job.file_id)
     .first<{ active: number }>();
@@ -533,7 +525,7 @@ async function deleteFile(env: Env, job: AiSearchJobRow): Promise<'completed' | 
   return 'completed';
 }
 
-async function runJob(env: Env, job: AiSearchJobRow): Promise<'completed' | 'skipped'> {
+async function runJob(env: Env, job: AiSearchJobRow): Promise<AiSearchJobResult> {
   if (job.operation === 'ensure_instance') {
     return (await ensureProjectInstance(env, job.project_id)) ? 'completed' : 'skipped';
   }
@@ -649,21 +641,25 @@ export async function processAiSearchJobs(
     skipped: 0,
   };
 
-  for (const candidate of candidates.results) {
-    const job = await claimJob(env, candidate);
-    if (!job) continue;
-    summary.claimed += 1;
-    try {
-      const result = await runJob(env, job);
-      await completeJob(env, job.id);
-      if (result === 'skipped') summary.skipped += 1;
-      else summary.completed += 1;
-    } catch (error) {
-      const status = await failJob(env, job, error);
-      if (status === 'retry') summary.retried += 1;
-      else summary.failed += 1;
-    }
-  }
+  // AI Search indexing is mostly upstream waiting time. Run the bounded batch
+  // concurrently so three slow files do not consume up to six minutes serially.
+  await Promise.all(
+    candidates.results.map(async (candidate) => {
+      const job = await claimJob(env, candidate);
+      if (!job) return;
+      summary.claimed += 1;
+      try {
+        const result = await runJob(env, job);
+        await completeJob(env, job.id);
+        if (result === 'skipped') summary.skipped += 1;
+        else summary.completed += 1;
+      } catch (error) {
+        const status = await failJob(env, job, error);
+        if (status === 'retry') summary.retried += 1;
+        else summary.failed += 1;
+      }
+    }),
+  );
   return summary;
 }
 
