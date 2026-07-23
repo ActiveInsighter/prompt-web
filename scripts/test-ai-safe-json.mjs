@@ -80,14 +80,14 @@ assert.equal(serializedAiSearch.includes('diagnostics'), false);
 assert.equal(serializedAiSearch.includes('scoringDetails'), false);
 assert.equal(parsedAiSearch.results[0].text, directMarkdown);
 
-for (const mode of ['hybrid', 'keyword']) {
+for (const mode of ['auto', 'hybrid', 'keyword']) {
   const parsed = JSON.parse(
     serializeAiSafeJson({
       ...aiSearchPayload,
       meta: { ...aiSearchPayload.meta, mode },
     }),
   );
-  assert.equal(parsed.meta.mode, mode, `Resolved ${mode} mode must be preserved.`);
+  assert.equal(parsed.meta.mode, mode, `Requested ${mode} mode must be preserved.`);
 }
 
 assert.throws(() => serializeAiSafeJson(undefined), /not JSON serializable/i);
