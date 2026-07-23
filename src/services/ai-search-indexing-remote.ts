@@ -40,10 +40,9 @@ export async function setProjectMappingError(
 ): Promise<void> {
   await env.DB.prepare(
     `INSERT INTO ai_search_projects(
-       project_id, instance_id, previous_instance_id, status, last_error, updated_at
+       project_id, instance_id, replacement_instance_id, status, last_error, updated_at
      ) VALUES (?, ?, NULL, 'error', ?, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
      ON CONFLICT(project_id) DO UPDATE SET
-       instance_id = excluded.instance_id,
        status = 'error',
        last_error = excluded.last_error,
        updated_at = excluded.updated_at`,
@@ -60,7 +59,7 @@ export async function ensureProjectInstance(
   if (!project) return null;
 
   const existing = await env.DB.prepare(
-    `SELECT project_id, instance_id, previous_instance_id, status
+    `SELECT project_id, instance_id, replacement_instance_id, status
      FROM ai_search_projects
      WHERE project_id = ?
      LIMIT 1`,
@@ -68,30 +67,35 @@ export async function ensureProjectInstance(
     .bind(projectId)
     .first<ProjectMappingRow>();
   const instanceId = buildProjectAiSearchInstanceId(project.slug);
-  const previousInstanceId =
-    existing && existing.instance_id !== instanceId
-      ? existing.previous_instance_id ?? existing.instance_id
-      : existing?.previous_instance_id ?? null;
+  const replacingActiveInstance = Boolean(existing && existing.instance_id !== instanceId);
 
-  if (existing) {
+  if (existing && replacingActiveInstance) {
+    // Keep the legacy instance active for search until every Item in the
+    // readable replacement has completed remotely.
     await env.DB.prepare(
       `UPDATE ai_search_projects
-       SET instance_id = ?,
-           previous_instance_id = ?,
-           status = CASE
-             WHEN instance_id = ? AND status = 'ready' THEN 'ready'
-             ELSE 'pending'
-           END,
+       SET replacement_instance_id = ?,
            last_error = NULL,
            updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
        WHERE project_id = ?`,
     )
-      .bind(instanceId, previousInstanceId, instanceId, projectId)
+      .bind(instanceId, projectId)
+      .run();
+  } else if (existing) {
+    await env.DB.prepare(
+      `UPDATE ai_search_projects
+       SET replacement_instance_id = NULL,
+           status = CASE WHEN status = 'ready' THEN 'ready' ELSE 'pending' END,
+           last_error = NULL,
+           updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+       WHERE project_id = ?`,
+    )
+      .bind(projectId)
       .run();
   } else {
     await env.DB.prepare(
       `INSERT INTO ai_search_projects(
-         project_id, instance_id, previous_instance_id, status, updated_at
+         project_id, instance_id, replacement_instance_id, status, updated_at
        ) VALUES (?, ?, NULL, 'pending', strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))`,
     )
       .bind(projectId, instanceId)
@@ -117,21 +121,47 @@ export async function ensureProjectInstance(
       try {
         await instance.info();
       } catch {
-        await setProjectMappingError(env, projectId, instanceId, createError);
+        if (replacingActiveInstance && existing?.status === 'ready') {
+          await env.DB.prepare(
+            `UPDATE ai_search_projects
+             SET replacement_instance_id = ?,
+                 last_error = ?,
+                 updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+             WHERE project_id = ?`,
+          )
+            .bind(instanceId, errorMessage(createError).slice(0, 4000), projectId)
+            .run();
+        } else {
+          await setProjectMappingError(env, projectId, instanceId, createError);
+        }
         throw createError instanceof Error ? createError : lookupError;
       }
     }
   }
 
-  await env.DB.prepare(
-    `UPDATE ai_search_projects
-     SET status = 'ready',
-         last_error = NULL,
-         updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
-     WHERE project_id = ? AND instance_id = ?`,
-  )
-    .bind(projectId, instanceId)
-    .run();
+  if (replacingActiveInstance) {
+    await env.DB.prepare(
+      `UPDATE ai_search_projects
+       SET replacement_instance_id = ?,
+           last_error = NULL,
+           updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+       WHERE project_id = ?`,
+    )
+      .bind(instanceId, projectId)
+      .run();
+  } else {
+    await env.DB.prepare(
+      `UPDATE ai_search_projects
+       SET instance_id = ?,
+           replacement_instance_id = NULL,
+           status = 'ready',
+           last_error = NULL,
+           updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+       WHERE project_id = ?`,
+    )
+      .bind(instanceId, projectId)
+      .run();
+  }
   return { instanceId, instance };
 }
 
@@ -408,21 +438,21 @@ export async function verifyPendingRemoteItems(
 
 export async function cleanupLegacyProjectInstances(env: Env, limit: number): Promise<number> {
   const migrations = await env.DB.prepare(
-    `SELECT project_id, instance_id, previous_instance_id
+    `SELECT project_id, instance_id, replacement_instance_id
      FROM ai_search_projects
-     WHERE previous_instance_id IS NOT NULL
+     WHERE replacement_instance_id IS NOT NULL
      ORDER BY updated_at ASC
      LIMIT ?`,
   )
     .bind(limit)
-    .all<{ project_id: string; instance_id: string; previous_instance_id: string }>();
+    .all<{ project_id: string; instance_id: string; replacement_instance_id: string }>();
 
   let cleaned = 0;
   for (const migration of migrations.results) {
-    if (migration.previous_instance_id === migration.instance_id) {
+    if (migration.replacement_instance_id === migration.instance_id) {
       await env.DB.prepare(
         `UPDATE ai_search_projects
-         SET previous_instance_id = NULL,
+         SET replacement_instance_id = NULL,
              updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
          WHERE project_id = ?`,
       )
@@ -442,7 +472,7 @@ export async function cleanupLegacyProjectInstances(env: Env, limit: number): Pr
            item.status <> 'indexed'
          )`,
     )
-      .bind(migration.project_id, migration.instance_id)
+      .bind(migration.project_id, migration.replacement_instance_id)
       .first<{ count: number | string }>();
     const activeJobs = await env.DB.prepare(
       `SELECT COUNT(*) AS count
@@ -456,17 +486,22 @@ export async function cleanupLegacyProjectInstances(env: Env, limit: number): Pr
     if (Number(incomplete?.count ?? 0) > 0 || Number(activeJobs?.count ?? 0) > 0) continue;
 
     try {
-      await env.PROMPT_AI_SEARCH.delete(migration.previous_instance_id);
+      await env.PROMPT_AI_SEARCH.delete(migration.instance_id);
     } catch (error) {
       if (!isNotFoundError(error)) throw error;
     }
     await env.DB.prepare(
       `UPDATE ai_search_projects
-       SET previous_instance_id = NULL,
+       SET instance_id = replacement_instance_id,
+           replacement_instance_id = NULL,
+           status = 'ready',
+           last_error = NULL,
            updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
-       WHERE project_id = ? AND previous_instance_id = ?`,
+       WHERE project_id = ?
+         AND instance_id = ?
+         AND replacement_instance_id = ?`,
     )
-      .bind(migration.project_id, migration.previous_instance_id)
+      .bind(migration.project_id, migration.instance_id, migration.replacement_instance_id)
       .run();
     cleaned += 1;
   }
