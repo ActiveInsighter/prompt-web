@@ -4,9 +4,12 @@ on:
   push:
     branches:
       - fix/readable-ai-search-layout
+    paths-ignore:
+      - '.github/readable-ai-search-ci-result.json'
+      - '.github/readable-ai-search-ci.log'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -32,4 +35,33 @@ jobs:
           python -m pip install --disable-pip-version-check -r scripts/requirements.txt
 
       - name: Run project checks
-        run: npm run project:ci
+        id: checks
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run project:ci 2>&1 | tee .github/readable-ai-search-ci.log
+
+      - name: Persist result
+        if: always()
+        shell: bash
+        env:
+          CHECK_OUTCOME: ${{ steps.checks.outcome }}
+        run: |
+          node --input-type=module - <<'NODE'
+          import { writeFileSync } from 'node:fs';
+          writeFileSync('.github/readable-ai-search-ci-result.json', `${JSON.stringify({
+            run_id: process.env.GITHUB_RUN_ID,
+            commit: process.env.GITHUB_SHA,
+            outcome: process.env.CHECK_OUTCOME,
+          }, null, 2)}\n`);
+          NODE
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add .github/readable-ai-search-ci-result.json .github/readable-ai-search-ci.log
+          git commit -m 'record readable AI Search CI result [skip ci]' || exit 0
+          git push
+
+      - name: Fail when checks fail
+        if: steps.checks.outcome != 'success'
+        run: exit 1
