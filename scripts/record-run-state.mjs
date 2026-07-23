@@ -8,6 +8,7 @@ const latestPath = path.join(stateDir, 'latest-run.json');
 const historyPath = path.join(stateDir, 'build-history.json');
 const latestIdPath = path.join(stateDir, 'latest-run-id.txt');
 const latestUrlPath = path.join(stateDir, 'latest-run-url.txt');
+const recentIdsPath = path.join(stateDir, 'recent-run-ids.txt');
 const buildLogPath = '.github/latest-build-log.txt';
 const actionsLogPath = '.github/latest-actions-log.txt';
 
@@ -106,10 +107,15 @@ if (action === 'start') {
 
 latest = record;
 history = upsert(history, record);
+const recentRunIds = history
+  .map((item) => String(item.run_id ?? ''))
+  .filter(Boolean)
+  .slice(0, 10);
 
 await fs.writeFile(latestPath, `${JSON.stringify(latest, null, 2)}\n`, 'utf8');
 await fs.writeFile(historyPath, `${JSON.stringify(history, null, 2)}\n`, 'utf8');
 await fs.writeFile(latestIdPath, `${latest.run_id}\n`, 'utf8');
 await fs.writeFile(latestUrlPath, `${latest.run_url}\n`, 'utf8');
+await fs.writeFile(recentIdsPath, `${recentRunIds.join('\n')}\n`, 'utf8');
 
-console.log(`Recorded run ${latest.run_id}: ${latest.status}`);
+console.log(`Recorded run ${latest.run_id}: ${latest.status}; retained ${recentRunIds.length} run id(s).`);

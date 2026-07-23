@@ -39,7 +39,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
           TARGET_RUN_ID: ${{ github.event.workflow_run.id }}
-        run: node scripts/get-latest-run.mjs --run-id "$TARGET_RUN_ID" --logs --write
+        run: node scripts/get-latest-run.mjs --run-id "$TARGET_RUN_ID" --limit 10 --logs --write
 
       - name: Prepare dedicated deployment state files
         shell: bash
@@ -63,11 +63,16 @@ jobs:
             'updated_at'
           ];
           const deployment = Object.fromEntries(keys.map((key) => [key, source[key] ?? null]));
+          deployment.recent_run_ids_file = '.github/recent-deploy-run-ids.txt';
           deployment.actions_log_file = '.github/latest-deploy-actions-log.txt';
           await fs.writeFile(
             '.github/latest-deploy-run.json',
             `${JSON.stringify(deployment, null, 2)}\n`,
             'utf8'
+          );
+          await fs.copyFile(
+            '.github/recent-run-ids.txt',
+            '.github/recent-deploy-run-ids.txt'
           );
           await fs.copyFile(
             '.github/latest-actions-log.txt',
@@ -78,6 +83,7 @@ jobs:
           git restore -- \
             .github/latest-run-id.txt \
             .github/latest-run-url.txt \
+            .github/recent-run-ids.txt \
             .github/latest-run.json \
             .github/latest-actions-log.txt
 
@@ -88,6 +94,7 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -- \
             .github/latest-deploy-run.json \
+            .github/recent-deploy-run-ids.txt \
             .github/latest-deploy-actions-log.txt
 
           if git diff --cached --quiet; then

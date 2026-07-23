@@ -51,4 +51,20 @@ assert.equal(history.length, 10);
 assert.equal(history[0].run_id, '1013');
 assert.equal(history.at(-1).run_id, '1004');
 
+const recentRunIds = (await fs.readFile(path.join(tempRoot, '.github/recent-run-ids.txt'), 'utf8'))
+  .trim()
+  .split(/\r?\n/);
+assert.deepEqual(recentRunIds, [
+  '1013',
+  '1012',
+  '1011',
+  '1010',
+  '1009',
+  '1008',
+  '1007',
+  '1006',
+  '1005',
+  '1004'
+]);
+
 console.log('Run-state self test passed.');
