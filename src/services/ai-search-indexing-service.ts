@@ -230,11 +230,11 @@ function enqueueDeleteStatement(env: Env, item: IndexedItemRow): D1PreparedState
  * Repairs missing jobs and backfills existing D1 content. Dedupe keys and
  * indexed revision hashes make this safe to run on every cron invocation.
  */
-export async function reconcileAiSearchJobs(env: Env): Promise<void> {
+export async function reconcileAiSearchJobs(env: Env): Promise<number> {
   // Jobs created by the former uploadAndPoll implementation can be left in
-  // terminal failure even though the source file is still current. Reset only
-  // that known timeout class; permanent validation failures remain terminal.
-  await env.DB.prepare(
+  // terminal failure. Reset only timeout failures; validation failures such as
+  // oversized files remain terminal and visible to operators.
+  const recovery = await env.DB.prepare(
     `UPDATE ai_search_jobs
      SET status = 'pending',
          attempts = 0,
@@ -245,12 +245,7 @@ export async function reconcileAiSearchJobs(env: Env): Promise<void> {
          completed_at = NULL
      WHERE operation = 'upsert_file'
        AND status = 'failed'
-       AND last_error LIKE '%aborted due to timeout%'
-       AND EXISTS (
-         SELECT 1
-         FROM prompt_search_documents document
-         WHERE document.file_id = ai_search_jobs.file_id
-       )`,
+       AND instr(lower(COALESCE(last_error, '')), 'timeout') > 0`,
   ).run();
 
   const [projects, files, obsoleteItems] = await Promise.all([
@@ -310,6 +305,7 @@ export async function reconcileAiSearchJobs(env: Env): Promise<void> {
   for (let offset = 0; offset < statements.length; offset += 80) {
     await env.DB.batch(statements.slice(offset, offset + 80));
   }
+  return Number(recovery.meta.changes ?? 0);
 }
 
 async function loadProject(env: Env, projectId: string): Promise<ProjectRow | null> {
