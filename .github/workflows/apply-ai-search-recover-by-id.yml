@@ -1,0 +1,82 @@
+name: Apply AI Search Recovery By ID
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/ai-search-recover-by-id
+          fetch-depth: 0
+
+      - name: Replace SQL text matching with ID recovery
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('src/services/ai-search-indexing-service.ts')
+          lines = path.read_text(encoding='utf-8').splitlines()
+
+          start = next(
+              index for index, line in enumerate(lines)
+              if line.strip() == 'const recovery = await env.DB.prepare('
+          )
+          end = next(
+              index for index in range(start, len(lines))
+              if lines[index].strip() == ').run();'
+          )
+          replacement = [
+              "  const failedUpserts = await env.DB.prepare(",
+              "    `SELECT id, last_error",
+              "     FROM ai_search_jobs",
+              "     WHERE operation = 'upsert_file' AND status = 'failed'`,",
+              "  ).all<{ id: string; last_error: string | null }>();",
+              "  const recoverableTimeoutJobs = failedUpserts.results.filter((job) =>",
+              "    (job.last_error ?? '').toLowerCase().includes('timeout'),",
+              "  );",
+              "  for (let offset = 0; offset < recoverableTimeoutJobs.length; offset += 80) {",
+              "    await env.DB.batch(",
+              "      recoverableTimeoutJobs.slice(offset, offset + 80).map((job) =>",
+              "        env.DB.prepare(",
+              "          `UPDATE ai_search_jobs",
+              "           SET status = 'pending',",
+              "               attempts = 0,",
+              "               next_attempt_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'),",
+              "               lease_expires_at = NULL,",
+              "               last_error = NULL,",
+              "               updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'),",
+              "               completed_at = NULL",
+              "           WHERE id = ? AND status = 'failed'`,",
+              "        ).bind(job.id),",
+              "      ),",
+              "    );",
+              "  }",
+          ]
+          lines[start:end + 1] = replacement
+
+          return_index = next(
+              index for index, line in enumerate(lines)
+              if line.strip() == 'return Number(recovery.meta.changes ?? 0);'
+          )
+          lines[return_index] = '  return recoverableTimeoutJobs.length;'
+
+          path.write_text('\n'.join(lines) + '\n', encoding='utf-8')
+          PY
+
+      - name: Commit source patch
+        run: |
+          rm .github/workflows/apply-ai-search-recover-by-id.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add src/services/ai-search-indexing-service.ts .github/workflows/apply-ai-search-recover-by-id.yml
+          git commit -m "fix: recover AI Search timeout jobs by id"
+          git push origin HEAD:fix/ai-search-recover-by-id
