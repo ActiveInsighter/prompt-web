@@ -6,48 +6,45 @@ import {
   buildAiSearchItemKey,
   buildProjectAiSearchInstanceId,
   stableAiSearchToken,
-} from '../src/services/ai-search-indexing-service.ts';
+} from '../src/services/ai-search-layout.ts';
 
-const firstInstance = buildProjectAiSearchInstanceId(
-  'project:shadcn-ui-docs',
-  'Shadcn UI Docs',
+assert.equal(
+  buildProjectAiSearchInstanceId('shadcn-ui-docs'),
+  'shadcn-ui-docs',
+  'instance names must be the readable project slug without a generated ID suffix',
 );
-const repeatedInstance = buildProjectAiSearchInstanceId(
-  'project:shadcn-ui-docs',
-  'Shadcn UI Docs',
+assert.equal(
+  buildProjectAiSearchInstanceId('Shadcn UI Docs'),
+  'shadcn-ui-docs',
+  'display names must normalize into readable Cloudflare instance names',
 );
-const otherInstance = buildProjectAiSearchInstanceId(
-  'project:zustand-docs',
-  'Shadcn UI Docs',
+assert.equal(buildProjectAiSearchInstanceId('prompt_library'), 'prompt_library');
+assert.match(buildProjectAiSearchInstanceId('Tailwind CSS Docs'), /^[a-z0-9_]+(?:-[a-z0-9_]+)*$/u);
+assert.throws(
+  () => buildProjectAiSearchInstanceId('a'.repeat(65)),
+  /too long for a readable AI Search instance name/u,
+  'long project slugs must fail instead of being silently truncated or given a hash suffix',
 );
-
-assert.equal(firstInstance, repeatedInstance, 'instance IDs must be deterministic');
-assert.notEqual(firstInstance, otherInstance, 'stable project IDs must isolate instances');
-assert.match(firstInstance, /^[a-z0-9_]+(?:-[a-z0-9_]+)*$/u);
-assert.ok(firstInstance.length <= 64, 'Cloudflare instance IDs must not exceed 64 characters');
 assert.equal(stableAiSearchToken('same'), stableAiSearchToken('same'));
 
-const markdownKey = buildAiSearchItemKey(
-  'file:components/button/with/a/path/that/is/far/longer/than/the/item-key-prefix',
-  'sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
-  'markdown',
+assert.equal(
+  buildAiSearchItemKey('/components/progress.md'),
+  'components/progress.md',
+  'AI Search item keys must match the project-relative source path',
 );
-const changedKey = buildAiSearchItemKey(
-  'file:components/button/with/a/path/that/is/far/longer/than/the/item-key-prefix',
-  'sha256:fedcba98765432100123456789abcdef0123456789abcdef0123456789abcdef',
-  'markdown',
+assert.equal(
+  buildAiSearchItemKey('guides\\content-sync.md'),
+  'guides/content-sync.md',
+  'Windows separators must normalize without replacing the readable source name',
 );
-assert.match(markdownKey, /^documents\/[a-z0-9_-]+\.md$/u);
-assert.ok(markdownKey.length <= 128, 'item keys must remain below the platform limit');
-assert.notEqual(markdownKey, changedKey, 'content revisions must receive versioned keys');
-assert.match(
-  buildAiSearchItemKey('json-file', 'sha256:abcdef', 'json'),
-  /\.json$/u,
+assert.equal(
+  buildAiSearchItemKey('/中文目录/使用说明.md'),
+  '中文目录/使用说明.md',
+  'Unicode source names must remain readable',
 );
-assert.match(
-  buildAiSearchItemKey('text-file', 'sha256:abcdef', 'text'),
-  /\.txt$/u,
-);
+assert.equal(buildAiSearchItemKey('/components/./button.md'), 'components/button.md');
+assert.throws(() => buildAiSearchItemKey('../secret.md'), /Invalid source path/u);
+assert.throws(() => buildAiSearchItemKey('/'), /Invalid source path/u);
 
 assert.equal(
   buildAiSearchIndexHash('sha256:file', 'sha256:project'),

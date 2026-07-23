@@ -50,20 +50,66 @@ assert.equal(
   'deployment smoke tests must validate the current service version',
 );
 assert.equal(
-  workflow.includes('/api/admin/ai-search/process?limit=3'),
+  workflow.includes('/api/admin/ai-search/process?limit=10'),
   true,
-  'deployment must prime small bounded batches that finish within one Worker request',
+  'deployment must process a bounded asynchronous upload and verification batch',
 );
 assert.equal(
-  workflow.includes('/api/admin/ai-search/process?limit=10'),
+  workflow.includes('/api/admin/ai-search/process?limit=3'),
   false,
-  'deployment must not wait for ten uploadAndPoll operations in one request',
+  'deployment must use the current migration batch size',
 );
 assert.equal(
   workflow.includes('/api/admin/ai-search/status'),
   true,
-  'deployment must validate the D1 indexing outbox status',
+  'deployment must validate indexing state',
 );
+for (const contract of [
+  'status.documents?.expected',
+  'status.documents?.indexed',
+  'status.documents?.waiting',
+  'status.documents?.error',
+  'status.documents?.missing',
+  'status.migrations?.pendingInstanceCleanup',
+]) {
+  assert.equal(
+    workflow.includes(contract),
+    true,
+    `deployment convergence check must include ${contract}`,
+  );
+}
+assert.equal(
+  workflow.includes('indexed === expected'),
+  true,
+  'deployment must wait for every expected source document',
+);
+assert.equal(
+  workflow.includes('activeJobs === 0'),
+  true,
+  'deployment must wait for the outbox to drain',
+);
+assert.equal(
+  workflow.includes('pendingCleanup === 0'),
+  true,
+  'deployment must wait until legacy hashed instances are removed',
+);
+
+for (const readableContract of [
+  'Verify readable AI Search remote layout',
+  "expected_instances=\"$(jq -c '[.projects[].slug] | sort'",
+  "actual_instances=\"$(jq -c '[.result[].id] | sort'",
+  "(.path | sub(\"^/\"; \"\"))",
+  'items?per_page=50&page=$page',
+  'select(.status != "completed")',
+  'startswith("documents/file-")',
+  'AI Search item total does not match the source manifest',
+]) {
+  assert.equal(
+    workflow.includes(readableContract),
+    true,
+    `deployment must enforce readable remote layout contract: ${readableContract}`,
+  );
+}
 assert.equal(
   workflow.includes('/api/ai-search/info'),
   true,
@@ -72,7 +118,7 @@ assert.equal(
 assert.equal(
   workflow.includes('/api/ai-search?q=documentation&limit=3&threshold=0'),
   true,
-  'deployment must execute a real semantic search after priming the index',
+  'deployment must execute a real semantic search after migration',
 );
 assert.equal(
   workflow.includes('authenticated_json()'),
@@ -82,7 +128,7 @@ assert.equal(
 assert.equal(
   workflow.includes("--write-out '%{http_code}'"),
   true,
-  'protected post-deploy requests must inspect HTTP status without aborting on a transient 401',
+  'protected post-deploy retries must inspect HTTP status without aborting on a transient 401',
 );
 assert.equal(
   workflow.includes('Authenticated request attempt'),
@@ -131,6 +177,7 @@ assert.equal(
 );
 
 assertValidBash('Prime AI Search index');
+assertValidBash('Verify readable AI Search remote layout');
 assertValidBash('Smoke test deployed Worker');
 
 console.log('deployment and production verification workflow contract tests passed');

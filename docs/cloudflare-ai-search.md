@@ -10,15 +10,16 @@ content/
   -> D1 content sync
   -> transactional ai_search_jobs outbox
   -> scheduled Worker processor
-  -> one AI Search instance per project
+  -> one readable AI Search instance per project
   -> Items API upload of prompt_files.content
+  -> remote status verification
 ```
 
 There is no crawler, sitemap, HTML rendering layer, or public indexing tree. Markdown, MDX-like tags, formulas, and code are uploaded from the D1 `content` field without transformation.
 
-## Binding
+## Namespace binding
 
-`wrangler.jsonc` binds one namespace rather than one fixed instance:
+`wrangler.jsonc` binds the Worker to the `prompt-projects` namespace:
 
 ```json
 {
@@ -32,15 +33,36 @@ There is no crawler, sitemap, HTML rendering layer, or public indexing tree. Mar
 }
 ```
 
-The Worker creates deterministic instance IDs at runtime. Project slugs may change without moving the project to another instance because the stable project ID participates in the generated identifier and the final mapping is persisted in D1.
+The instance name is the normalized project slug itself. No database ID or generated hash is appended:
+
+```text
+prompt-library
+shadcn-ui-docs
+tailwindcss-docs
+zustand-docs
+```
+
+The final project-to-instance mapping is persisted in D1. A project slug change therefore creates a readable replacement instance, migrates the project documents, and removes the previous instance only after every replacement document has completed indexing.
+
+## Readable file names
+
+Each AI Search Item key is the source file's project-relative path. No generated file ID, content hash, or revision token appears in the Cloudflare dashboard:
+
+```text
+components/progress.md
+guides/content-sync.md
+learn/guides/testing.md
+```
+
+The source path is normalized to `/` separators and keeps Unicode file and folder names. D1 still stores the immutable internal file ID as metadata so search results can be authorized and hydrated safely.
 
 ## D1 tables
 
-- `ai_search_projects`: stable project-to-instance mapping and provisioning state.
-- `ai_search_items`: active file-to-item mapping, indexed revision, item ID, and error state.
+- `ai_search_projects`: project-to-instance mapping, migration source instance, and provisioning state.
+- `ai_search_items`: active remote item, readable key, verified remote state, and the previous searchable item retained during replacement.
 - `ai_search_jobs`: transactional outbox with leases, attempts, retry time, and terminal state.
 
-Migration `0005_create_ai_search_storage.sql` installs triggers on `content_sync_entries`. A successful content sync therefore commits its indexing intent in the same D1 operation sequence as the source data. Migration `0006_preserve_ai_search_terminal_failures.sql` prevents scheduled reconciliation from silently reactivating the same terminally failed revision.
+Migration `0005_create_ai_search_storage.sql` installs the content-sync outbox. Migration `0006_preserve_ai_search_terminal_failures.sql` preserves terminal failures. Migration `0007_readable_ai_search_layout.sql` adds truthful queued/processing/indexed/error states and safely migrates legacy hashed instances and item keys.
 
 ## Instance and item lifecycle
 
@@ -52,10 +74,10 @@ content_hash
 visibility
 ```
 
-Each file is uploaded with a versioned key and its exact D1 content:
+A file upload uses its readable source path:
 
 ```ts
-await instance.items.uploadAndPoll(itemKey, file.content, {
+const item = await instance.items.upload(file.path, file.content, {
   metadata: {
     file_id: file.id,
     content_hash: file.contentHash,
@@ -64,28 +86,51 @@ await instance.items.uploadAndPoll(itemKey, file.content, {
 });
 ```
 
-Updates follow this order:
+`items.upload()` only queues Cloudflare processing. Prompt Web therefore records the item as `queued`, polls `instance.items.get(item.id).info()`, and marks it `indexed` only when Cloudflare reports `completed`.
 
-1. Upload and finish indexing the new item.
-2. Delete the previous item when its ID differs.
-3. Commit the new active mapping to D1.
+Updates and migrations follow this order:
 
-A failed upload leaves the previous searchable item and mapping intact. Jobs retry with exponential backoff. Documents larger than 4 MiB fail permanently with an explicit job error instead of repeatedly consuming retries.
+1. Keep the currently searchable item or legacy instance intact.
+2. Upload the replacement with the readable source path.
+3. Poll the remote item until it is `completed`.
+4. Commit the verified item mapping to D1.
+5. Delete the superseded item.
+6. Delete the legacy hashed instance after every project document is verified in the readable instance.
+
+Remote `error`, `skipped`, or `outdated` states are recorded and automatically queued for a fresh upload. Documents larger than 4 MiB fail permanently with an explicit job error.
 
 ## Reconciliation
 
-The scheduled handler runs every minute. Before claiming work it reconciles D1 and the outbox:
+The scheduled handler runs every minute. Before claiming work it:
 
-- create jobs for projects without a ready instance;
-- create jobs for missing or stale file revisions;
-- create delete jobs for indexed items whose D1 document no longer exists;
-- reclaim expired processing leases.
+- creates jobs for missing or incorrectly named project instances;
+- creates jobs for missing, stale, failed, or incorrectly named files;
+- checks queued and processing Items against Cloudflare's real status;
+- requeues remote failures;
+- creates delete jobs for documents removed from D1;
+- reclaims expired processing leases;
+- removes a legacy instance only after its readable replacement is complete.
 
-This makes the pipeline self-repairing after deployment interruption and transient Cloudflare errors. Jobs that exhaust their retry budget remain `failed` for their exact dedupe key until an administrator explicitly resets them; a new source revision naturally receives a different key and can proceed independently.
+The administrative status endpoint reports both outbox state and document convergence:
+
+```json
+{
+  "documents": {
+    "expected": 348,
+    "indexed": 348,
+    "waiting": 0,
+    "error": 0,
+    "missing": 0
+  },
+  "migrations": {
+    "pendingInstanceCleanup": 0
+  }
+}
+```
 
 ## Search isolation and permissions
 
-Project-scoped search resolves exactly one mapped instance. All-project search batches accessible instance IDs in groups of at most ten and merges the returned chunks.
+Project-scoped search resolves exactly one mapped instance. All-project search batches accessible instances and merges the returned chunks.
 
 Anonymous requests apply this metadata filter before retrieval:
 
@@ -93,7 +138,7 @@ Anonymous requests apply this metadata filter before retrieval:
 filters: { visibility: "public" }
 ```
 
-Every returned chunk must also contain a known `file_id`. The Worker then reads `prompt_search_documents` using the caller's D1 visibility rules and discards any chunk that cannot be authorized and hydrated. AI Search metadata is never trusted as the source of project, title, path, or URL.
+Every returned chunk must contain a known `file_id`. The Worker then reads `prompt_search_documents` using the caller's D1 visibility rules and discards anything that cannot be authorized and hydrated. AI Search metadata is never trusted as the source of project, title, path, or URL.
 
 ## Public search API
 
@@ -123,14 +168,8 @@ All endpoints require the `CONTENT_SYNC_TOKEN` Bearer token.
 
 ```text
 GET  /api/admin/ai-search/status
-POST /api/admin/ai-search/process?limit=3
+POST /api/admin/ai-search/process?limit=10
 POST /api/admin/ai-search/retry-failed?limit=20
 ```
 
-The status endpoint reports project mappings, item states, job states, and the latest errors. The process endpoint first reconciles and then processes a bounded batch. `retry-failed` is the only application-level path that resets terminal jobs, and moves a bounded oldest-first batch back to `retry`. Normal operation uses the scheduled handler and the post-sync `waitUntil` task.
-
-## Deployment sequence
-
-Production must apply D1 migrations before deploying the Worker code. The existing deployment workflow already follows that order. Migration `0005` seeds jobs for all current active projects and files, so the first scheduled executions backfill the new project instances without changing source content.
-
-The previous fixed `ai-search-prompt` crawler instance is intentionally not deleted by application code. Remove it from the Cloudflare dashboard only after the new project mappings report ready and the expected item counts are indexed.
+The process endpoint reconciles D1, polls remote Items, processes a bounded job batch, and cleans completed legacy migrations. Production deployment must not declare success until every expected document is verified as indexed, no document is waiting/error/missing, no active job remains, and no legacy instance is pending cleanup.
