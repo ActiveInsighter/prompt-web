@@ -16,21 +16,23 @@ jobs:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
-      - name: Inspect namespaces and instances
+      - name: Inspect namespaces, instances, and items
         shell: bash
         run: |
           set -euo pipefail
           api="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/ai-search"
           auth="Authorization: Bearer $CLOUDFLARE_API_TOKEN"
 
-          echo 'NAMESPACES='
-          curl --fail --silent --show-error -H "$auth" "$api/namespaces" | jq -c '{success,result}'
-
-          echo 'PROMPT_PROJECTS_NAMESPACE='
-          curl --fail --silent --show-error -H "$auth" "$api/namespaces/prompt-projects" | jq -c '{success,result}'
-
+          instances="$(curl --fail --silent --show-error -H "$auth" "$api/namespaces/prompt-projects/instances?per_page=100")"
           echo 'PROMPT_PROJECTS_INSTANCES='
-          curl --fail --silent --show-error -H "$auth" "$api/namespaces/prompt-projects/instances?per_page=100" | jq -c '{success,result:[.result[]|{id,status,type,created_at,modified_at}]}'
+          jq -c '{success,result:[.result[]|{id,status,type,created_at,modified_at}]}' <<<"$instances"
 
-          echo 'DEFAULT_INSTANCES='
-          curl --fail --silent --show-error -H "$auth" "$api/namespaces/default/instances?per_page=100" | jq -c '{success,result:[.result[]|{id,status,type,created_at,modified_at}]}'
+          echo 'PROMPT_PROJECTS_ITEM_COUNTS='
+          while IFS= read -r id; do
+            items="$(curl --fail --silent --show-error -H "$auth" "$api/namespaces/prompt-projects/instances/$id/items?per_page=1")"
+            jq -nc \
+              --arg id "$id" \
+              --argjson count "$(jq '.result_info.total_count // (.result | length)' <<<"$items")" \
+              --argjson sample "$(jq '[.result[]? | {id,key,status,chunks_count}]' <<<"$items")" \
+              '{instance_id:$id,item_count:$count,sample:$sample}'
+          done < <(jq -r '.result[].id' <<<"$instances")
