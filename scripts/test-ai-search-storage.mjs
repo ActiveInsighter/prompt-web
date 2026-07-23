@@ -6,7 +6,7 @@ import {
   buildAiSearchItemKey,
   buildProjectAiSearchInstanceId,
   stableAiSearchToken,
-} from '../src/services/ai-search-indexing-service.ts';
+} from '../src/services/ai-search-layout.ts';
 
 assert.equal(
   buildProjectAiSearchInstanceId('shadcn-ui-docs'),
