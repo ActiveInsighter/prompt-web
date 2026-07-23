@@ -1,9 +1,10 @@
 PRAGMA foreign_keys = ON;
 
 -- Project instances are now named directly from the readable project slug.
--- Keep the former hashed instance until every document has completed indexing
--- in the replacement instance, then the Worker deletes it safely.
-ALTER TABLE ai_search_projects ADD COLUMN previous_instance_id TEXT;
+-- During migration `instance_id` remains the active searchable instance and
+-- `replacement_instance_id` points at the readable instance being populated.
+-- The Worker switches the mapping only after every replacement Item completes.
+ALTER TABLE ai_search_projects ADD COLUMN replacement_instance_id TEXT;
 
 DROP TRIGGER IF EXISTS content_sync_entries_ai_file_delete;
 DROP TRIGGER IF EXISTS ai_search_nodes_require_remote_cleanup;
@@ -56,10 +57,10 @@ CREATE INDEX idx_ai_search_items_instance
 CREATE INDEX idx_ai_search_items_verification
   ON ai_search_items (status, checked_at, created_at);
 
--- Existing mappings and items are intentionally rediscovered by the first
--- reconciliation pass after deployment.
+-- Preserve ready legacy mappings so search continues to use them while the
+-- readable replacements are built. Reconciliation detects the name mismatch.
 UPDATE ai_search_projects
-SET status = 'pending',
+SET replacement_instance_id = NULL,
     last_error = NULL,
     updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now');
 
