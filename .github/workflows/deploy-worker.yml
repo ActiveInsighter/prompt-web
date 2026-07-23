@@ -227,6 +227,79 @@ jobs:
             exit 1
           fi
 
+      - name: Verify readable AI Search remote layout
+        shell: bash
+        run: |
+          set -euo pipefail
+          namespace_api="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/ai-search/namespaces/prompt-projects"
+          auth="Authorization: Bearer $CLOUDFLARE_API_TOKEN"
+          manifest=".prompt-sync/manifest.json"
+
+          expected_instances="$(jq -c '[.projects[].slug] | sort' "$manifest")"
+          instances_json="$(curl --fail --silent --show-error \
+            --header "$auth" \
+            "$namespace_api/instances?per_page=100")"
+          actual_instances="$(jq -c '[.result[].id] | sort' <<<"$instances_json")"
+
+          if [[ "$actual_instances" != "$expected_instances" ]]; then
+            echo "AI Search instances do not match project slugs." >&2
+            echo "expected=$expected_instances" >&2
+            echo "actual=$actual_instances" >&2
+            exit 1
+          fi
+
+          expected_total="$(jq '.files | length' "$manifest")"
+          actual_total=0
+
+          while IFS= read -r instance_id; do
+            project_id="$(jq -r --arg slug "$instance_id" '.projects[] | select(.slug == $slug) | .id' "$manifest")"
+            expected_keys="$(jq -c --arg project_id "$project_id" \
+              '[.files[] | select(.projectId == $project_id) | (.path | sub("^/"; ""))] | sort' \
+              "$manifest")"
+
+            all_items='[]'
+            for page in $(seq 1 40); do
+              page_json="$(curl --fail --silent --show-error \
+                --header "$auth" \
+                "$namespace_api/instances/$instance_id/items?per_page=50&page=$page")"
+              batch="$(jq '.result // []' <<<"$page_json")"
+              all_items="$(jq -nc --argjson current "$all_items" --argjson batch "$batch" '$current + $batch')"
+              [[ "$(jq 'length' <<<"$batch")" -lt 50 ]] && break
+            done
+
+            actual_keys="$(jq -c '[.[].key] | sort' <<<"$all_items")"
+            if [[ "$actual_keys" != "$expected_keys" ]]; then
+              echo "AI Search item keys do not match source paths for $instance_id." >&2
+              echo "expected=$expected_keys" >&2
+              echo "actual=$actual_keys" >&2
+              exit 1
+            fi
+
+            incomplete="$(jq '[.[] | select(.status != "completed")] | length' <<<"$all_items")"
+            if [[ "$incomplete" -ne 0 ]]; then
+              echo "AI Search still has non-completed Items in $instance_id:" >&2
+              jq -c '[.[] | select(.status != "completed") | {key,status,id}]' <<<"$all_items" >&2
+              exit 1
+            fi
+
+            generated_names="$(jq '[.[] | select(.key | startswith("documents/file-") or startswith("documents/"))] | length' <<<"$all_items")"
+            if [[ "$generated_names" -ne 0 ]]; then
+              echo "Generated AI Search item names remain in $instance_id." >&2
+              exit 1
+            fi
+
+            item_count="$(jq 'length' <<<"$all_items")"
+            actual_total=$((actual_total + item_count))
+            echo "verified_instance=$instance_id items=$item_count"
+          done < <(jq -r '.projects[].slug' "$manifest" | sort)
+
+          if [[ "$actual_total" -ne "$expected_total" ]]; then
+            echo "AI Search item total does not match the source manifest: expected=$expected_total actual=$actual_total" >&2
+            exit 1
+          fi
+
+          echo "Verified readable AI Search layout: instances=$(jq '.projects | length' "$manifest") items=$actual_total"
+
       - name: Smoke test deployed Worker
         shell: bash
         env:
