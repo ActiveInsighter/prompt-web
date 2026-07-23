@@ -27,11 +27,11 @@ jobs:
           echo 'PROMPT_PROJECTS_REMOTE_STATE='
           while IFS= read -r id; do
             all='[]'
-            for page in 1 2 3 4; do
-              response="$(curl --fail --silent --show-error -H "$auth" "$api/namespaces/prompt-projects/instances/$id/items?per_page=100&page=$page")"
+            for page in $(seq 1 10); do
+              response="$(curl --fail --silent --show-error -H "$auth" "$api/namespaces/prompt-projects/instances/$id/items?per_page=50&page=$page")"
               batch="$(jq '.result // []' <<<"$response")"
               all="$(jq -nc --argjson current "$all" --argjson batch "$batch" '$current + $batch')"
-              [[ "$(jq 'length' <<<"$batch")" -lt 100 ]] && break
+              [[ "$(jq 'length' <<<"$batch")" -lt 50 ]] && break
             done
 
             instance_status="$(jq -r --arg id "$id" '.result[] | select(.id == $id) | .status' <<<"$instances")"
