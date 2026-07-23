@@ -3,7 +3,9 @@ import {
   type CompactAiSearchResponse,
 } from '../http/ai-safe-json';
 import {
+  orderAiSearchResults,
   parseAiSearchRequest,
+  resolveExplicitAiSearchRetrievalType,
   type AiSearchChunkLike,
   type AiSearchGrouping,
   type AiSearchRequestOptions,
@@ -94,20 +96,16 @@ function placeholders(length: number): string {
   return Array.from({ length }, () => '?').join(', ');
 }
 
-function resolveRetrievalType(requested: AiSearchRequestedRetrievalType): AiSearchRetrievalType {
-  return requested === 'auto' ? 'vector' : requested;
-}
-
 function buildSearchRequest(
   options: AiSearchRequestOptions,
-  retrievalType: AiSearchRetrievalType,
+  retrievalType: AiSearchRetrievalType | undefined,
   access: AccessContext,
 ) {
   return {
     query: options.query,
     ai_search_options: {
       retrieval: {
-        retrieval_type: retrievalType,
+        ...(retrievalType ? { retrieval_type: retrievalType } : {}),
         max_num_results: options.retrievalLimit,
         match_threshold: options.matchThreshold,
         return_on_failure: true,
@@ -166,9 +164,14 @@ async function runSearches(
   env: Env,
   projects: VisibleProjectRow[],
   options: AiSearchRequestOptions,
-  retrievalType: AiSearchRetrievalType,
+  retrievalType: AiSearchRetrievalType | undefined,
   access: AccessContext,
-): Promise<{ searchQuery: string; chunks: AiSearchChunkLike[]; partialErrors: unknown[] }> {
+): Promise<{
+  searchQuery: string;
+  chunks: AiSearchChunkLike[];
+  partialErrors: unknown[];
+  requiresMergedRanking: boolean;
+}> {
   const request = buildSearchRequest(options, retrievalType, access);
   const instanceIds = [...new Set(projects.flatMap(projectInstanceIds))];
   if (instanceIds.length === 1) {
@@ -179,6 +182,7 @@ async function runSearches(
       searchQuery: response.search_query ?? options.query,
       chunks: response.chunks ?? [],
       partialErrors: response.errors ?? [],
+      requiresMergedRanking: false,
     };
   }
 
@@ -208,6 +212,7 @@ async function runSearches(
       ...failed,
       ...successful.flatMap((response) => response.errors ?? []),
     ],
+    requiresMergedRanking: successful.length > 1,
   };
 }
 
@@ -229,6 +234,7 @@ async function hydrateResults(
   chunks: AiSearchChunkLike[],
   projects: VisibleProjectRow[],
   options: AiSearchRequestOptions,
+  requiresMergedRanking: boolean,
   access: AccessContext,
   requestUrl: string,
 ): Promise<AiSearchResult[]> {
@@ -282,7 +288,10 @@ async function hydrateResults(
     ];
   });
 
-  mapped.sort((left, right) => right.score - left.score);
+  orderAiSearchResults(mapped, {
+    reranking: options.reranking,
+    requiresMergedRanking,
+  });
   if (options.grouping === 'chunks') return mapped.slice(0, options.limit);
 
   const seen = new Set<string>();
@@ -358,7 +367,9 @@ export async function searchAiDocuments(
     );
   }
 
-  const retrievalType = resolveRetrievalType(options.requestedRetrievalType);
+  const retrievalType = resolveExplicitAiSearchRetrievalType(
+    options.requestedRetrievalType,
+  );
   try {
     const outcome = await runSearches(env, projects, options, retrievalType, access);
     const results = await hydrateResults(
@@ -366,6 +377,7 @@ export async function searchAiDocuments(
       outcome.chunks,
       projects,
       options,
+      outcome.requiresMergedRanking,
       access,
       requestUrl,
     );
@@ -387,7 +399,7 @@ export async function searchAiDocuments(
       },
       results,
       meta: {
-        mode: retrievalType,
+        mode: options.requestedRetrievalType,
         group: options.grouping,
         duration_ms: Date.now() - startedAt,
       },
@@ -398,7 +410,7 @@ export async function searchAiDocuments(
     const details: Record<string, unknown> = {
       projects: projects.map((project) => project.slug),
       requestedMode: options.requestedRetrievalType,
-      resolvedMode: retrievalType,
+      resolvedMode: retrievalType ?? 'instance-default',
       ...upstream,
     };
     const message = upstream.upstreamMessage ?? '';
