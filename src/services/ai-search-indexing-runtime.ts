@@ -83,11 +83,36 @@ async function failJob(env: Env, job: AiSearchJobRow, error: unknown): Promise<'
 
   if (job.operation === 'ensure_instance') {
     const mapping = await env.DB.prepare(
-      'SELECT instance_id FROM ai_search_projects WHERE project_id = ? LIMIT 1',
+      `SELECT instance_id, replacement_instance_id, status
+       FROM ai_search_projects
+       WHERE project_id = ?
+       LIMIT 1`,
     )
       .bind(job.project_id)
-      .first<{ instance_id: string }>();
-    if (mapping) await setProjectMappingError(env, job.project_id, mapping.instance_id, error);
+      .first<{
+        instance_id: string;
+        replacement_instance_id: string | null;
+        status: 'pending' | 'ready' | 'error';
+      }>();
+    if (mapping?.status === 'ready' && mapping.replacement_instance_id) {
+      // The old readable/searchable mapping remains active. Record the failed
+      // replacement without taking the existing index offline.
+      await env.DB.prepare(
+        `UPDATE ai_search_projects
+         SET last_error = ?,
+             updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+         WHERE project_id = ?`,
+      )
+        .bind(message, job.project_id)
+        .run();
+    } else if (mapping) {
+      await setProjectMappingError(
+        env,
+        job.project_id,
+        mapping.replacement_instance_id ?? mapping.instance_id,
+        error,
+      );
+    }
   } else if (job.operation === 'upsert_file' && job.file_id) {
     await env.DB.prepare(
       `UPDATE ai_search_items
@@ -200,7 +225,7 @@ export async function getAiSearchIndexStatus(env: Env): Promise<AiSearchIndexSta
     env.DB.prepare(
       `SELECT COUNT(*) AS count
        FROM ai_search_projects
-       WHERE previous_instance_id IS NOT NULL`,
+       WHERE replacement_instance_id IS NOT NULL`,
     ).first<{ count: number | string }>(),
     env.DB.prepare(
       `SELECT operation, project_id, file_id, attempts, last_error, updated_at
