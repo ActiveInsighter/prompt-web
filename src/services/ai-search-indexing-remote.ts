@@ -359,11 +359,13 @@ export async function verifyPendingRemoteItems(
         const chunksCount = typeof info.chunks_count === 'number' ? info.chunks_count : null;
 
         if (remoteStatus === 'completed') {
+          // Same-instance replacements can remove the superseded Item after
+          // remote completion. Cross-instance migrations keep every old Item
+          // searchable until the entire project switches instances atomically.
           if (
-            item.previous_instance_id &&
+            item.previous_instance_id === item.instance_id &&
             item.previous_item_id &&
-            (item.previous_instance_id !== item.instance_id ||
-              item.previous_item_id !== item.item_id)
+            item.previous_item_id !== item.item_id
           ) {
             await deleteIndexedItem(
               env.PROMPT_AI_SEARCH.get(item.previous_instance_id),
