@@ -8,6 +8,12 @@ export type AiSearchRetrievalType = 'hybrid' | 'keyword' | 'vector';
 export type AiSearchRequestedRetrievalType = AiSearchRetrievalType | 'auto';
 export type AiSearchGrouping = 'files' | 'chunks';
 
+export function resolveExplicitAiSearchRetrievalType(
+  requested: AiSearchRequestedRetrievalType,
+): AiSearchRetrievalType | undefined {
+  return requested === 'auto' ? undefined : requested;
+}
+
 export interface AiSearchRequestOptions {
   query: string;
   project?: string;
@@ -54,6 +60,31 @@ export interface AiSearchResult {
   text: string;
   source: AiSearchSource;
   scoringDetails: Record<string, unknown> | null;
+}
+
+export interface AiSearchResultOrderingOptions {
+  reranking: boolean;
+  requiresMergedRanking: boolean;
+}
+
+export function getAiSearchRankingScore(result: AiSearchResult): number {
+  const rerankingScore = result.scoringDetails?.reranking_score;
+  return typeof rerankingScore === 'number' && Number.isFinite(rerankingScore)
+    ? rerankingScore
+    : result.score;
+}
+
+export function orderAiSearchResults(
+  results: AiSearchResult[],
+  options: AiSearchResultOrderingOptions,
+): AiSearchResult[] {
+  if (options.reranking && !options.requiresMergedRanking) return results;
+
+  const rankingScore = options.reranking
+    ? getAiSearchRankingScore
+    : (result: AiSearchResult) => result.score;
+  results.sort((left, right) => rankingScore(right) - rankingScore(left));
+  return results;
 }
 
 export class AiSearchRequestError extends Error {

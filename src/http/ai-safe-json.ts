@@ -8,7 +8,7 @@ const JSON_ESCAPE_BY_CHARACTER: Record<string, string> = {
   '\u2029': '\\u2029',
 };
 
-type CompactAiSearchMode = 'hybrid' | 'keyword' | 'vector';
+type CompactAiSearchMode = 'auto' | 'hybrid' | 'keyword' | 'vector';
 
 export interface CompactAiSearchResult {
   score: number;
@@ -96,7 +96,9 @@ function resolveResultTitle(
 function compactMeta(value: Record<string, unknown>): CompactAiSearchResponse['meta'] {
   const meta = isRecord(value.meta) ? value.meta : {};
   const mode: CompactAiSearchMode =
-    meta.mode === 'hybrid' || meta.mode === 'keyword' ? meta.mode : 'vector';
+    meta.mode === 'auto' || meta.mode === 'hybrid' || meta.mode === 'keyword'
+      ? meta.mode
+      : 'vector';
   const group = meta.group === 'chunks' ? 'chunks' : 'files';
   const duration =
     typeof meta.duration_ms === 'number' && Number.isFinite(meta.duration_ms)
