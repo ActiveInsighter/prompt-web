@@ -231,6 +231,28 @@ function enqueueDeleteStatement(env: Env, item: IndexedItemRow): D1PreparedState
  * indexed revision hashes make this safe to run on every cron invocation.
  */
 export async function reconcileAiSearchJobs(env: Env): Promise<void> {
+  // Jobs created by the former uploadAndPoll implementation can be left in
+  // terminal failure even though the source file is still current. Reset only
+  // that known timeout class; permanent validation failures remain terminal.
+  await env.DB.prepare(
+    `UPDATE ai_search_jobs
+     SET status = 'pending',
+         attempts = 0,
+         next_attempt_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'),
+         lease_expires_at = NULL,
+         last_error = NULL,
+         updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'),
+         completed_at = NULL
+     WHERE operation = 'upsert_file'
+       AND status = 'failed'
+       AND last_error LIKE '%aborted due to timeout%'
+       AND EXISTS (
+         SELECT 1
+         FROM prompt_search_documents document
+         WHERE document.file_id = ai_search_jobs.file_id
+       )`,
+  ).run();
+
   const [projects, files, obsoleteItems] = await Promise.all([
     env.DB.prepare(
       `SELECT p.id, COALESCE(sync.content_hash, '') AS config_hash
