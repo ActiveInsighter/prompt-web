@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 
 import {
   AiSearchRequestError,
@@ -75,6 +76,20 @@ assert.throws(
 assert.throws(
   () => parseAiSearchRequest('https://prompt.example.com/api/ai-search'),
   (error) => error instanceof AiSearchRequestError && error.code === 'missing_query',
+);
+
+const [serviceSource, wranglerSource] = await Promise.all([
+  readFile(new URL('../src/services/ai-search-service.ts', import.meta.url), 'utf8'),
+  readFile(new URL('../wrangler.jsonc', import.meta.url), 'utf8'),
+]);
+const wrangler = JSON.parse(wranglerSource);
+assert.doesNotMatch(serviceSource, /prompt\.local/u, 'MCP results must not expose prompt.local URLs.');
+assert.match(serviceSource, /mapping\.replacement_instance_id/u);
+assert.match(serviceSource, /projects\.flatMap\(projectInstanceIds\)/u);
+assert.equal(
+  wrangler.vars.PUBLIC_ORIGIN,
+  'https://prompt.2212148739lbw.workers.dev',
+  'MCP result URLs must use the deployed Worker origin.',
 );
 
 console.log('Cloudflare AI Search API tests passed');

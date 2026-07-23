@@ -13,11 +13,14 @@ import {
 } from '../http/cloudflare-ai-search-utils';
 import type { AccessContext, Env, PromptVisibility } from '../types';
 
+const DEFAULT_PUBLIC_ORIGIN = 'https://prompt.2212148739lbw.workers.dev';
+
 interface VisibleProjectRow {
   id: string;
   slug: string;
   name: string;
   instance_id: string;
+  replacement_instance_id: string | null;
 }
 
 interface SearchDocumentRow {
@@ -131,7 +134,7 @@ async function resolveVisibleProjects(
   if (identifier) params.push(identifier, identifier);
 
   const result = await env.DB.prepare(
-    `SELECT p.id, p.slug, p.name, mapping.instance_id
+    `SELECT p.id, p.slug, p.name, mapping.instance_id, mapping.replacement_instance_id
      FROM projects p
      JOIN ai_search_projects mapping ON mapping.project_id = p.id
      WHERE p.deleted_at IS NULL
@@ -143,6 +146,12 @@ async function resolveVisibleProjects(
     .bind(...params)
     .all<VisibleProjectRow>();
   return result.results;
+}
+
+function projectInstanceIds(project: VisibleProjectRow): string[] {
+  return [...new Set([project.replacement_instance_id, project.instance_id].filter(
+    (value): value is string => typeof value === 'string' && value.trim().length > 0,
+  ))];
 }
 
 function splitIntoGroups<T>(values: T[], size: number): T[][] {
@@ -161,9 +170,10 @@ async function runSearches(
   access: AccessContext,
 ): Promise<{ searchQuery: string; chunks: AiSearchChunkLike[]; partialErrors: unknown[] }> {
   const request = buildSearchRequest(options, retrievalType, access);
-  if (projects.length === 1) {
+  const instanceIds = [...new Set(projects.flatMap(projectInstanceIds))];
+  if (instanceIds.length === 1) {
     const response = (await env.PROMPT_AI_SEARCH
-      .get(projects[0].instance_id)
+      .get(instanceIds[0])
       .search(request)) as SearchResponseLike;
     return {
       searchQuery: response.search_query ?? options.query,
@@ -172,14 +182,14 @@ async function runSearches(
     };
   }
 
-  const groups = splitIntoGroups(projects.map((project) => project.instance_id), 10);
+  const groups = splitIntoGroups(instanceIds, 10);
   const settled = await Promise.allSettled(
-    groups.map(async (instanceIds) =>
+    groups.map(async (groupInstanceIds) =>
       (await env.PROMPT_AI_SEARCH.search({
         ...request,
         ai_search_options: {
           ...request.ai_search_options,
-          instance_ids: instanceIds,
+          instance_ids: groupInstanceIds,
         },
       })) as SearchResponseLike,
     ),
@@ -287,8 +297,19 @@ async function hydrateResults(
   return deduplicated;
 }
 
-export function createAiSearchRequestOptions(input: AiSearchInput): AiSearchRequestOptions {
-  const url = new URL('/api/ai-search', 'https://prompt.local');
+function publicAiSearchUrl(env: Env): string {
+  const configuredOrigin = optionalString(env.PUBLIC_ORIGIN) ?? DEFAULT_PUBLIC_ORIGIN;
+  return new URL('/api/ai-search', configuredOrigin).toString();
+}
+
+export function createAiSearchRequestOptions(
+  input: AiSearchInput,
+  requestUrl = `${DEFAULT_PUBLIC_ORIGIN}/api/ai-search`,
+): AiSearchRequestOptions {
+  const url = new URL(requestUrl);
+  url.pathname = '/api/ai-search';
+  url.search = '';
+  url.hash = '';
   url.searchParams.set('q', input.query);
   if (input.project) url.searchParams.set('project', input.project);
   if (input.limit !== undefined) url.searchParams.set('limit', String(input.limit));
@@ -404,6 +425,7 @@ export async function searchAiDocumentsFromInput(
   access: AccessContext,
   input: AiSearchInput,
 ): Promise<CompactAiSearchResponse> {
-  const options = createAiSearchRequestOptions(input);
-  return searchAiDocuments(env, access, options, 'https://prompt.local/api/ai-search');
+  const requestUrl = publicAiSearchUrl(env);
+  const options = createAiSearchRequestOptions(input, requestUrl);
+  return searchAiDocuments(env, access, options, requestUrl);
 }

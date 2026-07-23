@@ -8,6 +8,7 @@ export interface Env {
   PROMPT_KV: KVNamespace;
   PROMPT_AI_SEARCH: AiSearchNamespace;
   ENVIRONMENT?: string;
+  PUBLIC_ORIGIN?: string;
   MCP_BEARER_TOKEN?: string;
   CONTENT_SYNC_TOKEN?: string;
 }
