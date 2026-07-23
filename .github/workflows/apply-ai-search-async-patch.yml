@@ -25,40 +25,30 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
+          import re
 
           path = Path('src/services/ai-search-indexing-service.ts')
           text = path.read_text(encoding='utf-8')
 
-          old_constants = """const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
-          const MAX_JOB_ATTEMPTS = 5;
-          // uploadAndPoll may legitimately need more than the SDK's 30 second default.
-          // Keep the D1 lease longer than the poll timeout so the next cron invocation
-          // cannot claim the same file while an upload is still active.
-          const UPLOAD_POLL_TIMEOUT_MS = 120_000;
-          const JOB_LEASE_SECONDS = 180;
-          """
-          new_constants = """const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
-          const MAX_JOB_ATTEMPTS = 5;
-          const JOB_LEASE_SECONDS = 120;
-          """
-          assert old_constants in text, 'timeout constants block was not found'
-          text = text.replace(old_constants, new_constants, 1)
+          text, constants_count = re.subn(
+              r"const MAX_UPLOAD_BYTES = 4 \* 1024 \* 1024;\nconst MAX_JOB_ATTEMPTS = 5;\n// uploadAndPoll.*?\nconst UPLOAD_POLL_TIMEOUT_MS = 120_000;\nconst JOB_LEASE_SECONDS = 180;",
+              "const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;\nconst MAX_JOB_ATTEMPTS = 5;\nconst JOB_LEASE_SECONDS = 120;",
+              text,
+              count=1,
+              flags=re.DOTALL,
+          )
+          assert constants_count == 1, 'timeout constants block was not found'
 
-          old_upload = """  const uploaded = await provisioned.instance.items.uploadAndPoll(itemKey, file.content, {
-            metadata: {
-              file_id: file.file_id,
-              content_hash: file.content_hash,
-              visibility: file.visibility,
-            },
-            pollIntervalMs: 1000,
-            timeoutMs: UPLOAD_POLL_TIMEOUT_MS,
-          });
-
-          if (uploaded.status !== 'completed' && uploaded.status !== 'skipped') {
-            throw new Error(`AI Search indexing returned ${uploaded.status} for ${file.file_id}.`);
-          }
-          """
-          new_upload = """  // Queue the document and return immediately. AI Search performs parsing,
+          upload_pattern = re.compile(
+              r"  const uploaded = await provisioned\.instance\.items\.uploadAndPoll\(itemKey, file\.content, \{\n"
+              r".*?"
+              r"  \}\);\n\n"
+              r"  if \(uploaded\.status !== 'completed' && uploaded\.status !== 'skipped'\) \{\n"
+              r".*?"
+              r"  \}\n",
+              re.DOTALL,
+          )
+          upload_replacement = """  // Queue the document and return immediately. AI Search performs parsing,
           // chunking, and embedding asynchronously, so Worker request duration no
           // longer controls whether the document eventually becomes searchable.
           const uploaded = await provisioned.instance.items.upload(itemKey, file.content, {
@@ -69,26 +59,19 @@ jobs:
             },
           });
           """
-          assert old_upload in text, 'uploadAndPoll block was not found'
-          text = text.replace(old_upload, new_upload, 1)
+          text, upload_count = upload_pattern.subn(upload_replacement, text, count=1)
+          assert upload_count == 1, 'uploadAndPoll block was not found'
 
-          old_chunks = """      file.content_hash,
-                uploaded.chunks_count ?? null,
-          """
-          new_chunks = """      file.content_hash,
-                null,
-          """
-          assert old_chunks in text, 'chunks_count binding was not found'
-          text = text.replace(old_chunks, new_chunks, 1)
+          assert 'uploaded.chunks_count ?? null' in text, 'chunks_count binding was not found'
+          text = text.replace('uploaded.chunks_count ?? null', 'null', 1)
 
-          old_comment = """  // AI Search indexing is mostly upstream waiting time. Run the bounded batch
-            // concurrently so three slow files do not consume up to six minutes serially.
-          """
-          new_comment = """  // Upload calls only enqueue work upstream, so a small bounded concurrent
-            // batch quickly drains the D1 outbox without exceeding Worker limits.
-          """
-          assert old_comment in text, 'batch comment was not found'
-          text = text.replace(old_comment, new_comment, 1)
+          text = text.replace(
+              '// AI Search indexing is mostly upstream waiting time. Run the bounded batch\n'
+              '  // concurrently so three slow files do not consume up to six minutes serially.',
+              '// Upload calls only enqueue work upstream, so a small bounded concurrent\n'
+              '  // batch quickly drains the D1 outbox without exceeding Worker limits.',
+              1,
+          )
 
           path.write_text(text, encoding='utf-8')
           PY
