@@ -195,9 +195,17 @@ function contentSyncAuthorizationError(context: AppContext): Response | null {
   return null;
 }
 
+function withPrimaryDatabaseSession(env: Env): Env {
+  return {
+    ...env,
+    DB: env.DB.withSession('first-primary') as unknown as D1Database,
+  };
+}
+
 async function runAiSearchMaintenance(env: Env, limit = 3) {
-  const recovered = await reconcileAiSearchJobs(env);
-  return { recovered, ...(await processAiSearchJobs(env, limit)) };
+  const sessionEnv = withPrimaryDatabaseSession(env);
+  const recovered = await reconcileAiSearchJobs(sessionEnv);
+  return { recovered, ...(await processAiSearchJobs(sessionEnv, limit)) };
 }
 
 async function serveProjects(context: AppContext) {
@@ -490,7 +498,9 @@ app.post('/api/admin/library/sync', async (context) => {
 app.get('/api/admin/ai-search/status', async (context) => {
   const authorizationError = contentSyncAuthorizationError(context);
   if (authorizationError) return authorizationError;
-  return context.json(await getAiSearchIndexStatus(context.env));
+  return context.json(
+    await getAiSearchIndexStatus(withPrimaryDatabaseSession(context.env)),
+  );
 });
 
 app.post('/api/admin/ai-search/process', async (context) => {
