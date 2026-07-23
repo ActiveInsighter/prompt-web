@@ -1,0 +1,130 @@
+name: Apply Observable AI Search Recovery
+
+on:
+  push:
+    branches:
+      - fix/ai-search-recovery-observable
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/ai-search-recovery-observable
+          fetch-depth: 0
+
+      - name: Make timeout recovery direct and observable
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          service_path = Path('src/services/ai-search-indexing-service.ts')
+          service = service_path.read_text(encoding='utf-8')
+
+          old_signature = 'export async function reconcileAiSearchJobs(env: Env): Promise<void> {'
+          new_signature = 'export async function reconcileAiSearchJobs(env: Env): Promise<number> {'
+          if old_signature not in service:
+              raise RuntimeError('reconcile signature not found')
+          service = service.replace(old_signature, new_signature, 1)
+
+          old_recovery = """  // Jobs created by the former uploadAndPoll implementation can be left in
+            // terminal failure even though the source file is still current. Reset only
+            // that known timeout class; permanent validation failures remain terminal.
+            await env.DB.prepare(
+              `UPDATE ai_search_jobs
+               SET status = 'pending',
+                   attempts = 0,
+                   next_attempt_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'),
+                   lease_expires_at = NULL,
+                   last_error = NULL,
+                   updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'),
+                   completed_at = NULL
+               WHERE operation = 'upsert_file'
+                 AND status = 'failed'
+                 AND last_error LIKE '%aborted due to timeout%'
+                 AND EXISTS (
+                   SELECT 1
+                   FROM prompt_search_documents document
+                   WHERE document.file_id = ai_search_jobs.file_id
+                 )`,
+            ).run();
+          """
+          new_recovery = """  // Jobs created by the former uploadAndPoll implementation can be left in
+            // terminal failure. Reset only timeout failures; validation failures such as
+            // oversized files remain terminal and visible to operators.
+            const recovery = await env.DB.prepare(
+              `UPDATE ai_search_jobs
+               SET status = 'pending',
+                   attempts = 0,
+                   next_attempt_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'),
+                   lease_expires_at = NULL,
+                   last_error = NULL,
+                   updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'),
+                   completed_at = NULL
+               WHERE operation = 'upsert_file'
+                 AND status = 'failed'
+                 AND instr(lower(COALESCE(last_error, '')), 'timeout') > 0`,
+            ).run();
+          """
+          if old_recovery not in service:
+              raise RuntimeError('legacy recovery block not found')
+          service = service.replace(old_recovery, new_recovery, 1)
+
+          end_marker = """  for (let offset = 0; offset < statements.length; offset += 80) {
+            await env.DB.batch(statements.slice(offset, offset + 80));
+          }
+          }
+          """
+          end_replacement = """  for (let offset = 0; offset < statements.length; offset += 80) {
+            await env.DB.batch(statements.slice(offset, offset + 80));
+          }
+          return Number(recovery.meta.changes ?? 0);
+          }
+          """
+          if end_marker not in service:
+              raise RuntimeError('reconcile end marker not found')
+          service = service.replace(end_marker, end_replacement, 1)
+          service_path.write_text(service, encoding='utf-8')
+
+          index_path = Path('src/index.ts')
+          index = index_path.read_text(encoding='utf-8')
+          old_maintenance = """async function runAiSearchMaintenance(env: Env, limit = 3) {
+            await reconcileAiSearchJobs(env);
+            return processAiSearchJobs(env, limit);
+          }
+          """
+          new_maintenance = """async function runAiSearchMaintenance(env: Env, limit = 3) {
+            const recovered = await reconcileAiSearchJobs(env);
+            return { recovered, ...(await processAiSearchJobs(env, limit)) };
+          }
+          """
+          if old_maintenance not in index:
+              raise RuntimeError('maintenance function not found')
+          index = index.replace(old_maintenance, new_maintenance, 1)
+
+          old_route = """  const requestedLimit = Number(context.req.query('limit') ?? 3);
+            await reconcileAiSearchJobs(context.env);
+            return context.json(await processAiSearchJobs(context.env, requestedLimit));
+          """
+          new_route = """  const requestedLimit = Number(context.req.query('limit') ?? 3);
+            return context.json(await runAiSearchMaintenance(context.env, requestedLimit));
+          """
+          if old_route not in index:
+              raise RuntimeError('admin process route not found')
+          index = index.replace(old_route, new_route, 1)
+          index_path.write_text(index, encoding='utf-8')
+          PY
+
+      - name: Commit recovery patch
+        run: |
+          rm .github/workflows/apply-ai-search-recovery-observable.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add src/services/ai-search-indexing-service.ts src/index.ts .github/workflows/apply-ai-search-recovery-observable.yml
+          git commit -m "fix: make AI Search timeout recovery observable"
+          git push origin HEAD:fix/ai-search-recovery-observable
