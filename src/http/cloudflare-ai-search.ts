@@ -131,7 +131,7 @@ export function registerCloudflareAiSearchRoutes(app: PromptApp): void {
   app.use('/health', async (context, next) => {
     await next();
     if (context.res.status !== 200) return;
-    const payload = await context.res.clone().json<unknown>();
+    const payload: unknown = await context.res.clone().json();
     if (!isRecord(payload)) return;
     const aiSearch = await getAiSearchIndexStatus(context.env);
     context.res = jsonResponse({ ...payload, aiSearch });
