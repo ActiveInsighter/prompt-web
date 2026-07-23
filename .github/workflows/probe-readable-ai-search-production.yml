@@ -18,7 +18,7 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       TARGET_SHA: 5453a9ad9b7a0b561ca186c4c8f01ae1d4c695ab
     steps:
-      - name: Probe deployment and remote state
+      - name: Probe deployment and complete remote state
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -40,12 +40,17 @@ jobs:
           instances="$(curl --fail --silent --show-error --header "$auth" "$api/instances?per_page=100")"
           echo 'REMOTE_INSTANCES='
           jq -c '[.result[] | {id,status,modified_at}] | sort_by(.id)' <<<"$instances"
-          echo 'REMOTE_COUNTS='
+          echo 'REMOTE_COMPLETE_STATE='
           while IFS= read -r id; do
-            first="$(curl --fail --silent --show-error --header "$auth" "$api/instances/$id/items?per_page=1")"
+            all='[]'
+            for page in $(seq 1 40); do
+              response="$(curl --fail --silent --show-error --header "$auth" "$api/instances/$id/items?per_page=50&page=$page")"
+              batch="$(jq '.result // []' <<<"$response")"
+              all="$(jq -nc --argjson current "$all" --argjson batch "$batch" '$current + $batch')"
+              [[ "$(jq 'length' <<<"$batch")" -lt 50 ]] && break
+            done
             jq -nc \
               --arg id "$id" \
-              --argjson count "$(jq '.result_info.total_count // (.result|length)' <<<"$first")" \
-              --argjson sample "$(jq '[.result[]? | {key,status}]' <<<"$first")" \
-              '{instance_id:$id,item_count:$count,sample:$sample}'
+              --argjson items "$all" \
+              '{instance_id:$id,item_count:($items|length),item_statuses:($items|group_by(.status)|map({key:(.[0].status//"unknown"),value:length})|from_entries),non_completed:([$items[]|select(.status!="completed")|{key,status,id}]|sort_by(.key)|.[0:20])}'
           done < <(jq -r '.result[].id' <<<"$instances" | sort)
