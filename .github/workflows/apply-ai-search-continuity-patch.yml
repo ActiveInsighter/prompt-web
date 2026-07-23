@@ -1,0 +1,102 @@
+name: Apply AI Search migration continuity patch
+
+on:
+  push:
+    branches:
+      - fix/ai-search-migration-continuity
+    paths:
+      - '.github/workflows/apply-ai-search-continuity-patch.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/ai-search-migration-continuity
+
+      - name: Apply focused source patch
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          remote_path = Path('src/services/ai-search-indexing-remote.ts')
+          remote = remote_path.read_text(encoding='utf-8')
+          marker = "if (remoteStatus === 'completed') {"
+          before, after = remote.split(marker, 1)
+          old = """          if (
+            item.previous_instance_id &&
+            item.previous_item_id &&
+            (item.previous_instance_id !== item.instance_id ||
+              item.previous_item_id !== item.item_id)
+          ) {
+            await deleteIndexedItem(
+              env.PROMPT_AI_SEARCH.get(item.previous_instance_id),
+              item.previous_item_id,
+            );
+          }
+"""
+          new = """          // Same-instance replacements can remove the superseded Item after
+          // remote completion. Cross-instance migrations keep every old Item
+          // searchable until the entire project switches instances atomically.
+          if (
+            item.previous_instance_id === item.instance_id &&
+            item.previous_item_id &&
+            item.previous_item_id !== item.item_id
+          ) {
+            await deleteIndexedItem(
+              env.PROMPT_AI_SEARCH.get(item.previous_instance_id),
+              item.previous_item_id,
+            );
+          }
+"""
+          if old not in after:
+              raise SystemExit('remote completion cleanup block was not found')
+          remote_path.write_text(before + marker + after.replace(old, new, 1), encoding='utf-8')
+
+          service_path = Path('src/services/ai-search-service.ts')
+          service = service_path.read_text(encoding='utf-8')
+          old_query = """    `SELECT p.id, p.slug, p.name, mapping.instance_id
+     FROM projects p
+     JOIN ai_search_projects mapping ON mapping.project_id = p.id
+     WHERE p.deleted_at IS NULL
+       AND p.visibility IN (${visibilityPlaceholders})
+       AND mapping.status = 'ready'
+       ${identifierClause}
+     ORDER BY p.slug COLLATE NOCASE ASC`,
+"""
+          new_query = """    `WITH visible_instances AS (
+       SELECT project_id, instance_id
+       FROM ai_search_projects
+       WHERE status = 'ready'
+       UNION ALL
+       SELECT project_id, replacement_instance_id AS instance_id
+       FROM ai_search_projects
+       WHERE status = 'ready' AND replacement_instance_id IS NOT NULL
+     )
+     SELECT p.id, p.slug, p.name, mapping.instance_id
+     FROM projects p
+     JOIN visible_instances mapping ON mapping.project_id = p.id
+     WHERE p.deleted_at IS NULL
+       AND p.visibility IN (${visibilityPlaceholders})
+       ${identifierClause}
+     ORDER BY p.slug COLLATE NOCASE ASC, mapping.instance_id ASC`,
+"""
+          if old_query not in service:
+              raise SystemExit('visible project query was not found')
+          service_path.write_text(service.replace(old_query, new_query, 1), encoding='utf-8')
+          PY
+
+      - name: Commit patch
+        shell: bash
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add src/services/ai-search-indexing-remote.ts src/services/ai-search-service.ts
+          git commit -m 'preserve search continuity during AI Search migration'
+          git push origin HEAD:fix/ai-search-migration-continuity
