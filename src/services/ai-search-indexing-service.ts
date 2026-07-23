@@ -445,15 +445,15 @@ async function upsertFile(env: Env, job: AiSearchJobRow): Promise<AiSearchJobRes
   if (!provisioned) return 'skipped';
   const itemKey = buildAiSearchItemKey(file.file_id, file.content_hash, file.format);
   // Queue the document and return immediately. AI Search performs parsing,
-// chunking, and embedding asynchronously, so Worker request duration no
-// longer controls whether the document eventually becomes searchable.
-const uploaded = await provisioned.instance.items.upload(itemKey, file.content, {
-  metadata: {
-    file_id: file.file_id,
-    content_hash: file.content_hash,
-    visibility: file.visibility,
-  },
-});
+  // chunking, and embedding asynchronously, so Worker request duration no
+  // longer controls whether the document eventually becomes searchable.
+  const uploaded = await provisioned.instance.items.upload(itemKey, file.content, {
+    metadata: {
+      file_id: file.file_id,
+      content_hash: file.content_hash,
+      visibility: file.visibility,
+    },
+  });
 
   if (previous?.item_id && previous.item_id !== uploaded.id) {
     await deleteIndexedItem(env.PROMPT_AI_SEARCH.get(previous.instance_id), previous.item_id);
