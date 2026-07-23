@@ -3,6 +3,7 @@ export const MAX_JOB_ATTEMPTS = 5;
 export const JOB_LEASE_SECONDS = 120;
 export const DEFAULT_PROCESS_LIMIT = 3;
 export const MAX_PROCESS_LIMIT = 10;
+export const MAX_INSTANCE_ID_LENGTH = 64;
 export const READABLE_LAYOUT_VERSION = 'readable-v1';
 
 export function isRecord(value: unknown): value is Record<string, unknown> {
@@ -45,20 +46,25 @@ export function stableAiSearchToken(value: string): string {
 }
 
 /**
- * AI Search instance names are intentionally human-readable. The project slug
- * is the identity shown in the Cloudflare dashboard; no database ID or hash is
- * appended.
+ * AI Search instance names are intentionally human-readable. The normalized
+ * project slug is the complete identity shown in Cloudflare; no database ID,
+ * hash suffix, or silent truncation is allowed.
  */
 export function buildProjectAiSearchInstanceId(slug: string): string {
   const instanceId = slug
     .normalize('NFKC')
     .toLowerCase()
     .replace(/[^a-z0-9_]+/gu, '-')
-    .replace(/^-+|-+$/gu, '')
-    .slice(0, 64)
-    .replace(/-+$/gu, '');
+    .replace(/^-+|-+$/gu, '');
 
-  if (!instanceId) throw new RangeError(`Project slug cannot produce an AI Search instance name: ${slug}`);
+  if (!instanceId) {
+    throw new RangeError(`Project slug cannot produce an AI Search instance name: ${slug}`);
+  }
+  if (instanceId.length > MAX_INSTANCE_ID_LENGTH) {
+    throw new RangeError(
+      `Project slug is too long for a readable AI Search instance name (${instanceId.length} > ${MAX_INSTANCE_ID_LENGTH}): ${slug}`,
+    );
+  }
   if (!/^[a-z0-9_]+(?:-[a-z0-9_]+)*$/u.test(instanceId)) {
     throw new RangeError(`Invalid AI Search instance name derived from project slug: ${slug}`);
   }
