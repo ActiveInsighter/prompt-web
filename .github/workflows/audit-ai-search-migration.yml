@@ -1,0 +1,139 @@
+name: Audit AI Search Migration
+
+on:
+  workflow_dispatch:
+    inputs:
+      strict:
+        description: Fail unless every readable instance and source-path Item is completed
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install manifest dependencies
+        run: python -m pip install --disable-pip-version-check -r scripts/requirements.txt
+
+      - name: Build expected content manifest
+        run: |
+          python -m scripts.cli validate
+          python -m scripts.cli build
+
+      - name: Audit remote instances and Items
+        shell: bash
+        env:
+          STRICT: ${{ inputs.strict }}
+        run: |
+          set -euo pipefail
+          test -n "$CLOUDFLARE_API_TOKEN" || { echo 'Missing CLOUDFLARE_API_TOKEN'; exit 1; }
+          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo 'Missing CLOUDFLARE_ACCOUNT_ID'; exit 1; }
+
+          namespace_api="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/ai-search/namespaces/prompt-projects"
+          auth="Authorization: Bearer $CLOUDFLARE_API_TOKEN"
+          manifest=".prompt-sync/manifest.json"
+          expected_instances="$(jq -c '[.projects[].slug] | sort' "$manifest")"
+          instances_json="$(curl --fail --silent --show-error --header "$auth" "$namespace_api/instances?per_page=100")"
+          actual_instances="$(jq -c '[.result[].id] | sort' <<<"$instances_json")"
+          legacy_instances="$(jq -nc --argjson expected "$expected_instances" --argjson actual "$actual_instances" '$actual - $expected')"
+
+          expected_total="$(jq '.files | length' "$manifest")"
+          actual_total=0
+          completed_total=0
+          waiting_total=0
+          error_total=0
+          missing_instances=0
+          key_mismatches=0
+          generated_names=0
+
+          {
+            echo '## AI Search migration audit'
+            echo
+            echo "- Expected readable instances: $(jq 'length' <<<"$expected_instances")"
+            echo "- Legacy instances retained: $(jq 'length' <<<"$legacy_instances")"
+            echo "- Expected source files: $expected_total"
+            echo
+            echo '| Instance | Expected | Present | Completed | Waiting | Errors |'
+            echo '|---|---:|---:|---:|---:|---:|'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          while IFS= read -r instance_id; do
+            project_id="$(jq -r --arg slug "$instance_id" '.projects[] | select(.slug == $slug) | .id' "$manifest")"
+            expected_keys="$(jq -c --arg project_id "$project_id" '[.files[] | select(.projectId == $project_id) | (.path | sub("^/"; ""))] | sort' "$manifest")"
+            expected_count="$(jq 'length' <<<"$expected_keys")"
+
+            if ! jq -e --arg id "$instance_id" '.result[] | select(.id == $id)' <<<"$instances_json" >/dev/null; then
+              missing_instances=$((missing_instances + 1))
+              echo "| $instance_id | $expected_count | 0 | 0 | 0 | 0 |" >> "$GITHUB_STEP_SUMMARY"
+              continue
+            fi
+
+            all_items='[]'
+            for page in $(seq 1 40); do
+              page_json="$(curl --fail --silent --show-error --header "$auth" "$namespace_api/instances/$instance_id/items?per_page=50&page=$page")"
+              batch="$(jq '.result // []' <<<"$page_json")"
+              all_items="$(jq -nc --argjson current "$all_items" --argjson batch "$batch" '$current + $batch')"
+              [[ "$(jq 'length' <<<"$batch")" -lt 50 ]] && break
+            done
+
+            actual_keys="$(jq -c '[.[].key] | sort' <<<"$all_items")"
+            if [[ "$actual_keys" != "$expected_keys" ]]; then
+              key_mismatches=$((key_mismatches + 1))
+            fi
+
+            generated="$(jq '[.[] | select(.key | startswith("documents/file-") or startswith("documents/"))] | length' <<<"$all_items")"
+            generated_names=$((generated_names + generated))
+            present="$(jq 'length' <<<"$all_items")"
+            completed="$(jq '[.[] | select(.status == "completed")] | length' <<<"$all_items")"
+            errors="$(jq '[.[] | select(.status == "error")] | length' <<<"$all_items")"
+            waiting="$(jq '[.[] | select(.status != "completed" and .status != "error")] | length' <<<"$all_items")"
+            actual_total=$((actual_total + present))
+            completed_total=$((completed_total + completed))
+            waiting_total=$((waiting_total + waiting))
+            error_total=$((error_total + errors))
+            echo "| $instance_id | $expected_count | $present | $completed | $waiting | $errors |" >> "$GITHUB_STEP_SUMMARY"
+          done < <(jq -r '.projects[].slug' "$manifest" | sort)
+
+          {
+            echo
+            echo "- Present readable Items: $actual_total/$expected_total"
+            echo "- Completed: $completed_total"
+            echo "- Waiting: $waiting_total"
+            echo "- Errors: $error_total"
+            echo "- Missing readable instances: $missing_instances"
+            echo "- Instances with key mismatches: $key_mismatches"
+            echo "- Generated Item names inside readable instances: $generated_names"
+            echo "- Legacy instances: \`$legacy_instances\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          echo "audit expected=$expected_total present=$actual_total completed=$completed_total waiting=$waiting_total errors=$error_total missingInstances=$missing_instances keyMismatches=$key_mismatches generatedNames=$generated_names legacy=$legacy_instances"
+
+          if [[ "$generated_names" -gt 0 ]]; then
+            echo 'Generated Item names exist inside readable instances.' >&2
+            exit 1
+          fi
+
+          if [[ "$STRICT" == 'true' ]]; then
+            legacy_count="$(jq 'length' <<<"$legacy_instances")"
+            if [[ "$actual_total" -ne "$expected_total" || "$completed_total" -ne "$expected_total" || "$waiting_total" -ne 0 || "$error_total" -ne 0 || "$missing_instances" -ne 0 || "$key_mismatches" -ne 0 || "$legacy_count" -ne 0 ]]; then
+              echo 'Strict AI Search migration audit failed: migration has not fully converged.' >&2
+              exit 1
+            fi
+          fi

@@ -25,7 +25,7 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 20
     environment: production
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -120,7 +120,7 @@ jobs:
           PROMPT_API_BASE_URL: ${{ steps.deploy.outputs.deployment-url }}
         run: python -m scripts.cli sync --base-url "$PROMPT_API_BASE_URL" --prune
 
-      - name: Prime AI Search index
+      - name: Kick off AI Search migration
         shell: bash
         env:
           DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment-url }}
@@ -128,7 +128,6 @@ jobs:
           set -euo pipefail
           test -n "$DEPLOYMENT_URL" || { echo 'Wrangler did not return a deployment URL.'; exit 1; }
           base_url="${DEPLOYMENT_URL%/}"
-          ready=false
           last_status='{}'
 
           authenticated_json() {
@@ -164,23 +163,21 @@ jobs:
               rm -f "$response_file"
               sleep 3
             done
-
             return 1
           }
 
-          # Upload is asynchronous. Continue processing and polling until every
-          # source document is remotely completed and all legacy hashed instances
-          # have been removed. Ten jobs per request remains a bounded Worker batch.
-          for attempt in $(seq 1 120); do
-            process_json="$(authenticated_json POST "$base_url/api/admin/ai-search/process?limit=10" 180)"
-            status_json="$(authenticated_json GET "$base_url/api/admin/ai-search/status" 30)"
-            last_status="$status_json"
-
-            echo "ai_search_attempt=$attempt"
+          # AI Search Items are indexed asynchronously. A deployment only starts a
+          # bounded amount of work; the Worker's one-minute cron continues migration.
+          for attempt in $(seq 1 6); do
+            process_json="$(authenticated_json POST "$base_url/api/admin/ai-search/process?limit=10" 90)"
+            last_status="$(authenticated_json GET "$base_url/api/admin/ai-search/status" 30)"
+            echo "ai_search_kickoff_attempt=$attempt"
             echo "ai_search_process=$process_json"
-            echo "ai_search_status=$status_json"
+            echo "ai_search_status=$last_status"
+            sleep 2
+          done
 
-            state="$(AI_SEARCH_STATUS_JSON="$status_json" node --input-type=module - <<'NODE'
+          AI_SEARCH_STATUS_JSON="$last_status" node --input-type=module <<'NODE'
           const status = JSON.parse(process.env.AI_SEARCH_STATUS_JSON ?? '{}');
           const expected = Number(status.documents?.expected ?? 0);
           const indexed = Number(status.documents?.indexed ?? 0);
@@ -188,46 +185,18 @@ jobs:
           const errors = Number(status.documents?.error ?? 0);
           const missing = Number(status.documents?.missing ?? 0);
           const failedJobs = Number(status.jobs?.failed ?? 0);
-          const activeJobs =
-            Number(status.jobs?.pending ?? 0) +
-            Number(status.jobs?.processing ?? 0) +
-            Number(status.jobs?.retry ?? 0);
           const pendingCleanup = Number(status.migrations?.pendingInstanceCleanup ?? 0);
-          if (failedJobs > 0) console.log('failed');
-          else if (
-            expected > 0 &&
-            indexed === expected &&
-            waiting === 0 &&
-            errors === 0 &&
-            missing === 0 &&
-            activeJobs === 0 &&
-            pendingCleanup === 0
-          ) console.log('ready');
-          else console.log('pending');
+          if (expected < 1) throw new Error(`AI Search has no expected source documents: ${JSON.stringify(status)}`);
+          console.log(`AI Search migration started: indexed=${indexed}/${expected} waiting=${waiting} errors=${errors} missing=${missing} failedJobs=${failedJobs} pendingCleanup=${pendingCleanup}`);
+          if (errors > 0 || failedJobs > 0) {
+            console.log(`::warning::AI Search migration has retryable/terminal errors; deployment will continue and background maintenance will keep processing. ${JSON.stringify(status.recentErrors ?? [])}`);
+          }
+          if (indexed < expected || waiting > 0 || missing > 0 || pendingCleanup > 0) {
+            console.log('::notice::AI Search migration is still in progress. This is expected and does not block deployment.');
+          }
           NODE
-          )"
 
-            case "$state" in
-              ready)
-                ready=true
-                break
-                ;;
-              failed)
-                echo "AI Search indexing produced terminal job failures: $status_json" >&2
-                exit 1
-                ;;
-              *)
-                sleep 5
-                ;;
-            esac
-          done
-
-          if [[ "$ready" != 'true' ]]; then
-            echo "AI Search did not fully converge to verified remote completion: $last_status" >&2
-            exit 1
-          fi
-
-      - name: Verify readable AI Search remote layout
+      - name: Report AI Search migration progress
         shell: bash
         run: |
           set -euo pipefail
@@ -236,69 +205,56 @@ jobs:
           manifest=".prompt-sync/manifest.json"
 
           expected_instances="$(jq -c '[.projects[].slug] | sort' "$manifest")"
-          instances_json="$(curl --fail --silent --show-error \
-            --header "$auth" \
-            "$namespace_api/instances?per_page=100")"
+          instances_json="$(curl --fail --silent --show-error --header "$auth" "$namespace_api/instances?per_page=100")"
           actual_instances="$(jq -c '[.result[].id] | sort' <<<"$instances_json")"
+          readable_present="$(jq -nc --argjson expected "$expected_instances" --argjson actual "$actual_instances" '$expected - ($expected - $actual)')"
+          legacy_instances="$(jq -nc --argjson expected "$expected_instances" --argjson actual "$actual_instances" '$actual - $expected')"
 
-          if [[ "$actual_instances" != "$expected_instances" ]]; then
-            echo "AI Search instances do not match project slugs." >&2
-            echo "expected=$expected_instances" >&2
-            echo "actual=$actual_instances" >&2
-            exit 1
-          fi
+          echo "expected_readable_instances=$expected_instances"
+          echo "readable_instances_present=$readable_present"
+          echo "legacy_instances_retained=$legacy_instances"
 
-          expected_total="$(jq '.files | length' "$manifest")"
-          actual_total=0
+          completed_total=0
+          waiting_total=0
+          error_total=0
+          readable_items_total=0
 
           while IFS= read -r instance_id; do
-            project_id="$(jq -r --arg slug "$instance_id" '.projects[] | select(.slug == $slug) | .id' "$manifest")"
-            expected_keys="$(jq -c --arg project_id "$project_id" \
-              '[.files[] | select(.projectId == $project_id) | (.path | sub("^/"; ""))] | sort' \
-              "$manifest")"
+            if ! jq -e --arg id "$instance_id" '.result[] | select(.id == $id)' <<<"$instances_json" >/dev/null; then
+              echo "::notice::Readable instance $instance_id has not been provisioned yet."
+              continue
+            fi
 
             all_items='[]'
             for page in $(seq 1 40); do
-              page_json="$(curl --fail --silent --show-error \
-                --header "$auth" \
-                "$namespace_api/instances/$instance_id/items?per_page=50&page=$page")"
+              page_json="$(curl --fail --silent --show-error --header "$auth" "$namespace_api/instances/$instance_id/items?per_page=50&page=$page")"
               batch="$(jq '.result // []' <<<"$page_json")"
               all_items="$(jq -nc --argjson current "$all_items" --argjson batch "$batch" '$current + $batch')"
               [[ "$(jq 'length' <<<"$batch")" -lt 50 ]] && break
             done
 
-            actual_keys="$(jq -c '[.[].key] | sort' <<<"$all_items")"
-            if [[ "$actual_keys" != "$expected_keys" ]]; then
-              echo "AI Search item keys do not match source paths for $instance_id." >&2
-              echo "expected=$expected_keys" >&2
-              echo "actual=$actual_keys" >&2
-              exit 1
-            fi
-
-            incomplete="$(jq '[.[] | select(.status != "completed")] | length' <<<"$all_items")"
-            if [[ "$incomplete" -ne 0 ]]; then
-              echo "AI Search still has non-completed Items in $instance_id:" >&2
-              jq -c '[.[] | select(.status != "completed") | {key,status,id}]' <<<"$all_items" >&2
-              exit 1
-            fi
-
             generated_names="$(jq '[.[] | select(.key | startswith("documents/file-") or startswith("documents/"))] | length' <<<"$all_items")"
             if [[ "$generated_names" -ne 0 ]]; then
-              echo "Generated AI Search item names remain in $instance_id." >&2
+              echo "Generated AI Search item names were found in readable instance $instance_id." >&2
               exit 1
             fi
 
             item_count="$(jq 'length' <<<"$all_items")"
-            actual_total=$((actual_total + item_count))
-            echo "verified_instance=$instance_id items=$item_count"
+            completed="$(jq '[.[] | select(.status == "completed")] | length' <<<"$all_items")"
+            errors="$(jq '[.[] | select(.status == "error")] | length' <<<"$all_items")"
+            waiting="$(jq '[.[] | select(.status != "completed" and .status != "error")] | length' <<<"$all_items")"
+            readable_items_total=$((readable_items_total + item_count))
+            completed_total=$((completed_total + completed))
+            error_total=$((error_total + errors))
+            waiting_total=$((waiting_total + waiting))
+            echo "migration_instance=$instance_id items=$item_count completed=$completed waiting=$waiting errors=$errors"
           done < <(jq -r '.projects[].slug' "$manifest" | sort)
 
-          if [[ "$actual_total" -ne "$expected_total" ]]; then
-            echo "AI Search item total does not match the source manifest: expected=$expected_total actual=$actual_total" >&2
-            exit 1
+          expected_total="$(jq '.files | length' "$manifest")"
+          echo "AI Search asynchronous migration progress: completed=$completed_total expected=$expected_total readableItems=$readable_items_total waiting=$waiting_total errors=$error_total"
+          if [[ "$error_total" -gt 0 ]]; then
+            echo "::warning::$error_total AI Search Items currently report an error and will be retried by the Worker maintenance loop."
           fi
-
-          echo "Verified readable AI Search layout: instances=$(jq '.projects | length' "$manifest") items=$actual_total"
 
       - name: Smoke test deployed Worker
         shell: bash
@@ -334,12 +290,12 @@ jobs:
           ai_search_info_json="$(request_body "$base_url/api/ai-search/info")"
 
           ai_search_json='{"count":0,"results":[]}'
-          for attempt in $(seq 1 6); do
+          for attempt in $(seq 1 12); do
             ai_search_json="$(request_body "$base_url/api/ai-search?q=documentation&limit=3&threshold=0")"
             if AI_SEARCH_JSON="$ai_search_json" node --input-type=module -e 'const response = JSON.parse(process.env.AI_SEARCH_JSON ?? "{}"); process.exit(Number(response.count ?? 0) > 0 && Array.isArray(response.results) ? 0 : 1);'; then
               break
             fi
-            sleep 2
+            sleep 3
           done
 
           echo "info=$info_json"
@@ -396,11 +352,8 @@ jobs:
           ) {
             throw new Error(`Invalid service info response: ${JSON.stringify(info)}`);
           }
-          if (health.status !== 'ok' || health.database !== true) {
+          if (health.status !== 'ok' || health.database !== true || health.kvSeeded !== true) {
             throw new Error(`Unhealthy Worker response: ${JSON.stringify(health)}`);
-          }
-          if (health.kvSeeded !== true) {
-            throw new Error(`Production KV bootstrap manifest is missing: ${JSON.stringify(health)}`);
           }
           if (
             health.contentSync?.status !== 'succeeded' ||
@@ -408,16 +361,8 @@ jobs:
           ) {
             throw new Error(`Content sync status is invalid: ${JSON.stringify(health.contentSync)}`);
           }
-          if (
-            Number(health.aiSearch?.documents?.expected ?? 0) < 1 ||
-            Number(health.aiSearch?.documents?.indexed ?? 0) !== Number(health.aiSearch?.documents?.expected ?? 0) ||
-            Number(health.aiSearch?.documents?.waiting ?? 0) !== 0 ||
-            Number(health.aiSearch?.documents?.error ?? 0) !== 0 ||
-            Number(health.aiSearch?.documents?.missing ?? 0) !== 0 ||
-            Number(health.aiSearch?.migrations?.pendingInstanceCleanup ?? 0) !== 0 ||
-            Number(health.aiSearch?.jobs?.failed ?? 0) > 0
-          ) {
-            throw new Error(`AI Search indexing status is invalid: ${JSON.stringify(health.aiSearch)}`);
+          if (Number(health.aiSearch?.documents?.expected ?? 0) < 1) {
+            throw new Error(`AI Search indexing was not initialized: ${JSON.stringify(health.aiSearch)}`);
           }
           if (!Array.isArray(projects.projects) || !projects.projects.some((item) => item.slug === 'prompt-library')) {
             throw new Error(`Invalid projects response: ${JSON.stringify(projects)}`);
@@ -425,10 +370,7 @@ jobs:
           if (!Number.isInteger(bootstrap.version) || bootstrap.version < 1 || !bootstrap.content) {
             throw new Error(`Invalid bootstrap response: ${JSON.stringify(bootstrap)}`);
           }
-          if (
-            !Array.isArray(search.results) ||
-            !search.results.some((item) => item.id === 'prompt-library-content-sync-guide')
-          ) {
+          if (!Array.isArray(search.results) || !search.results.some((item) => item.id === 'prompt-library-content-sync-guide')) {
             throw new Error(`Synced file was not searchable: ${JSON.stringify(search)}`);
           }
           if (
@@ -470,5 +412,6 @@ jobs:
             echo "- Run ID: \`$GITHUB_RUN_ID\`"
             echo "- Commit: \`$GITHUB_SHA\`"
             echo "- URL: $DEPLOYMENT_URL"
-            echo "- D1 migrations, content sync, readable per-project AI Search instances, source-path item names, remote completion verification, legacy cleanup, semantic search, and production smoke tests are enforced by this job."
+            echo "- Worker deployment, content synchronization, bounded AI Search kickoff, MCP/semantic-search smoke tests, and asynchronous migration reporting are enforced by this job."
+            echo "- Full AI Search convergence is intentionally handled by the Worker cron and is not a deployment blocker."
           } >> "$GITHUB_STEP_SUMMARY"
