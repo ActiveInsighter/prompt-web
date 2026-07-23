@@ -24,29 +24,23 @@ jobs:
           from pathlib import Path
 
           path = Path('src/services/ai-search-indexing-service.ts')
-          text = path.read_text(encoding='utf-8')
-          old = """           SET status = 'pending',
-                       attempts = 0,
-                       next_attempt_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'),
-                       lease_expires_at = NULL,
-                       last_error = NULL,
-                       updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'),
-                       completed_at = NULL
-                   WHERE id = ? AND status = 'failed'`,
-          """
-          new = """           SET status = 'retry',
-                       attempts = 0,
-                       next_attempt_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'),
-                       lease_expires_at = NULL,
-                       last_error = NULL,
-                       updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'),
-                       completed_at = NULL
-                   WHERE id = ? AND status = 'failed'`,
-          """
-          if old not in text:
-              raise RuntimeError('legacy failed-job recovery block not found')
-          text = text.replace(old, new, 1)
-          path.write_text(text, encoding='utf-8')
+          lines = path.read_text(encoding='utf-8').splitlines()
+
+          recovery_start = next(
+              index for index, line in enumerate(lines)
+              if 'const recoverableTimeoutJobs' in line
+          )
+          failed_where = next(
+              index for index in range(recovery_start, len(lines))
+              if "WHERE id = ? AND status = 'failed'" in lines[index]
+          )
+          status_line = next(
+              index for index in range(failed_where, recovery_start, -1)
+              if "SET status = 'pending'" in lines[index]
+          )
+          lines[status_line] = lines[status_line].replace("'pending'", "'retry'")
+
+          path.write_text('\n'.join(lines) + '\n', encoding='utf-8')
           PY
 
       - name: Commit source patch
