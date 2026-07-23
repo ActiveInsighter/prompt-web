@@ -24,8 +24,8 @@ jobs:
         with:
           node-version: 24
 
-      - name: Install dependencies
-        run: npm install --no-package-lock --no-audit --no-fund
+      - name: Install dependencies quietly
+        run: npm install --no-package-lock --no-audit --no-fund >/dev/null
 
       - name: Inspect namespaces and instances
         shell: bash
@@ -34,16 +34,14 @@ jobs:
           test -n "$CLOUDFLARE_API_TOKEN" || { echo 'Missing CLOUDFLARE_API_TOKEN'; exit 1; }
           test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo 'Missing CLOUDFLARE_ACCOUNT_ID'; exit 1; }
 
-          echo '===== NAMESPACES ====='
-          npx wrangler ai-search namespace list --json
+          echo 'NAMESPACES='
+          npx wrangler ai-search namespace list --json 2>/dev/null | jq -c '.'
 
-          echo '===== prompt-projects NAMESPACE ====='
-          npx wrangler ai-search namespace get prompt-projects --json
+          echo 'PROMPT_PROJECTS_NAMESPACE='
+          npx wrangler ai-search namespace get prompt-projects --json 2>/dev/null | jq -c '.'
 
-          echo '===== prompt-projects INSTANCES ====='
-          npx wrangler ai-search list --namespace prompt-projects --json
+          echo 'PROMPT_PROJECTS_INSTANCES='
+          npx wrangler ai-search list --namespace prompt-projects --json 2>/dev/null | jq -c '.'
 
-          echo '===== default INSTANCES ====='
-          npx wrangler ai-search list --namespace default --json
-
-          echo 'Inspection complete.'
+          echo 'DEFAULT_INSTANCES='
+          npx wrangler ai-search list --namespace default --json 2>/dev/null | jq -c '.'
