@@ -1,0 +1,35 @@
+name: Readable AI Search branch CI
+
+on:
+  push:
+    branches:
+      - fix/readable-ai-search-layout
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install dependencies
+        run: |
+          npm install --no-package-lock --no-audit --no-fund
+          python -m pip install --disable-pip-version-check -r scripts/requirements.txt
+
+      - name: Run project checks
+        run: npm run project:ci
