@@ -16,31 +16,15 @@ jobs:
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      TARGET_SHA: 5453a9ad9b7a0b561ca186c4c8f01ae1d4c695ab
     steps:
-      - name: Probe deployment and non-completed item details
+      - name: Print compact non-completed AI Search details
         shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          repo="$GITHUB_REPOSITORY"
-          runs="$(gh api "/repos/$repo/actions/workflows/deploy-worker.yml/runs?per_page=30")"
-          echo 'TARGET_DEPLOYMENT='
-          jq -c --arg sha "$TARGET_SHA" '[.workflow_runs[] | select(.head_sha == $sha) | {id,run_number,status,conclusion,created_at,updated_at,html_url}]' <<<"$runs"
-          run_id="$(jq -r --arg sha "$TARGET_SHA" '.workflow_runs[] | select(.head_sha == $sha) | .id' <<<"$runs" | head -n 1)"
-          if [[ -n "$run_id" && "$run_id" != 'null' ]]; then
-            echo 'TARGET_JOBS='
-            gh api "/repos/$repo/actions/runs/$run_id/jobs?filter=latest&per_page=100" \
-              --jq '[.jobs[] | {id,name,status,conclusion,steps:[.steps[]|{name,status,conclusion}]}]'
-          fi
-
           api="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/ai-search/namespaces/prompt-projects"
           auth="Authorization: Bearer $CLOUDFLARE_API_TOKEN"
           instances="$(curl --fail --silent --show-error --header "$auth" "$api/instances?per_page=100")"
-          echo 'REMOTE_INSTANCES='
-          jq -c '[.result[] | {id,status,modified_at}] | sort_by(.id)' <<<"$instances"
-          echo 'REMOTE_NON_COMPLETED_DETAILS='
+
           while IFS= read -r id; do
             all='[]'
             for page in $(seq 1 40); do
@@ -49,18 +33,14 @@ jobs:
               all="$(jq -nc --argjson current "$all" --argjson batch "$batch" '$current + $batch')"
               [[ "$(jq 'length' <<<"$batch")" -lt 50 ]] && break
             done
-            jq -nc \
-              --arg id "$id" \
-              --argjson items "$all" \
-              '{instance_id:$id,item_count:($items|length),item_statuses:($items|group_by(.status)|map({key:(.[0].status//"unknown"),value:length})|from_entries)}'
+
             while IFS=$'\t' read -r item_id item_key item_status; do
               detail="$(curl --fail --silent --show-error --header "$auth" "$api/instances/$id/items/$item_id")"
-              jq -nc \
+              jq -c \
                 --arg instance_id "$id" \
-                --arg item_id "$item_id" \
-                --arg key "$item_key" \
-                --arg status "$item_status" \
-                --argjson detail "$(jq '.result // .' <<<"$detail")" \
-                '{instance_id:$instance_id,item_id:$item_id,key:$key,status:$status,detail:$detail}'
+                --arg listed_key "$item_key" \
+                --arg listed_status "$item_status" \
+                '{instance_id:$instance_id,listed_key:$listed_key,listed_status:$listed_status,detail:(.result // . | {id,key,status,chunks_count,error,errors,message,created_at,modified_at})}' \
+                <<<"$detail"
             done < <(jq -r '.[] | select(.status != "completed") | [.id,.key,.status] | @tsv' <<<"$all")
           done < <(jq -r '.result[].id' <<<"$instances" | sort)
