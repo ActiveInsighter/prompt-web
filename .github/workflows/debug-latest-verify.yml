@@ -26,19 +26,14 @@ jobs:
 
           if [[ -z "$run_id" || "$run_id" == "null" ]]; then
             echo 'Run number 138 was not found.'
-            jq -r '.workflow_runs[] | [.id, .run_number, .status, .conclusion, .event, .created_at] | @tsv' <<<"$runs_json"
             exit 1
           fi
 
           echo "VERIFY_RUN_ID=$run_id"
-          gh api "/repos/$repo/actions/runs/$run_id" \
-            --jq '{id,run_number,event,status,conclusion,head_branch,head_sha,created_at,updated_at,html_url}'
-
           jobs_json="$(gh api "/repos/$repo/actions/runs/$run_id/jobs?filter=latest&per_page=100")"
-          jq -r '.jobs[] | [.id, .name, .status, .conclusion] | @tsv' <<<"$jobs_json"
 
           while IFS=$'\t' read -r job_id job_name; do
-            echo "===== LAST 100 LINES: $job_name ($job_id) ====="
+            echo "===== LAST 35 LINES: $job_name ($job_id) ====="
             gh api "/repos/$repo/actions/jobs/$job_id/logs" > "job-$job_id.log"
-            tail -n 100 "job-$job_id.log"
+            tail -n 35 "job-$job_id.log"
           done < <(jq -r '.jobs[] | [.id, .name] | @tsv' <<<"$jobs_json")
