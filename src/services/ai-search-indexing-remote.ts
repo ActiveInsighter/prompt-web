@@ -2,6 +2,7 @@ import type { Env } from '../types';
 import {
   buildAiSearchIndexHash,
   buildAiSearchItemKey,
+  buildAiSearchUploadContent,
   buildProjectAiSearchInstanceId,
   errorMessage,
   isNotFoundError,
@@ -200,7 +201,8 @@ export async function upsertFile(
     return 'skipped';
   }
 
-  const uploadBytes = new TextEncoder().encode(file.content).byteLength;
+  const uploadContent = buildAiSearchUploadContent(file.path, file.content, file.format);
+  const uploadBytes = new TextEncoder().encode(uploadContent).byteLength;
   if (uploadBytes > MAX_UPLOAD_BYTES) {
     throw new RangeError(
       `AI Search item ${file.path} is ${uploadBytes} bytes; the maximum is ${MAX_UPLOAD_BYTES}.`,
@@ -219,7 +221,7 @@ export async function upsertFile(
     await deleteIndexedItem(env.PROMPT_AI_SEARCH.get(previous.instance_id), previous.item_id);
   }
 
-  const uploaded = await provisioned.instance.items.upload(itemKey, file.content, {
+  const uploaded = await provisioned.instance.items.upload(itemKey, uploadContent, {
     metadata: {
       file_id: file.file_id,
       content_hash: file.content_hash,
@@ -419,10 +421,13 @@ export async function verifyPendingRemoteItems(
           .bind(remoteStatus === 'queued' ? 'queued' : 'processing', chunksCount, item.file_id, item.item_id)
           .run();
       } catch (error) {
-        const message = `Could not verify Cloudflare AI Search item: ${errorMessage(error)}`.slice(0, 4000);
+        const message = `Could not verify Cloudflare AI Search item yet: ${errorMessage(error)}`.slice(0, 4000);
+        // Item metadata can be briefly unavailable immediately after upload.
+        // Keep the current remote Item and check it again later; re-uploading
+        // on a transient lookup failure creates duplicate running revisions.
         await env.DB.prepare(
           `UPDATE ai_search_items
-           SET status = 'error',
+           SET status = 'processing',
                last_error = ?,
                checked_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'),
                updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
@@ -430,8 +435,6 @@ export async function verifyPendingRemoteItems(
         )
           .bind(message, item.file_id, item.item_id)
           .run();
-        await requeueFile(env, item.file_id);
-        result.remoteErrors += 1;
       }
     }),
   );
