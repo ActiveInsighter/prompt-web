@@ -3,13 +3,17 @@ import { readFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 
 const workflow = await readFile(new URL('../.github/workflows/deploy-worker.yml', import.meta.url), 'utf8');
+const auditWorkflow = await readFile(
+  new URL('../.github/workflows/audit-ai-search-migration.yml', import.meta.url),
+  'utf8',
+);
 const productionVerificationWorkflow = await readFile(
   new URL('../.github/workflows/verify-unified-production-api.yml', import.meta.url),
   'utf8',
 );
 
-function extractRunScript(stepName) {
-  const lines = workflow.split('\n');
+function extractRunScript(source, stepName) {
+  const lines = source.split('\n');
   const stepIndex = lines.findIndex((line) => line === `      - name: ${stepName}`);
   assert.notEqual(stepIndex, -1, `missing workflow step: ${stepName}`);
 
@@ -27,9 +31,9 @@ function extractRunScript(stepName) {
   return `${body.join('\n')}\n`;
 }
 
-function assertValidBash(stepName) {
+function assertValidBash(source, stepName) {
   const result = spawnSync('bash', ['-n'], {
-    input: extractRunScript(stepName),
+    input: extractRunScript(source, stepName),
     encoding: 'utf8',
   });
   assert.equal(
@@ -52,104 +56,87 @@ assert.equal(
 assert.equal(
   workflow.includes('/api/admin/ai-search/process?limit=10'),
   true,
-  'deployment must process a bounded asynchronous upload and verification batch',
+  'deployment must start bounded asynchronous AI Search batches',
 );
 assert.equal(
-  workflow.includes('/api/admin/ai-search/process?limit=3'),
-  false,
-  'deployment must use the current migration batch size',
-);
-assert.equal(
-  workflow.includes('/api/admin/ai-search/status'),
+  workflow.includes('for attempt in $(seq 1 6)'),
   true,
-  'deployment must validate indexing state',
+  'deployment must use a small bounded migration kickoff',
 );
-for (const contract of [
-  'status.documents?.expected',
-  'status.documents?.indexed',
-  'status.documents?.waiting',
-  'status.documents?.error',
-  'status.documents?.missing',
-  'status.migrations?.pendingInstanceCleanup',
-]) {
-  assert.equal(
-    workflow.includes(contract),
-    true,
-    `deployment convergence check must include ${contract}`,
-  );
-}
+assert.equal(
+  workflow.includes('for attempt in $(seq 1 120)'),
+  false,
+  'deployment must never wait for full asynchronous index convergence',
+);
+assert.equal(
+  workflow.includes('AI Search migration is still in progress. This is expected and does not block deployment.'),
+  true,
+  'deployment must explicitly treat incomplete migration as nonblocking',
+);
 assert.equal(
   workflow.includes('indexed === expected'),
-  true,
-  'deployment must wait for every expected source document',
+  false,
+  'deployment must not require every source document to finish indexing',
 );
 assert.equal(
   workflow.includes('activeJobs === 0'),
-  true,
-  'deployment must wait for the outbox to drain',
+  false,
+  'deployment must not wait for the asynchronous outbox to drain',
 );
 assert.equal(
   workflow.includes('pendingCleanup === 0'),
-  true,
-  'deployment must wait until legacy hashed instances are removed',
+  false,
+  'deployment must not wait for legacy instance cleanup',
 );
-
-for (const readableContract of [
-  'Verify readable AI Search remote layout',
-  "expected_instances=\"$(jq -c '[.projects[].slug] | sort'",
-  "actual_instances=\"$(jq -c '[.result[].id] | sort'",
-  "(.path | sub(\"^/\"; \"\"))",
-  'items?per_page=50&page=$page',
-  'select(.status != "completed")',
-  'startswith("documents/file-")',
-  'AI Search item total does not match the source manifest',
-]) {
-  assert.equal(
-    workflow.includes(readableContract),
-    true,
-    `deployment must enforce readable remote layout contract: ${readableContract}`,
-  );
-}
 assert.equal(
-  workflow.includes('/api/ai-search/info'),
+  workflow.includes('legacy_instances_retained='),
   true,
-  'deployment must validate the built-in Items discovery contract',
+  'deployment must report legacy instances retained during safe migration',
+);
+assert.equal(
+  workflow.includes('Generated AI Search item names were found in readable instance'),
+  true,
+  'deployment must still reject unreadable keys inside new readable instances',
 );
 assert.equal(
   workflow.includes('/api/ai-search?q=documentation&limit=3&threshold=0'),
   true,
-  'deployment must execute a real semantic search after migration',
+  'deployment must execute a real semantic-search canary',
 );
 assert.equal(
-  workflow.includes('authenticated_json()'),
+  workflow.includes('health.aiSearch?.documents?.expected'),
   true,
-  'protected post-deploy requests must use a propagation-aware helper',
+  'deployment must verify that AI Search initialization is visible in health',
 );
 assert.equal(
-  workflow.includes("--write-out '%{http_code}'"),
-  true,
-  'protected post-deploy retries must inspect HTTP status without aborting on a transient 401',
+  workflow.includes('health.aiSearch?.documents?.indexed ?? 0) !=='),
+  false,
+  'smoke tests must not require full index completion',
 );
 assert.equal(
-  workflow.includes('Authenticated request attempt'),
+  workflow.includes('Full AI Search convergence is intentionally handled by the Worker cron'),
   true,
-  'protected post-deploy retries must leave actionable diagnostics',
+  'deployment summary must describe asynchronous convergence ownership',
 );
+
+for (const contract of [
+  'workflow_dispatch:',
+  'strict:',
+  'Strict AI Search migration audit failed',
+  'Legacy instances retained',
+  'Generated Item names inside readable instances',
+]) {
+  assert.equal(
+    auditWorkflow.includes(contract),
+    true,
+    `manual migration audit must include ${contract}`,
+  );
+}
 
 assert.equal(
   productionVerificationWorkflow.includes('/ai-index'),
   false,
-  'production verification must not probe the removed crawler index routes',
-);
-assert.equal(
-  productionVerificationWorkflow.includes('User-agent: Cloudflare-AI-Search'),
-  false,
-  'production verification must not depend on crawler-specific robots rules',
-);
-assert.equal(
-  productionVerificationWorkflow.includes('/sitemap.xml'),
-  false,
-  'production verification must not depend on the removed crawler sitemap',
+  'production verification must not probe removed crawler routes',
 );
 assert.equal(
   productionVerificationWorkflow.includes('/api/ai-search/info'),
@@ -161,7 +148,7 @@ assert.equal(
     '/api/ai-search/shadcn-ui-docs?q=progress&limit=5&threshold=0',
   ),
   true,
-  'production verification must execute a real project-isolated semantic search',
+  'production verification must execute a project-isolated semantic search',
 );
 assert.equal(
   productionVerificationWorkflow.includes("aiSearchInfo.storage !== 'built-in-items'"),
@@ -176,8 +163,9 @@ assert.equal(
   'production verification must assert per-project AI Search isolation',
 );
 
-assertValidBash('Prime AI Search index');
-assertValidBash('Verify readable AI Search remote layout');
-assertValidBash('Smoke test deployed Worker');
+assertValidBash(workflow, 'Kick off AI Search migration');
+assertValidBash(workflow, 'Report AI Search migration progress');
+assertValidBash(workflow, 'Smoke test deployed Worker');
+assertValidBash(auditWorkflow, 'Audit remote instances and Items');
 
-console.log('deployment and production verification workflow contract tests passed');
+console.log('nonblocking deployment and AI Search audit workflow contract tests passed');
