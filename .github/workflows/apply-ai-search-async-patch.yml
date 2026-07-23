@@ -1,0 +1,92 @@
+name: Apply AI Search Async Patch
+
+on:
+  push:
+    branches:
+      - fix/ai-search-async-upload
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/ai-search-async-upload
+          fetch-depth: 0
+
+      - name: Replace synchronous polling with queued upload
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('src/services/ai-search-indexing-service.ts')
+          text = path.read_text(encoding='utf-8')
+
+          lines = text.splitlines()
+          cleaned = []
+          for line in lines:
+              stripped = line.strip()
+              if stripped.startswith('// uploadAndPoll may legitimately'):
+                  continue
+              if stripped.startswith("// Keep the D1 lease longer"):
+                  continue
+              if stripped.startswith('// cannot claim the same file'):
+                  continue
+              if stripped.startswith('const UPLOAD_POLL_TIMEOUT_MS ='):
+                  continue
+              if stripped == 'const JOB_LEASE_SECONDS = 180;':
+                  cleaned.append('const JOB_LEASE_SECONDS = 120;')
+              else:
+                  cleaned.append(line)
+          text = '\n'.join(cleaned) + '\n'
+
+          start_marker = '  const uploaded = await provisioned.instance.items.uploadAndPoll('
+          next_marker = '  if (previous?.item_id && previous.item_id !== uploaded.id) {'
+          start = text.index(start_marker)
+          end = text.index(next_marker, start)
+          replacement = """  // Queue the document and return immediately. AI Search performs parsing,
+          // chunking, and embedding asynchronously, so Worker request duration no
+          // longer controls whether the document eventually becomes searchable.
+          const uploaded = await provisioned.instance.items.upload(itemKey, file.content, {
+            metadata: {
+              file_id: file.file_id,
+              content_hash: file.content_hash,
+              visibility: file.visibility,
+            },
+          });
+
+          """
+          text = text[:start] + replacement + text[end:]
+
+          if 'uploaded.chunks_count ?? null' not in text:
+              raise RuntimeError('chunks_count binding was not found')
+          text = text.replace('uploaded.chunks_count ?? null', 'null', 1)
+
+          text = text.replace(
+              '// AI Search indexing is mostly upstream waiting time. Run the bounded batch\n'
+              '  // concurrently so three slow files do not consume up to six minutes serially.',
+              '// Upload calls only enqueue work upstream, so a small bounded concurrent\n'
+              '  // batch quickly drains the D1 outbox without exceeding Worker limits.',
+              1,
+          )
+
+          if 'uploadAndPoll' in text or 'UPLOAD_POLL_TIMEOUT_MS' in text:
+              raise RuntimeError('synchronous polling code remains after patch')
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Commit source patch
+        run: |
+          rm .github/workflows/apply-ai-search-async-patch.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add src/services/ai-search-indexing-service.ts .github/workflows/apply-ai-search-async-patch.yml
+          git commit -m "fix: queue AI Search uploads asynchronously"
+          git push origin HEAD:fix/ai-search-async-upload
