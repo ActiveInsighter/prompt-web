@@ -81,6 +81,42 @@ export function buildAiSearchItemKey(sourcePath: string): string {
   return segments.join('/');
 }
 
+function readableFrontmatterLines(frontmatter: string): string[] {
+  return frontmatter
+    .split(/\r?\n/gu)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0 && !line.endsWith(':'))
+    .map((line) => line.replace(/^-\s*/u, '').replace(/^([\w-]+):\s*/u, '$1: '));
+}
+
+/**
+ * Cloudflare's Markdown converter rejects documents that contain only YAML
+ * frontmatter. D1 remains the source of truth, while AI Search receives a
+ * deterministic searchable projection under the exact same source-path key.
+ */
+export function buildAiSearchUploadContent(
+  sourcePath: string,
+  content: string,
+  format: 'markdown' | 'text' | 'json',
+): string {
+  if (format !== 'markdown') return content;
+
+  const normalized = content.replace(/^\uFEFF/u, '');
+  const frontmatterMatch = normalized.match(/^---\s*\r?\n([\s\S]*?)\r?\n---\s*(?:\r?\n)?([\s\S]*)$/u);
+  if (!frontmatterMatch || frontmatterMatch[2].trim().length > 0) return content;
+
+  const readable = readableFrontmatterLines(frontmatterMatch[1]);
+  const itemKey = buildAiSearchItemKey(sourcePath);
+  const title = itemKey.split('/').at(-1)?.replace(/\.[^.]+$/u, '') || itemKey;
+  return [
+    `# ${title}`,
+    '',
+    `Source: ${itemKey}`,
+    '',
+    ...readable,
+  ].join('\n');
+}
+
 export function buildAiSearchIndexHash(fileSyncHash: string, projectConfigHash: string): string {
   return `${fileSyncHash}|${projectConfigHash}`;
 }
