@@ -89,10 +89,8 @@ const aiSearchInputSchema = {
   query: z.string().trim().min(1).max(1_000),
   project: z.string().trim().max(128).optional(),
   limit: z.number().int().min(1).max(20).default(10),
-  mode: z.enum(['auto', 'hybrid', 'vector', 'keyword']).default('auto'),
+  mode: z.enum(['hybrid', 'vector', 'keyword']).default('vector'),
   group: z.enum(['files', 'chunks']).default('files'),
-  threshold: z.number().min(0).max(1).default(0.4),
-  context: z.number().int().min(0).max(3).default(0),
   rerank: z.boolean().default(false),
 };
 
@@ -262,7 +260,7 @@ export function createPromptMcpServer(env: Env, access: AccessContext): McpServe
     {
       title: 'Semantic AI search',
       description:
-        'Search project-isolated Cloudflare AI Search indexes visible to the caller. Each project has its own instance and documents are uploaded directly from D1 content. Returns ranked snippets plus titles, prompt:// identifiers, raw URLs, and measured duration. Use fetch_file to read a complete result.',
+        'Search project-isolated Cloudflare AI Search indexes visible to the caller. Vector retrieval is used by default; hybrid and keyword modes can be selected explicitly. Each project has its own instance and documents are uploaded directly from D1 content. Returns ranked snippets plus titles, prompt:// identifiers, raw URLs, and measured duration. Use fetch_file to read a complete result.',
       inputSchema: aiSearchInputSchema,
       outputSchema: {
         query: z.string(),
