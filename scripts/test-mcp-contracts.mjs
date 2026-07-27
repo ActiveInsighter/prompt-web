@@ -19,7 +19,22 @@ assert.match(source, /structuredContent:\s*value/u);
 assert.match(source, /bm25Rank/u);
 assert.match(
   source,
-  /z\.enum\(\['auto', 'hybrid', 'vector', 'keyword'\]\)\.default\('auto'\)/u,
+  /z\.enum\(\['hybrid', 'vector', 'keyword'\]\)\.default\('vector'\)/u,
+);
+assert.doesNotMatch(
+  source,
+  /mode:\s*z\.enum\([^\n]*['"]auto['"]/u,
+  'MCP ai_search must not expose auto mode.',
+);
+assert.doesNotMatch(
+  source,
+  /threshold:\s*z\./u,
+  'MCP ai_search must not expose threshold tuning.',
+);
+assert.doesNotMatch(
+  source,
+  /context:\s*z\./u,
+  'MCP ai_search must not expose context expansion tuning.',
 );
 assert.match(source, /rerank:\s*z\.boolean\(\)\.default\(false\)/u);
 assert.match(source, /mode:\s*z\.enum\(\['hybrid', 'keyword', 'vector'\]\)/u);
