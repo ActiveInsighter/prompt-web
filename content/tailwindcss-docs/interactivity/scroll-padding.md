@@ -21,15 +21,15 @@ Utilities for controlling an element's scroll offset within a snap container.
 | Class | Styles |
 | --- | --- |
 | `scroll-p-<number>` | `scroll-padding: calc(var(--spacing) * <number>);` |
-| `-scroll-p-<number>` | `scroll-padding: calc(var(--spacing) * -<number>);` |
+| `scroll-p-px` | `scroll-padding: 1px;` |
 | `scroll-p-(<custom-property>)` | `scroll-padding: var(<custom-property>);` |
 | `scroll-p-[<value>]` | `scroll-padding: <value>;` |
 | `scroll-px-<number>` | `scroll-padding-inline: calc(var(--spacing) * <number>);` |
-| `-scroll-px-<number>` | `scroll-padding-inline: calc(var(--spacing) * -<number>);` |
+| `scroll-px-px` | `scroll-padding-inline: 1px;` |
 | `scroll-px-(<custom-property>)` | `scroll-padding-inline: var(<custom-property>);` |
 | `scroll-px-[<value>]` | `scroll-padding-inline: <value>;` |
 | `scroll-py-<number>` | `scroll-padding-block: calc(var(--spacing) * <number>);` |
-| `-scroll-py-<number>` | `scroll-padding-block: calc(var(--spacing) * -<number>);` |
+| `scroll-py-px` | `scroll-padding-block: 1px;` |
 
 ## [Examples](#examples)
 
@@ -57,14 +57,6 @@ Use the `scroll-pbs-<number>` and `scroll-pbe-<number>` utilities to set the `sc
 
 ```
 <div class="snap-y scroll-pbs-6 ...">  <!-- ... --></div>
-```
-
-### [Using negative values](#using-negative-values)
-
-To use a negative scroll padding value, prefix the class name with a dash to convert it to a negative value:
-
-```
-<div class="-scroll-ps-6 snap-x ...">  <!-- ... --></div>
 ```
 
 ### [Using a custom value](#using-a-custom-value)

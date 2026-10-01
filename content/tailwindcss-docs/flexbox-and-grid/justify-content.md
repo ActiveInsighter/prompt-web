@@ -66,11 +66,11 @@ Use the `justify-end` or `justify-end-safe` utilities to justify items against t
 Resize the container to see the alignment behavior
 
 ```
-<div class="flex justify-end ...">  <div>01</div>  <div>02</div>  <div>03</div>  <div>03</div></div>
+<div class="flex justify-end ...">  <div>01</div>  <div>02</div>  <div>03</div>  <div>04</div></div>
 ```
 
 ```
-<div class="flex justify-end-safe ...">  <div>01</div>  <div>02</div>  <div>03</div>  <div>03</div></div>
+<div class="flex justify-end-safe ...">  <div>01</div>  <div>02</div>  <div>03</div>  <div>04</div></div>
 ```
 
 When there is not enough space available, the `justify-end-safe` utility will align items to the start of the container instead of the end.

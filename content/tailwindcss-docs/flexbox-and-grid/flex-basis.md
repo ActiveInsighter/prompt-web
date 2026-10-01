@@ -24,12 +24,12 @@ Utilities for controlling the initial size of flex items.
 | `basis-<fraction>` | `flex-basis: calc(<fraction> * 100%);` |
 | `basis-full` | `flex-basis: 100%;` |
 | `basis-auto` | `flex-basis: auto;` |
+| `basis-px` | `flex-basis: 1px;` |
 | `basis-3xs` | `flex-basis: var(--container-3xs); /* 16rem (256px) */` |
 | `basis-2xs` | `flex-basis: var(--container-2xs); /* 18rem (288px) */` |
 | `basis-xs` | `flex-basis: var(--container-xs); /* 20rem (320px) */` |
 | `basis-sm` | `flex-basis: var(--container-sm); /* 24rem (384px) */` |
 | `basis-md` | `flex-basis: var(--container-md); /* 28rem (448px) */` |
-| `basis-lg` | `flex-basis: var(--container-lg); /* 32rem (512px) */` |
 
 ## [Examples](#examples)
 
