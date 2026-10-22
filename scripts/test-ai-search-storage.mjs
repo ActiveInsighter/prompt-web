@@ -4,6 +4,7 @@ import {
   aiSearchRetryDelaySeconds,
   buildAiSearchIndexHash,
   buildAiSearchItemKey,
+  buildAiSearchUploadContent,
   buildProjectAiSearchInstanceId,
   stableAiSearchToken,
 } from '../src/services/ai-search-layout.ts';
@@ -45,6 +46,38 @@ assert.equal(
 assert.equal(buildAiSearchItemKey('/components/./button.md'), 'components/button.md');
 assert.throws(() => buildAiSearchItemKey('../secret.md'), /Invalid source path/u);
 assert.throws(() => buildAiSearchItemKey('/'), /Invalid source path/u);
+
+const frontmatterOnly = `---
+pageType: home
+hero:
+  text: Bear necessities for React state
+  tagline: A tiny, predictable store
+features:
+  - title: Minimal API
+    details: Create a store with a single hook.
+---`;
+const projected = buildAiSearchUploadContent('/index.md', frontmatterOnly, 'markdown');
+assert.match(projected, /^# index$/mu);
+assert.match(projected, /^Source: index\.md$/mu);
+assert.match(projected, /Bear necessities for React state/u);
+assert.match(projected, /Create a store with a single hook/u);
+assert.equal(
+  projected.includes('---'),
+  false,
+  'frontmatter-only Markdown must become real searchable Markdown instead of an empty conversion',
+);
+
+const normalMarkdown = `---\ntitle: Progress\n---\n\n# Progress\n\nVisible body.`;
+assert.equal(
+  buildAiSearchUploadContent('/components/progress.md', normalMarkdown, 'markdown'),
+  normalMarkdown,
+  'normal Markdown with a body must be uploaded unchanged',
+);
+assert.equal(
+  buildAiSearchUploadContent('/data.json', '{"ok":true}', 'json'),
+  '{"ok":true}',
+  'non-Markdown files must remain unchanged',
+);
 
 assert.equal(
   buildAiSearchIndexHash('sha256:file', 'sha256:project'),
