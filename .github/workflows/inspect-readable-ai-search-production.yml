@@ -1,0 +1,112 @@
+name: Inspect readable AI Search production
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      TARGET_SHA: 5453a9ad9b7a0b561ca186c4c8f01ae1d4c695ab
+    steps:
+      - name: Wait for target deployment and inspect Cloudflare
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          repo="$GITHUB_REPOSITORY"
+          run_id=''
+
+          for attempt in $(seq 1 120); do
+            runs_json="$(gh api "/repos/$repo/actions/workflows/deploy-worker.yml/runs?per_page=30")"
+            run_id="$(jq -r --arg sha "$TARGET_SHA" '.workflow_runs[] | select(.head_sha == $sha) | .id' <<<"$runs_json" | head -n 1)"
+            if [[ -n "$run_id" && "$run_id" != 'null' ]]; then
+              status="$(jq -r --argjson id "$run_id" '.workflow_runs[] | select(.id == $id) | .status' <<<"$runs_json")"
+              conclusion="$(jq -r --argjson id "$run_id" '.workflow_runs[] | select(.id == $id) | .conclusion // ""' <<<"$runs_json")"
+              echo "deployment_attempt=$attempt run_id=$run_id status=$status conclusion=$conclusion"
+              if [[ "$status" == 'completed' ]]; then
+                break
+              fi
+            else
+              echo "deployment_attempt=$attempt target run not visible yet"
+            fi
+            sleep 10
+          done
+
+          if [[ -z "$run_id" || "$run_id" == 'null' ]]; then
+            echo "Target deployment was not found for $TARGET_SHA" >&2
+            exit 1
+          fi
+
+          run_json="$(gh api "/repos/$repo/actions/runs/$run_id")"
+          echo 'DEPLOYMENT_RUN='
+          jq -c '{id,run_number,status,conclusion,head_sha,created_at,updated_at,html_url}' <<<"$run_json"
+
+          jobs_json="$(gh api "/repos/$repo/actions/runs/$run_id/jobs?filter=latest&per_page=100")"
+          echo 'DEPLOYMENT_JOBS='
+          jq -c '[.jobs[] | {id,name,status,conclusion}]' <<<"$jobs_json"
+
+          conclusion="$(jq -r '.conclusion // ""' <<<"$run_json")"
+          if [[ "$conclusion" != 'success' ]]; then
+            while IFS=$'\t' read -r job_id job_name; do
+              echo "===== DEPLOYMENT LOG TAIL: $job_name ($job_id) ====="
+              gh api "/repos/$repo/actions/jobs/$job_id/logs" > "job-$job_id.log"
+              tail -n 120 "job-$job_id.log"
+            done < <(jq -r '.jobs[] | [.id, .name] | @tsv' <<<"$jobs_json")
+            exit 1
+          fi
+
+          test -n "$CLOUDFLARE_API_TOKEN" || { echo 'Missing CLOUDFLARE_API_TOKEN'; exit 1; }
+          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo 'Missing CLOUDFLARE_ACCOUNT_ID'; exit 1; }
+          api="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/ai-search/namespaces/prompt-projects"
+          auth="Authorization: Bearer $CLOUDFLARE_API_TOKEN"
+          instances="$(curl --fail --silent --show-error --header "$auth" "$api/instances?per_page=100")"
+
+          echo 'REMOTE_INSTANCES='
+          jq -c '[.result[] | {id,status,type,created_at,modified_at}] | sort_by(.id)' <<<"$instances"
+
+          echo 'REMOTE_ITEM_STATE='
+          total=0
+          incomplete=0
+          generated=0
+          while IFS= read -r id; do
+            all='[]'
+            for page in $(seq 1 40); do
+              response="$(curl --fail --silent --show-error --header "$auth" "$api/instances/$id/items?per_page=50&page=$page")"
+              batch="$(jq '.result // []' <<<"$response")"
+              all="$(jq -nc --argjson current "$all" --argjson batch "$batch" '$current + $batch')"
+              [[ "$(jq 'length' <<<"$batch")" -lt 50 ]] && break
+            done
+            count="$(jq 'length' <<<"$all")"
+            bad="$(jq '[.[] | select(.status != "completed")] | length' <<<"$all")"
+            old_names="$(jq '[.[] | select(.key | startswith("documents/"))] | length' <<<"$all")"
+            total=$((total + count))
+            incomplete=$((incomplete + bad))
+            generated=$((generated + old_names))
+            jq -nc \
+              --arg instance_id "$id" \
+              --argjson item_count "$count" \
+              --argjson items "$all" \
+              '{instance_id:$instance_id,item_count:$item_count,item_statuses:($items|group_by(.status)|map({key:(.[0].status//"unknown"),value:length})|from_entries),generated_key_count:([$items[]|select(.key|startswith("documents/"))]|length),sample_keys:([$items[].key]|sort|.[0:5])}'
+          done < <(jq -r '.result[].id' <<<"$instances" | sort)
+
+          instance_ids="$(jq -c '[.result[].id] | sort' <<<"$instances")"
+          expected='["prompt-library","shadcn-ui-docs","tailwindcss-docs","zustand-docs"]'
+          echo "REMOTE_TOTALS={\"instances\":$(jq '.result|length' <<<"$instances"),\"items\":$total,\"incomplete\":$incomplete,\"generated_keys\":$generated}"
+
+          [[ "$instance_ids" == "$expected" ]] || { echo "Unexpected instance IDs: $instance_ids" >&2; exit 1; }
+          [[ "$total" -eq 348 ]] || { echo "Unexpected item total: $total" >&2; exit 1; }
+          [[ "$incomplete" -eq 0 ]] || { echo "Remote items are not fully completed: $incomplete" >&2; exit 1; }
+          [[ "$generated" -eq 0 ]] || { echo "Generated legacy item keys remain: $generated" >&2; exit 1; }
+
+          echo 'Readable AI Search production migration verified.'
