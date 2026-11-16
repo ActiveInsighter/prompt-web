@@ -776,13 +776,11 @@ Use the `SidebarHeader` component to add a sticky header to the sidebar.
     <SidebarMenu>
       <SidebarMenuItem>
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <SidebarMenuButton>
-              Select Workspace
-              <ChevronDown className="ml-auto" />
-            </SidebarMenuButton>
+          <DropdownMenuTrigger render={<SidebarMenuButton />}>
+            Select Workspace
+            <ChevronDown className="ml-auto" />
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-[--radix-popper-anchor-width]">
+          <DropdownMenuContent>
             <DropdownMenuItem>
               <span>Acme Inc</span>
             </DropdownMenuItem>
@@ -846,11 +844,9 @@ To make a `SidebarGroup` collapsible, wrap it in a `Collapsible`.
 ```tsx showLineNumbers
 <Collapsible defaultOpen className="group/collapsible">
   <SidebarGroup>
-    <SidebarGroupLabel asChild>
-      <CollapsibleTrigger>
-        Help
-        <ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
-      </CollapsibleTrigger>
+    <SidebarGroupLabel render={<CollapsibleTrigger />}>
+      Help
+      <ChevronDown className="ml-auto transition-transform group-data-open/collapsible:rotate-180" />
     </SidebarGroupLabel>
     <CollapsibleContent>
       <SidebarGroupContent />
@@ -882,11 +878,9 @@ The `SidebarMenu` component is used for building a menu within a `SidebarGroup`.
 <SidebarMenu>
   {projects.map((project) => (
     <SidebarMenuItem key={project.name}>
-      <SidebarMenuButton asChild>
-        <a href={project.url}>
-          <project.icon />
-          <span>{project.name}</span>
-        </a>
+      <SidebarMenuButton render={<a href={project.url} />}>
+        <project.icon />
+        <span>{project.name}</span>
       </SidebarMenuButton>
     </SidebarMenuItem>
   ))}
@@ -897,13 +891,13 @@ The `SidebarMenu` component is used for building a menu within a `SidebarGroup`.
 
 The `SidebarMenuButton` component is used to render a menu button within a `SidebarMenuItem`.
 
-By default, the `SidebarMenuButton` renders a button but you can use the `asChild` prop to render a different component such as a `Link` or an `a` tag.
+By default, the `SidebarMenuButton` renders a button but you can use the `render` prop to render a different component such as a `Link` or an `a` tag.
 
 Use the `isActive` prop to mark a menu item as active.
 
 ```tsx showLineNumbers
-<SidebarMenuButton asChild isActive>
-  <a href="#">Home</a>
+<SidebarMenuButton render={<a href="#" />} isActive>
+  Home
 </SidebarMenuButton>
 ```
 
@@ -913,11 +907,9 @@ The `SidebarMenuAction` component is used to render a menu action within a `Side
 
 ```tsx showLineNumbers
 <SidebarMenuItem>
-  <SidebarMenuButton asChild>
-    <a href="#">
-      <Home />
-      <span>Home</span>
-    </a>
+  <SidebarMenuButton render={<a href="#" />}>
+    <Home />
+    <span>Home</span>
   </SidebarMenuButton>
   <SidebarMenuAction>
     <Plus /> <span className="sr-only">Add Project</span>
@@ -1015,28 +1007,26 @@ export function AppSidebar() {
 We use the following CSS variables to theme the sidebar.
 
 ```css
-@layer base {
-  :root {
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
+:root {
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
 
-  .dark {
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 0 0% 98%;
-    --sidebar-primary-foreground: 240 5.9% 10%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
+.dark {
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.439 0 0);
 }
 ```
 

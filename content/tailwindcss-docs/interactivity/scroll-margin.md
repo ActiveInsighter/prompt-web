@@ -22,14 +22,14 @@ Utilities for controlling the scroll offset around items in a snap container.
 | --- | --- |
 | `scroll-m-<number>` | `scroll-margin: calc(var(--spacing) * <number>);` |
 | `-scroll-m-<number>` | `scroll-margin: calc(var(--spacing) * -<number>);` |
+| `scroll-m-px` | `scroll-margin: 1px;` |
+| `-scroll-m-px` | `scroll-margin: -1px;` |
 | `scroll-m-(<custom-property>)` | `scroll-margin: var(<custom-property>);` |
 | `scroll-m-[<value>]` | `scroll-margin: <value>;` |
 | `scroll-mx-<number>` | `scroll-margin-inline: calc(var(--spacing) * <number>);` |
 | `-scroll-mx-<number>` | `scroll-margin-inline: calc(var(--spacing) * -<number>);` |
-| `scroll-mx-(<custom-property>)` | `scroll-margin-inline: var(<custom-property>);` |
-| `scroll-mx-[<value>]` | `scroll-margin-inline: <value>;` |
-| `scroll-my-<number>` | `scroll-margin-block: calc(var(--spacing) * <number>);` |
-| `-scroll-my-<number>` | `scroll-margin-block: calc(var(--spacing) * -<number>);` |
+| `scroll-mx-px` | `scroll-margin-inline: 1px;` |
+| `-scroll-mx-px` | `scroll-margin-inline: -1px;` |
 
 ## [Examples](#examples)
 

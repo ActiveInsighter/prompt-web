@@ -5,11 +5,8 @@ description: Here you can find all the components available in the library. We a
 
 ## New Components
 
-- [Attachment](https://ui.shadcn.com/docs/components/attachment): Displays a file or image attachment with media, metadata, upload state, and actions.
-- [Bubble](https://ui.shadcn.com/docs/components/bubble): Displays conversational content in a message bubble. Supports variants, alignment, grouping, reactions, and collapsible content.
-- [Marker](https://ui.shadcn.com/docs/components/marker): Displays an inline status, system note, bordered row, or labeled separator in a conversation.
-- [Message](https://ui.shadcn.com/docs/components/message): Displays a message in a conversation, with optional avatar, header, footer, and alignment.
-- [Message Scroller](https://ui.shadcn.com/docs/components/message-scroller): A chat scroll container that anchors turns, opens saved transcripts, follows streamed responses, loads history without jumping, and jumps to any message.
+- [Code Block](https://ui.shadcn.com/docs/components/code-block): Displays code, terminal output and diffs with an optional header, line numbers and a copy button.
+- [Trace](https://ui.shadcn.com/docs/components/trace): The building block for reasoning, tool calls, sources and more.
 
 ## All Components
 
@@ -29,6 +26,7 @@ description: Here you can find all the components available in the library. We a
 - [Carousel](https://ui.shadcn.com/docs/components/carousel): A carousel with motion and swipe built using Embla.
 - [Chart](https://ui.shadcn.com/docs/components/chart): Beautiful charts. Built using Recharts. Copy and paste into your apps.
 - [Checkbox](https://ui.shadcn.com/docs/components/checkbox): A control that allows the user to toggle between checked and not checked.
+- [Code Block](https://ui.shadcn.com/docs/components/code-block): Displays code, terminal output and diffs with an optional header, line numbers and a copy button.
 - [Collapsible](https://ui.shadcn.com/docs/components/collapsible): An interactive component which expands/collapses a panel.
 - [Combobox](https://ui.shadcn.com/docs/components/combobox): Autocomplete input with a list of suggestions.
 - [Command](https://ui.shadcn.com/docs/components/command): Command menu for search and quick actions.
@@ -57,6 +55,7 @@ description: Here you can find all the components available in the library. We a
 - [Pagination](https://ui.shadcn.com/docs/components/pagination): Pagination with page navigation, next and previous links.
 - [Popover](https://ui.shadcn.com/docs/components/popover): Displays rich content in a portal, triggered by a button.
 - [Progress](https://ui.shadcn.com/docs/components/progress): Displays an indicator showing the completion progress of a task, typically displayed as a progress bar.
+- [Questionnaire](https://ui.shadcn.com/docs/components/questionnaire): A multi-step questionnaire with single-choice, multiple-choice, freeform, and skippable questions.
 - [Radio Group](https://ui.shadcn.com/docs/components/radio-group): A set of checkable buttons—known as radio buttons—where no more than one of the buttons can be checked at a time.
 - [Resizable](https://ui.shadcn.com/docs/components/resizable): Accessible resizable panel groups and layouts with keyboard support.
 - [Scroll Area](https://ui.shadcn.com/docs/components/scroll-area): Augments native scroll functionality for custom, cross-browser styling.
@@ -66,7 +65,6 @@ description: Here you can find all the components available in the library. We a
 - [Sidebar](https://ui.shadcn.com/docs/components/sidebar): A composable, themeable and customizable sidebar component.
 - [Skeleton](https://ui.shadcn.com/docs/components/skeleton): Use to show a placeholder while content is loading.
 - [Slider](https://ui.shadcn.com/docs/components/slider): An input where the user selects a value from within a given range.
-- [Sonner](https://ui.shadcn.com/docs/components/sonner): An opinionated toast component for React.
 - [Spinner](https://ui.shadcn.com/docs/components/spinner): An indicator that can be used to show a loading state.
 - [Switch](https://ui.shadcn.com/docs/components/switch): A control that allows the user to toggle between checked and not checked.
 - [Table](https://ui.shadcn.com/docs/components/table): A responsive table component.
@@ -76,6 +74,7 @@ description: Here you can find all the components available in the library. We a
 - [Toggle](https://ui.shadcn.com/docs/components/toggle): A two-state button that can be either on or off.
 - [Toggle Group](https://ui.shadcn.com/docs/components/toggle-group): A set of two-state buttons that can be toggled on or off.
 - [Tooltip](https://ui.shadcn.com/docs/components/tooltip): A popup that displays information related to an element when the element receives keyboard focus or the mouse hovers over it.
+- [Trace](https://ui.shadcn.com/docs/components/trace): The building block for reasoning, tool calls, sources and more.
 - [Typography](https://ui.shadcn.com/docs/components/typography): Styles for headings, paragraphs, lists, etc.
 
 ---
